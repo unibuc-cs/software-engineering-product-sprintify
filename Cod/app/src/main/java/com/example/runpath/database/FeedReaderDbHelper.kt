@@ -20,7 +20,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         private val SQL_CREATE_USER = "CREATE TABLE ${UserEntry.TABLE_NAME} (" +
                 "${UserEntry.COLUMN_USER_ID} INTEGER PRIMARY KEY," +
                 "${UserEntry.COLUMN_USERNAME} TEXT NOT NULL," +
-                "${UserEntry.COLUMN_PASSWORD_HASH} TEXT NOT NULL," +
+                "${UserEntry.COLUMN_PASSWORD} TEXT NOT NULL," +
                 "${UserEntry.COLUMN_EMAIL} TEXT," +
                 "${UserEntry.COLUMN_DATE_CREATED} TEXT)"
 

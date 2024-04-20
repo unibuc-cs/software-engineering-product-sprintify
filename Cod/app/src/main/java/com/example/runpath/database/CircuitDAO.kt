@@ -6,7 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class CircuitDAO(context: Context, dbHelper: SQLiteOpenHelper) {
+class CircuitDAO(context: Context, dbHelper: SQLiteOpenHelper) { // check if i need to add feedreadear
     private val db: SQLiteDatabase = dbHelper.writableDatabase
 
 
