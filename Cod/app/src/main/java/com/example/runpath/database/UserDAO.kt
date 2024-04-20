@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.content.Context
 import android.content.ContentValues
 import android.database.sqlite.SQLiteOpenHelper
+import android.database.Cursor
 
 
 class UserDAO (context: Context, dbHelper: SQLiteOpenHelper) {
