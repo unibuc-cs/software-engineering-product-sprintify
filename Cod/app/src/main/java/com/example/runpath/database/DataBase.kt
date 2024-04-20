@@ -8,7 +8,7 @@ object DataBase {
         const val TABLE_NAME = "User"
         const val COLUMN_USER_ID = "UserID"
         const val COLUMN_USERNAME = "Username"
-        const val COLUMN_PASSWORD_HASH = "PasswordHash"
+        const val COLUMN_PASSWORD = "Password"
         const val COLUMN_EMAIL = "Email"
         const val COLUMN_DATE_CREATED = "DateCreated"
     }
