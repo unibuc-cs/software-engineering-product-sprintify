@@ -1,7 +1,6 @@
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.example.runpath.database.DataBase
 import com.example.runpath.database.DataBase.UserEntry
 import com.example.runpath.database.DataBase.ProfileEntry
 import com.example.runpath.database.DataBase.SavedCircuitsEntry
