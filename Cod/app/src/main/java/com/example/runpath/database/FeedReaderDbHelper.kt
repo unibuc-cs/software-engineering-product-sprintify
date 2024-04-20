@@ -112,14 +112,15 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(SQL_CREATE_USER)
         db.execSQL(SQL_CREATE_PROFILE)
-        // ... Execute the rest of the create statements
+        db.execSQL(SQL_CREATE_SAVED_CIRCUITS)
+        db.execSQL(SQL_CREATE_CIRCUIT)
+        db.execSQL(SQL_CREATE_RUN)
+        db.execSQL(SQL_CREATE_LEADERBOARD)
+        db.execSQL(SQL_CREATE_COMMUNITY)
+        db.execSQL(SQL_CREATE_COMMUNITY_USERS)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // This is just a simple upgrade policy which will simply remove all old data.
-        // A more advanced upgrade policy would migrate data from the old schema to the new schema without data loss.
-        // db.execSQL("DROP TABLE IF EXISTS ${UserEntry.TABLE_NAME}")
-        // db.execSQL("DROP TABLE IF EXISTS ${ProfileEntry.TABLE_NAME}")
-        // ... Drop the rest of the tables if needed
-        onCreate(db) // Call onCreate to recreate the tables
+
+        onCreate(db)
     }
 }
