@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.runpath.database.LeaderboardDAO
+import com.example.runpath.ui.theme.LeaderboardForm
 import com.example.runpath.ui.theme.RunPathTheme
 import kotlin.time.Duration
 import kotlin.time.hours
@@ -48,7 +49,7 @@ class MainActivity : ComponentActivity() {
 
                 Box(contentAlignment = Alignment.Center,modifier = Modifier.fillMaxWidth())
                 {
-                    SimpleForm(this@MainActivity, dbHelper)
+                    LeaderboardForm(this@MainActivity, dbHelper)
                 }
 
 
@@ -58,83 +59,4 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun SimpleForm(context: Context, dbHelper: FeedReaderDbHelper) {
-    // Define state variables for the fields
-    var leaderboardId by remember { mutableStateOf("") }
-    var circuitId by remember { mutableStateOf("")}
-    var userId by remember { mutableStateOf("")}
-    var rank by remember { mutableStateOf("")}
-    var time by remember { mutableStateOf("")}
 
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-
-        // Text field for Leaderboard ID
-        TextField(
-            value = leaderboardId,
-            onValueChange = { leaderboardId = it },
-            label = { Text("Leaderboard ID") },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions.Default,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Text field for Circuit ID
-        TextField(
-            value = circuitId,
-            onValueChange = { circuitId = it },
-            label = { Text("Circuit ID") },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions.Default,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Text field for User ID
-        TextField(
-            value = userId,
-            onValueChange = { userId = it },
-            label = { Text("User ID") },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions.Default,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Text field for Leaderboard Rank
-        TextField(
-            value = rank,
-            onValueChange = { rank = it },
-            label = { Text("Rank") },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions.Default,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Text field for Leaderboard Time
-        TextField(
-            value = time,
-            onValueChange = { time = it },
-            label = { Text("Time") },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions.Default,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // Button to simulate saving the form data
-        Button(
-            onClick = {
-                val leaderboardDAO = LeaderboardDAO(context, dbHelper)
-                leaderboardDAO.insertLeaderboard(leaderboardId.toInt(), circuitId.toInt(),
-                    userId.toInt(), rank.toInt(), time)
-
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Submit")
-        }
-    }
-}
