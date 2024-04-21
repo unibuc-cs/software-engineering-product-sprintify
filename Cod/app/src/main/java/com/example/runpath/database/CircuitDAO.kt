@@ -6,7 +6,12 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class CircuitDAO(context: Context, dbHelper: SQLiteOpenHelper) { // check if i need to add feedreadear
+
+/*
+* Given that your project uses FeedReaderDbHelper to create and manage the database, it's fine to reference it directly.
+* However, if you value flexibility, testability, or anticipate changes in the database structure, it's better to stick with SQLiteOpenHelper.
+* */
+class CircuitDAO(context: Context, dbHelper: SQLiteOpenHelper) {
     private val db: SQLiteDatabase = dbHelper.writableDatabase
 
 

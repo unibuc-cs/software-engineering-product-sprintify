@@ -31,81 +31,60 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
                 "${ProfileEntry.COLUMN_PET_OWNER} INTEGER," +
                 "FOREIGN KEY(${ProfileEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID}))"
 
-        // ... Define SQL_CREATE statements for the rest of your tables
-        private val SQL_CREATE_SAVED_CIRCUITS = """CREATE TABLE ${SavedCircuitsEntry.TABLE_NAME} (
-        ${SavedCircuitsEntry.COLUMN_SAVED_CIRCUIT_ID} INTEGER PRIMARY KEY,
-        ${SavedCircuitsEntry.COLUMN_USER_ID} INTEGER,
-        ${SavedCircuitsEntry.COLUMN_CIRCUIT_ID} INTEGER,
-        FOREIGN KEY(${SavedCircuitsEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID}),
-        FOREIGN KEY(${SavedCircuitsEntry.COLUMN_CIRCUIT_ID}) REFERENCES ${CircuitEntry.TABLE_NAME}(${CircuitEntry.COLUMN_CIRCUIT_ID})
-    );
-"""
-        private  val SQL_CREATE_CIRCUIT = """
-    CREATE TABLE ${CircuitEntry.TABLE_NAME} (
-        ${CircuitEntry.COLUMN_CIRCUIT_ID} INTEGER PRIMARY KEY,
-        ${CircuitEntry.COLUMN_NAME} TEXT NOT NULL,
-        ${CircuitEntry.COLUMN_DESCRIPTION} TEXT,
-        ${CircuitEntry.COLUMN_DISTANCE} REAL,
-        ${CircuitEntry.COLUMN_ESTIMATED_TIME} INTEGER,
-        ${CircuitEntry.COLUMN_INTENSITY} TEXT,
-        ${CircuitEntry.COLUMN_TERRAIN} TEXT,
-        ${CircuitEntry.COLUMN_PET_FRIENDLY} INTEGER,
-        ${CircuitEntry.COLUMN_LIGHT_LEVEL} TEXT,
-        ${CircuitEntry.COLUMN_RATING} INTEGER,
-        ${CircuitEntry.COLUMN_DIFFICULTY} INTEGER
-    );
-"""
+        private val SQL_CREATE_SAVED_CIRCUITS = "CREATE TABLE ${SavedCircuitsEntry.TABLE_NAME} (" +
+                "${SavedCircuitsEntry.COLUMN_SAVED_CIRCUIT_ID} INTEGER PRIMARY KEY," +
+                "${SavedCircuitsEntry.COLUMN_USER_ID} INTEGER," +
+                "${SavedCircuitsEntry.COLUMN_CIRCUIT_ID} INTEGER," +
+                "FOREIGN KEY(${SavedCircuitsEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID})," +
+                "FOREIGN KEY(${SavedCircuitsEntry.COLUMN_CIRCUIT_ID}) REFERENCES ${CircuitEntry.TABLE_NAME}(${CircuitEntry.COLUMN_CIRCUIT_ID}))"
 
-        // SQL to create the Run table
-        private  val SQL_CREATE_RUN = """
-    CREATE TABLE ${RunEntry.TABLE_NAME} (
-        ${RunEntry.COLUMN_RUN_ID} INTEGER PRIMARY KEY,
-        ${RunEntry.COLUMN_USER_ID} INTEGER,
-        ${RunEntry.COLUMN_CIRCUIT_ID} INTEGER,
-        ${RunEntry.COLUMN_START_TIME} TEXT,
-        ${RunEntry.COLUMN_END_TIME} TEXT,
-        ${RunEntry.COLUMN_PAUSE_TIME} INTEGER,
-        ${RunEntry.COLUMN_TIME_TRACKER} INTEGER,
-        ${RunEntry.COLUMN_PACE_TRACKER} REAL,
-        ${RunEntry.COLUMN_DISTANCE_TRACKER} REAL,
-        FOREIGN KEY(${RunEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID}),
-        FOREIGN KEY(${RunEntry.COLUMN_CIRCUIT_ID}) REFERENCES ${CircuitEntry.TABLE_NAME}(${CircuitEntry.COLUMN_CIRCUIT_ID})
-    );
-"""
+        private val SQL_CREATE_CIRCUIT = "CREATE TABLE ${CircuitEntry.TABLE_NAME} (" +
+                "${CircuitEntry.COLUMN_CIRCUIT_ID} INTEGER PRIMARY KEY," +
+                "${CircuitEntry.COLUMN_NAME} TEXT NOT NULL," +
+                "${CircuitEntry.COLUMN_DESCRIPTION} TEXT," +
+                "${CircuitEntry.COLUMN_DISTANCE} REAL," +
+                "${CircuitEntry.COLUMN_ESTIMATED_TIME} INTEGER," +
+                "${CircuitEntry.COLUMN_INTENSITY} TEXT," +
+                "${CircuitEntry.COLUMN_TERRAIN} TEXT," +
+                "${CircuitEntry.COLUMN_PET_FRIENDLY} INTEGER," +
+                "${CircuitEntry.COLUMN_LIGHT_LEVEL} TEXT," +
+                "${CircuitEntry.COLUMN_RATING} INTEGER," +
+                "${CircuitEntry.COLUMN_DIFFICULTY} INTEGER)"
 
-        // SQL to create the Leaderboard table
-        private  val SQL_CREATE_LEADERBOARD = """
-    CREATE TABLE ${LeaderboardEntry.TABLE_NAME} (
-        ${LeaderboardEntry.COLUMN_LEADERBOARD_ID} INTEGER PRIMARY KEY,
-        ${LeaderboardEntry.COLUMN_CIRCUIT_ID} INTEGER,
-        ${LeaderboardEntry.COLUMN_USER_ID} INTEGER,
-        ${LeaderboardEntry.COLUMN_RANK} INTEGER,
-        ${LeaderboardEntry.COLUMN_TIME} INTEGER,
-        FOREIGN KEY(${LeaderboardEntry.COLUMN_CIRCUIT_ID}) REFERENCES ${CircuitEntry.TABLE_NAME}(${CircuitEntry.COLUMN_CIRCUIT_ID}),
-        FOREIGN KEY(${LeaderboardEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID})
-    );
-"""
+        private val SQL_CREATE_RUN = "CREATE TABLE ${RunEntry.TABLE_NAME} (" +
+                "${RunEntry.COLUMN_RUN_ID} INTEGER PRIMARY KEY," +
+                "${RunEntry.COLUMN_USER_ID} INTEGER," +
+                "${RunEntry.COLUMN_CIRCUIT_ID} INTEGER," +
+                "${RunEntry.COLUMN_START_TIME} TEXT," +
+                "${RunEntry.COLUMN_END_TIME} TEXT," +
+                "${RunEntry.COLUMN_PAUSE_TIME} INTEGER," +
+                "${RunEntry.COLUMN_TIME_TRACKER} INTEGER," +
+                "${RunEntry.COLUMN_PACE_TRACKER} REAL," +
+                "${RunEntry.COLUMN_DISTANCE_TRACKER} REAL," +
+                "FOREIGN KEY(${RunEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID})," +
+                "FOREIGN KEY(${RunEntry.COLUMN_CIRCUIT_ID}) REFERENCES ${CircuitEntry.TABLE_NAME}(${CircuitEntry.COLUMN_CIRCUIT_ID}))"
 
-        // SQL to create the Community table
-        private  val SQL_CREATE_COMMUNITY = """
-    CREATE TABLE ${CommunityEntry.TABLE_NAME} (
-        ${CommunityEntry.COLUMN_COMMUNITY_ID} INTEGER PRIMARY KEY,
-        ${CommunityEntry.COLUMN_NAME} TEXT NOT NULL,
-        ${CommunityEntry.COLUMN_DESCRIPTION} TEXT
-    );
-"""
+        private val SQL_CREATE_LEADERBOARD = "CREATE TABLE ${LeaderboardEntry.TABLE_NAME} (" +
+                "${LeaderboardEntry.COLUMN_LEADERBOARD_ID} INTEGER PRIMARY KEY," +
+                "${LeaderboardEntry.COLUMN_CIRCUIT_ID} INTEGER," +
+                "${LeaderboardEntry.COLUMN_USER_ID} INTEGER," +
+                "${LeaderboardEntry.COLUMN_RANK} INTEGER," +
+                "${LeaderboardEntry.COLUMN_TIME} INTEGER," +
+                "FOREIGN KEY(${LeaderboardEntry.COLUMN_CIRCUIT_ID}) REFERENCES ${CircuitEntry.TABLE_NAME}(${CircuitEntry.COLUMN_CIRCUIT_ID})," +
+                "FOREIGN KEY(${LeaderboardEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID}))"
 
-        // SQL to create the Community_Users join table
-        private  val SQL_CREATE_COMMUNITY_USERS = """
-    CREATE TABLE ${CommunityUsersEntry.TABLE_NAME} (
-        ${CommunityUsersEntry.COLUMN_COMMUNITY_ID} INTEGER,
-        ${CommunityUsersEntry.COLUMN_USER_ID} INTEGER,
-        ${CommunityUsersEntry.COLUMN_DATE_JOINED} TEXT,
-        PRIMARY KEY (${CommunityUsersEntry.COLUMN_COMMUNITY_ID}, ${CommunityUsersEntry.COLUMN_USER_ID}),
-        FOREIGN KEY(${CommunityUsersEntry.COLUMN_COMMUNITY_ID}) REFERENCES ${CommunityEntry.TABLE_NAME}(${CommunityEntry.COLUMN_COMMUNITY_ID}),
-        FOREIGN KEY(${CommunityUsersEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID})
-    );
-"""
+        private val SQL_CREATE_COMMUNITY = "CREATE TABLE ${CommunityEntry.TABLE_NAME} (" +
+                "${CommunityEntry.COLUMN_COMMUNITY_ID} INTEGER PRIMARY KEY," +
+                "${CommunityEntry.COLUMN_NAME} TEXT NOT NULL," +
+                "${CommunityEntry.COLUMN_DESCRIPTION} TEXT)"
+
+        private val SQL_CREATE_COMMUNITY_USERS = "CREATE TABLE ${CommunityUsersEntry.TABLE_NAME} (" +
+                "${CommunityUsersEntry.COLUMN_COMMUNITY_ID} INTEGER," +
+                "${CommunityUsersEntry.COLUMN_USER_ID} INTEGER," +
+                "${CommunityUsersEntry.COLUMN_DATE_JOINED} TEXT," +
+                "PRIMARY KEY (${CommunityUsersEntry.COLUMN_COMMUNITY_ID}, ${CommunityUsersEntry.COLUMN_USER_ID})," +
+                "FOREIGN KEY(${CommunityUsersEntry.COLUMN_COMMUNITY_ID}) REFERENCES ${CommunityEntry.TABLE_NAME}(${CommunityEntry.COLUMN_COMMUNITY_ID})," +
+                "FOREIGN KEY(${CommunityUsersEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID}))"
 
     }
     override fun onCreate(db: SQLiteDatabase) {
@@ -119,7 +98,34 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         db.execSQL(SQL_CREATE_COMMUNITY_USERS)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-
+        // to do change the onUpgrade so it does not simply recreate the database
         onCreate(db)
+
+
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
