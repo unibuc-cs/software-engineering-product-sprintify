@@ -99,7 +99,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         // to do change the onUpgrade so it does not simply recreate the database
-        onCreate(db)
+        //onCreate(db)
 
 
     }
