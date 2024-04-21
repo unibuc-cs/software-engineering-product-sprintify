@@ -16,14 +16,14 @@ class LeaderboardDAO(context: Context, dbHelper: SQLiteOpenHelper) {
         circuitId: Int,
         userId: Int,
         rank: Int,
-        time: Duration
+        time: String
     ): Long {
         val values = ContentValues().apply {
             put(DataBase.LeaderboardEntry.COLUMN_LEADERBOARD_ID, leaderboardId)
             put(DataBase.LeaderboardEntry.COLUMN_CIRCUIT_ID, circuitId)
             put(DataBase.LeaderboardEntry.COLUMN_USER_ID, userId)
             put(DataBase.LeaderboardEntry.COLUMN_RANK, rank)
-            put(DataBase.LeaderboardEntry.COLUMN_TIME, time.toString())
+            put(DataBase.LeaderboardEntry.COLUMN_TIME, time)
         }
         return db.insert(DataBase.LeaderboardEntry.TABLE_NAME, null, values)
     }
@@ -40,7 +40,7 @@ class LeaderboardDAO(context: Context, dbHelper: SQLiteOpenHelper) {
         circuitId: Int,
         userId: Int,
         rank: Int,
-        time: Duration
+        time: String
     ): Int {
         val values = ContentValues().apply {
             circuitId?.let {put(DataBase.LeaderboardEntry.COLUMN_CIRCUIT_ID, it)}
