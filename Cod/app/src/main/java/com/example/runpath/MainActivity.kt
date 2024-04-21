@@ -48,18 +48,10 @@ class MainActivity : ComponentActivity() {
 
                 Box(contentAlignment = Alignment.Center,modifier = Modifier.fillMaxWidth())
                 {
-                    Button(
-                        onClick = {
-                            //var done = leaderboardDAO.insertLeaderboard(1, 1, 1, 1, "1:00:00")
-                            //println("done: $done")
-                        },
-
-                        ) {
-                        Text(text = "click me")
-                    }
+                    SimpleForm(this@MainActivity, dbHelper)
                 }
 
-                SimpleForm(this@MainActivity, dbHelper)
+
             }
 
         }
@@ -138,6 +130,7 @@ fun SimpleForm(context: Context, dbHelper: FeedReaderDbHelper) {
                 val leaderboardDAO = LeaderboardDAO(context, dbHelper)
                 leaderboardDAO.insertLeaderboard(leaderboardId.toInt(), circuitId.toInt(),
                     userId.toInt(), rank.toInt(), time)
+
             },
             modifier = Modifier.fillMaxWidth()
         ) {
