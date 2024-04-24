@@ -1,4 +1,107 @@
-package com.example.runpath.ui.theme
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
-class LoginPage {
+@Composable
+
+fun LoginPage {
+    var username by remember { mutableStateOf("")}
+    var password by remember { musableStateOf("")}
+    Box
+    (
+        modifier = Modifier.fillMaxSize()
+        contentAlignment = Alignment.Center
+
+            )
+    {
+        Column (
+            modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            Text(
+                text = "RunPath",
+                fontsize =  24.sp,
+                modifier = Modifier.padding(16.dp)
+            )
+            // campul pentru username
+            BasicTextField(
+                value = username,
+                onValueChange = { username = it},
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier.background(Color.LightGray).padding(8.dp)
+                    ){
+                        if(username.isEmpty())
+                        {
+                            Text("Username", color = Color.gray)
+                        }
+                        innerTextField()
+                    }
+
+                }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            // campul pentru parola
+            BasicTextField(
+                value = password,
+                onValueChange = { password = it},
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
+                visualTransformation = PasswordVisualTransformation(),
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier.background(Color.LightGray).padding(8.dp)
+                    )
+                    {
+                        if(password.isEmpty())
+                        {
+                            Text("Password", color = Color.gray)
+                        }
+                        innerTextField()
+                    }
+                }
+
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // buton de login
+
+            Button(
+                onClick = { /* aici logica pentru login cand termina bote*/}
+                modifier = Modifier.fillMaxWidth()
+            ){
+                Text("Login")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // buton de ai uitat parola?
+            TextButton(
+                onClick = onForgotPassword, // functia pentru a uita parola
+            ){
+                Text("Ai uitat parola?", color = MaterialTheme.colorScheme.primary)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // buton-ul de register
+            TextButton(
+                onClick = onRegister, // functia pentru a te inregistra
+            ){
+                Text("Register", color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
 }
