@@ -28,6 +28,16 @@ class UserDAO (context: Context, dbHelper: SQLiteOpenHelper) {
         )
     }
 
+    fun login(username: String, password: String): Boolean {
+        val cursor = getUserByUsername(username)
+        if (cursor.moveToFirst()) {
+            val storedPassword = cursor.getString(cursor.getColumnIndexOrThrow(DataBase.UserEntry.COLUMN_PASSWORD))
+            return storedPassword == password
+        }
+        cursor.close()
+        return false
+    }
+
     fun getUserByUsername(username: String): Cursor {
         return db.rawQuery(
             "SELECT * FROM ${DataBase.UserEntry.TABLE_NAME} WHERE ${DataBase.UserEntry.COLUMN_USERNAME} = ?",
