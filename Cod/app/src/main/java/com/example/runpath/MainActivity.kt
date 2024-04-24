@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.runpath.ui.theme.HomePage
+import com.example.runpath.ui.theme.RegisterPage
 import com.example.runpath.ui.theme.RunPathTheme
 
 
