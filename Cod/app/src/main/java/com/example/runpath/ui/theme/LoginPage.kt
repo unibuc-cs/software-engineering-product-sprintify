@@ -1,7 +1,8 @@
-
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -32,37 +34,47 @@ import com.example.runpath.database.UserDAO
 
 
 @Composable
-fun LoginPage(navController : NavController, dbHelper: FeedReaderDbHelper){
-    var username by remember { mutableStateOf("")}
-    var password by remember { mutableStateOf("")}
+fun LoginPage(navController: NavController, dbHelper: FeedReaderDbHelper) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     val dbHelper = FeedReaderDbHelper(context = LocalContext.current)
     val userDAO = UserDAO(context = LocalContext.current, dbHelper = dbHelper)
-    var showErrorDialog by remember {mutableStateOf(false)}
+    var showErrorDialog by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     )
     {
-        Column (
-            modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
-        ){
-            Text(
-                text = "RunPath",
-                fontSize =  24.sp,
-                modifier = Modifier.padding(16.dp)
-            )
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text("Login Account", fontSize = 30.sp, fontWeight = FontWeight.Medium)
+            }
+
+            Spacer(modifier = Modifier.height(80.dp))
+
             // campul pentru username
             BasicTextField(
                 value = username,
-                onValueChange = { username = it},
+                onValueChange = { username = it },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
                 decorationBox = { innerTextField ->
                     Box(
-                        modifier = Modifier.background(Color.LightGray).padding(8.dp)
-                    ){
-                        if(username.isEmpty())
-                        {
+                        modifier = Modifier
+                            .background(Color.LightGray)
+                            .padding(8.dp)
+                            .fillMaxWidth()
+                    ) {
+                        if (username.isEmpty()) {
                             Text("Username", color = Color.Gray)
                         }
                         innerTextField()
@@ -74,131 +86,75 @@ fun LoginPage(navController : NavController, dbHelper: FeedReaderDbHelper){
             // campul pentru parola
             BasicTextField(
                 value = password,
-                onValueChange = { password = it},
+                onValueChange = { password = it },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
                 visualTransformation = PasswordVisualTransformation(),
                 decorationBox = { innerTextField ->
                     Box(
-                        modifier = Modifier.background(Color.LightGray).padding(8.dp)
+                        modifier = Modifier
+                            .background(Color.LightGray)
+                            .padding(8.dp)
+                            .fillMaxWidth()
+
                     )
                     {
-                        if(password.isEmpty())
-                        {
+                        if (password.isEmpty()) {
                             Text("Password", color = Color.Gray)
                         }
                         innerTextField()
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
 
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
 
             // buton de login
 
-            @Composable
-            fun LoginPage() {
-                var username by remember { mutableStateOf("")}
-                var password by remember { mutableStateOf("")}
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column (
-                        modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
-                    ){
-                        Text(
-                            text = "RunPath",
-                            fontSize =  24.sp,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                        BasicTextField(
-                            value = username,
-                            onValueChange = { username = it},
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
-                            decorationBox = { innerTextField ->
-                                Box(
-                                    modifier = Modifier.background(Color.LightGray).padding(8.dp)
-                                ){
-                                    if(username.isEmpty())
-                                    {
-                                        Text("Username", color = Color.Gray)
-                                    }
-                                    innerTextField()
-                                }
 
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        BasicTextField(
-                            value = password,
-                            onValueChange = { password = it},
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
-                            visualTransformation = PasswordVisualTransformation(),
-                            decorationBox = { innerTextField ->
-                                Box(
-                                    modifier = Modifier.background(Color.LightGray).padding(8.dp)
-                                )
-                                {
-                                    if(password.isEmpty())
-                                    {
-                                        Text("Password", color = Color.Gray)
-                                    }
-                                    innerTextField()
-                                }
-                            }
+            Spacer(modifier = Modifier.height(16.dp))
 
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
+            Button(
+                onClick = {
+                    val isLoginSuccesful = userDAO.login(username, password)
+                    if (isLoginSuccesful) {
+                        navController.navigate("mainInterface")
+                    } else {
+                        showErrorDialog = true
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Login")
+            }
+            if (showErrorDialog) {
+                AlertDialog(
+                    onDismissRequest = { showErrorDialog = false },
+                    title = { Text("Error") },
+                    text = { Text("Username or password is incorrect") },
+                    confirmButton = {
                         Button(
-                            onClick = {
-                                val isLoginSuccesful = userDAO.login(username, password)
-                                if(isLoginSuccesful)
-                                { navController.navigate("mainInterface")
-                                }
-                                else
-                                { showErrorDialog = true
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ){
-                            Text("Login")
-                        }
-                        if(showErrorDialog){
-                            AlertDialog(
-                                onDismissRequest = { showErrorDialog = false },
-                                title = { Text("Error")},
-                                text = { Text("Username or password is incorrect")},
-                                confirmButton = {
-                                    Button(
-                                        onClick = { showErrorDialog = false }
-                                    ){
-                                        Text("OK")
-                                    }
-                                }
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        TextButton(
-                            onClick = { /* functia pentru a uita parola */ },
-                        ){
-                            Text("Ai uitat parola?", color = MaterialTheme.colorScheme.primary)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        TextButton(
-                            onClick = { navController.navigate("registerPage") },
-                        ){
-                            Text("Register", color = MaterialTheme.colorScheme.primary)
+                            onClick = { showErrorDialog = false }
+                        ) {
+                            Text("OK")
                         }
                     }
-                }
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = { /* functia pentru a uita parola */ },
+            ) {
+                Text("Ai uitat parola?", color = MaterialTheme.colorScheme.primary)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = { navController.navigate("registerPage") },
+            ) {
+                Text("Register", color = MaterialTheme.colorScheme.primary)
             }
         }
     }
