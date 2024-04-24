@@ -28,6 +28,13 @@ class UserDAO (context: Context, dbHelper: SQLiteOpenHelper) {
         )
     }
 
+    fun getUserByUsername(username: String): Cursor {
+        return db.rawQuery(
+            "SELECT * FROM ${DataBase.UserEntry.TABLE_NAME} WHERE ${DataBase.UserEntry.COLUMN_USERNAME} = ?",
+            arrayOf(username)
+        )
+    }
+
     fun updateUser(userId: Int, username: String?, email: String?, password: String?, dataCreated: String?): Int {
         val values = ContentValues().apply {
             username?.let { put(DataBase.UserEntry.COLUMN_USERNAME, it) }
