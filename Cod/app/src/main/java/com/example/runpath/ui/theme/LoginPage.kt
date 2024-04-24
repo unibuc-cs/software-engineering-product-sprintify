@@ -8,14 +8,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.runpath.ui.theme.FeedReaderDbHelper
-import com.example.runpath.ui.theme.UserDAO
-import com.example.runpath.ui.theme.context
-import com.example.runpath.ui.theme.LocalContext
+import com.example.runpath.database.UserDAO
 
 
 @Composable
