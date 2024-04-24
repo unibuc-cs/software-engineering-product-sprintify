@@ -145,7 +145,7 @@ fun LoginPage(navController: NavController, dbHelper: FeedReaderDbHelper) {
             Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(
-                onClick = { /* functia pentru a uita parola */ },
+                onClick = { /* functia pentru a uita parola */ }
             ) {
                 Text("Ai uitat parola?", color = MaterialTheme.colorScheme.primary)
             }

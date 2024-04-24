@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
                     composable("loginPage") {
                         LoginPage(navController, dbHelper)
                     }
-                    composable("registerPage") {RegisterPage()}
+                    composable("registerPage") {RegisterPage(navController, dbHelper)}
                     composable("mainInterface") {MainInterface()}
                 }
                 /*Box(contentAlignment = Alignment.Center,modifier = Modifier.fillMaxWidth())

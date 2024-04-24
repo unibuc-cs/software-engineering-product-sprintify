@@ -1,5 +1,6 @@
 package com.example.runpath.ui.theme
 
+import FeedReaderDbHelper
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,9 +34,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 
 @Composable
-fun RegisterPage() {
+fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -153,6 +155,7 @@ fun RegisterPage() {
             onClick = {
                 if (passwordMatch) {
                     // Register user logic
+                    navcontroller.navigate("loginPage")
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -162,8 +165,8 @@ fun RegisterPage() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewRegisterPage() {
-    RegisterPage()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewRegisterPage() {
+//    RegisterPage()
+//}
