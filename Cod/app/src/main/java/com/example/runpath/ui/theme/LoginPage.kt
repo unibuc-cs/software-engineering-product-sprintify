@@ -1,4 +1,5 @@
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,31 +8,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-
-fun LoginPage {
+fun LoginPage() {
     var username by remember { mutableStateOf("")}
-    var password by remember { musableStateOf("")}
-    Box
-    (
-        modifier = Modifier.fillMaxSize()
-        contentAlignment = Alignment.Center
+    var password by remember { mutableStateOf("")}
 
-            )
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    )
     {
         Column (
             modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
         ){
             Text(
                 text = "RunPath",
-                fontsize =  24.sp,
+                fontSize =  24.sp,
                 modifier = Modifier.padding(16.dp)
             )
             // campul pentru username
@@ -46,7 +43,7 @@ fun LoginPage {
                     ){
                         if(username.isEmpty())
                         {
-                            Text("Username", color = Color.gray)
+                            Text("Username", color = Color.Gray)
                         }
                         innerTextField()
                     }
@@ -68,7 +65,7 @@ fun LoginPage {
                     {
                         if(password.isEmpty())
                         {
-                            Text("Password", color = Color.gray)
+                            Text("Password", color = Color.Gray)
                         }
                         innerTextField()
                     }
@@ -80,27 +77,86 @@ fun LoginPage {
 
             // buton de login
 
-            Button(
-                onClick = { /* aici logica pentru login cand termina bote*/}
-                modifier = Modifier.fillMaxWidth()
-            ){
-                Text("Login")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+            @Composable
+            fun LoginPage() {
+                var username by remember { mutableStateOf("")}
+                var password by remember { mutableStateOf("")}
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column (
+                        modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally
+                    ){
+                        Text(
+                            text = "RunPath",
+                            fontSize =  24.sp,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                        BasicTextField(
+                            value = username,
+                            onValueChange = { username = it},
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
+                            decorationBox = { innerTextField ->
+                                Box(
+                                    modifier = Modifier.background(Color.LightGray).padding(8.dp)
+                                ){
+                                    if(username.isEmpty())
+                                    {
+                                        Text("Username", color = Color.Gray)
+                                    }
+                                    innerTextField()
+                                }
 
-            // buton de ai uitat parola?
-            TextButton(
-                onClick = onForgotPassword, // functia pentru a uita parola
-            ){
-                Text("Ai uitat parola?", color = MaterialTheme.colorScheme.primary)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        BasicTextField(
+                            value = password,
+                            onValueChange = { password = it},
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
+                            visualTransformation = PasswordVisualTransformation(),
+                            decorationBox = { innerTextField ->
+                                Box(
+                                    modifier = Modifier.background(Color.LightGray).padding(8.dp)
+                                )
+                                {
+                                    if(password.isEmpty())
+                                    {
+                                        Text("Password", color = Color.Gray)
+                                    }
+                                    innerTextField()
+                                }
+                            }
 
-            // buton-ul de register
-            TextButton(
-                onClick = onRegister, // functia pentru a te inregistra
-            ){
-                Text("Register", color = MaterialTheme.colorScheme.primary)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(
+                            onClick = { /* aici logica pentru login cand termina bote*/},
+                            modifier = Modifier.fillMaxWidth()
+                        ){
+                            Text("Login")
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        TextButton(
+                            onClick = { /* functia pentru a uita parola */ },
+                        ){
+                            Text("Ai uitat parola?", color = MaterialTheme.colorScheme.primary)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        TextButton(
+                            onClick = { /* functia pentru a te inregistra */ },
+                        ){
+                            Text("Register", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
             }
         }
     }
