@@ -12,12 +12,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.runpath.ui.theme.FeedReaderDbHelper
+import com.example.runpath.ui.theme.UserDAO
+import com.example.runpath.ui.theme.context
+import com.example.runpath.ui.theme.LocalContext
+
 
 @Composable
 fun LoginPage() {
     var username by remember { mutableStateOf("")}
     var password by remember { mutableStateOf("")}
-
+    val dbHelper = FeedReaderDbHelper(context = LocalContext.current)
+    val userDAO = UserDAO(context = LocalContext.current, dbHelper = dbHelper)
+    var showErrorDialog by remember {mutableStateOf(false)}
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -136,10 +143,32 @@ fun LoginPage() {
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
-                            onClick = { /* aici logica pentru login cand termina bote*/},
+                            onClick = {
+                                      val isLoginSuccesful = userDAO.login(username, password)
+                                      if(isLoginSuccesful)
+                                      { // redirectionare spre pagina principala
+                                          }
+                                      else
+                                      { showErrorDialog = true
+                                      }
+                            },
                             modifier = Modifier.fillMaxWidth()
                         ){
                             Text("Login")
+                        }
+                        if(showErrorDialog){
+                            AlertDialog(
+                                onDismissRequest = { showErrorDialog = false },
+                                title = { Text("Error")},
+                                text = { Text("Username or password is incorrect")},
+                                confirmButton = {
+                                    Button(
+                                        onClick = { showErrorDialog = false }
+                                    ){
+                                        Text("OK")
+                                    }
+                                }
+                            )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
 
