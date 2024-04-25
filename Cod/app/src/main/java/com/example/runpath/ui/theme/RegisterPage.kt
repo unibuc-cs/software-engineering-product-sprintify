@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -54,7 +55,11 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
     val canRegister = username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() &&
             passwordConfirmation.isNotEmpty() && passwordMatch
     val scrollState = rememberScrollState()
-    
+
+    // For user registration logic
+    val context = LocalContext.current
+    val userDAO by remember { mutableStateOf(UserDAO(context, dbHelper)) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -196,7 +201,6 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
             onClick = {
                 if (passwordMatch) {
                     // Register user logic
-                    val userDAO = UserDAO(dbHelper)
                     userDAO.insertUser(username, email, password)
 
                     navcontroller.navigate("loginPage")

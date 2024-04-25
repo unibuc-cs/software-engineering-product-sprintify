@@ -9,7 +9,7 @@ import android.database.Cursor
 import java.time.LocalDateTime
 
 
-class UserDAO (dbHelper: FeedReaderDbHelper) {
+class UserDAO (context: Context, dbHelper: FeedReaderDbHelper) {
 
     private val db: SQLiteDatabase = dbHelper.writableDatabase
     fun insertUser(username: String, email: String, password: String) : Long {

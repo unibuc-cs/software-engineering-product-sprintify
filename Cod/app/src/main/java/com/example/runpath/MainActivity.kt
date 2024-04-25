@@ -22,22 +22,23 @@ class MainActivity : ComponentActivity() {
             RunPathTheme {
                 val dbHelper = FeedReaderDbHelper(this@MainActivity)
                 val navController = rememberNavController()
-                MainInterface()
-//                NavHost(navController, startDestination = "homePage") // momentan am pus loginpage pana termina serban homepage-ul
-//                {
-//                    composable("homePage"){
-//                        HomePage(dbHelper,navController)
-//                    }
-//                    composable("loginPage") {
-//                        LoginPage(navController, dbHelper)
-//                    }
-//                    composable("registerPage") {RegisterPage(navController, dbHelper)}
-//                    composable("mainInterface") {MainInterface()}
-//                }
-                /*Box(contentAlignment = Alignment.Center,modifier = Modifier.fillMaxWidth())
+
+
+                NavHost(navController, startDestination = "homePage") // momentan am pus loginpage pana termina serban homepage-ul
                 {
-                    HomePage(dbHelper)
-                }*/
+                    composable("homePage"){
+                        HomePage(dbHelper,navController)
+                    }
+                    composable("loginPage") {
+                        LoginPage(navController, dbHelper)
+                    }
+                    composable("registerPage") {RegisterPage(navController, dbHelper)}
+                    composable("mainInterface") {MainInterface()}
+                }
+//                Box(contentAlignment = Alignment.Center,modifier = Modifier.fillMaxWidth())
+//                {
+//                    HomePage(dbHelper)
+//                }
 
 
             }
