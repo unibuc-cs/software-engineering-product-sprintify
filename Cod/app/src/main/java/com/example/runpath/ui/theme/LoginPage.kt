@@ -124,7 +124,8 @@ fun LoginPage(navController: NavController, dbHelper: FeedReaderDbHelper) {
                         showErrorDialog = true
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = username.isNotEmpty() && password.isNotEmpty()
             ) {
                 Text("Login")
             }
