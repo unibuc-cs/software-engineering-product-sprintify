@@ -6,17 +6,19 @@ import android.content.Context
 import android.content.ContentValues
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.Cursor
+import java.time.LocalDateTime
 
 
-class UserDAO (context: Context, dbHelper: FeedReaderDbHelper) {
+class UserDAO (dbHelper: FeedReaderDbHelper) {
 
     private val db: SQLiteDatabase = dbHelper.writableDatabase
-    fun insertUser(username: String, email: String, password: String, dataCreated: String) : Long {
+    fun insertUser(username: String, email: String, password: String) : Long {
         val values = ContentValues().apply {
             put(DataBase.UserEntry.COLUMN_USERNAME, username)
             put(DataBase.UserEntry.COLUMN_EMAIL, email)
             put(DataBase.UserEntry.COLUMN_PASSWORD, password)
-            put(DataBase.UserEntry.COLUMN_DATE_CREATED, dataCreated)
+            val dateCreated = LocalDateTime.now().toString()
+            put(DataBase.UserEntry.COLUMN_DATE_CREATED, dateCreated)
         }
         return db.insert(DataBase.UserEntry.TABLE_NAME, null, values)
     }
