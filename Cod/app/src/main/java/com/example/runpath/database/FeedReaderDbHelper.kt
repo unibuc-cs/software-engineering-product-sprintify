@@ -18,28 +18,28 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
 
         // Create table statements
         private val SQL_CREATE_USER = "CREATE TABLE ${UserEntry.TABLE_NAME} (" +
-                "${UserEntry.COLUMN_USER_ID} INTEGER PRIMARY KEY," +
+                "${UserEntry.COLUMN_USER_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "${UserEntry.COLUMN_USERNAME} TEXT NOT NULL," +
                 "${UserEntry.COLUMN_PASSWORD} TEXT NOT NULL," +
                 "${UserEntry.COLUMN_EMAIL} TEXT," +
                 "${UserEntry.COLUMN_DATE_CREATED} TEXT)"
 
         private val SQL_CREATE_PROFILE = "CREATE TABLE ${ProfileEntry.TABLE_NAME} (" +
-                "${ProfileEntry.COLUMN_USER_ID} INTEGER PRIMARY KEY," +
+                "${ProfileEntry.COLUMN_USER_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "${ProfileEntry.COLUMN_PREFERRED_TERRAIN} TEXT," +
                 "${ProfileEntry.COLUMN_PREFERRED_LIGHT_LEVEL} TEXT," +
                 "${ProfileEntry.COLUMN_PET_OWNER} INTEGER," +
                 "FOREIGN KEY(${ProfileEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID}))"
 
         private val SQL_CREATE_SAVED_CIRCUITS = "CREATE TABLE ${SavedCircuitsEntry.TABLE_NAME} (" +
-                "${SavedCircuitsEntry.COLUMN_SAVED_CIRCUIT_ID} INTEGER PRIMARY KEY," +
+                "${SavedCircuitsEntry.COLUMN_SAVED_CIRCUIT_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "${SavedCircuitsEntry.COLUMN_USER_ID} INTEGER," +
                 "${SavedCircuitsEntry.COLUMN_CIRCUIT_ID} INTEGER," +
                 "FOREIGN KEY(${SavedCircuitsEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID})," +
                 "FOREIGN KEY(${SavedCircuitsEntry.COLUMN_CIRCUIT_ID}) REFERENCES ${CircuitEntry.TABLE_NAME}(${CircuitEntry.COLUMN_CIRCUIT_ID}))"
 
         private val SQL_CREATE_CIRCUIT = "CREATE TABLE ${CircuitEntry.TABLE_NAME} (" +
-                "${CircuitEntry.COLUMN_CIRCUIT_ID} INTEGER PRIMARY KEY," +
+                "${CircuitEntry.COLUMN_CIRCUIT_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "${CircuitEntry.COLUMN_NAME} TEXT NOT NULL," +
                 "${CircuitEntry.COLUMN_DESCRIPTION} TEXT," +
                 "${CircuitEntry.COLUMN_DISTANCE} REAL," +
@@ -52,7 +52,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
                 "${CircuitEntry.COLUMN_DIFFICULTY} INTEGER)"
 
         private val SQL_CREATE_RUN = "CREATE TABLE ${RunEntry.TABLE_NAME} (" +
-                "${RunEntry.COLUMN_RUN_ID} INTEGER PRIMARY KEY," +
+                "${RunEntry.COLUMN_RUN_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "${RunEntry.COLUMN_USER_ID} INTEGER," +
                 "${RunEntry.COLUMN_CIRCUIT_ID} INTEGER," +
                 "${RunEntry.COLUMN_START_TIME} TEXT," +
@@ -65,7 +65,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
                 "FOREIGN KEY(${RunEntry.COLUMN_CIRCUIT_ID}) REFERENCES ${CircuitEntry.TABLE_NAME}(${CircuitEntry.COLUMN_CIRCUIT_ID}))"
 
         private val SQL_CREATE_LEADERBOARD = "CREATE TABLE ${LeaderboardEntry.TABLE_NAME} (" +
-                "${LeaderboardEntry.COLUMN_LEADERBOARD_ID} INTEGER PRIMARY KEY," +
+                "${LeaderboardEntry.COLUMN_LEADERBOARD_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "${LeaderboardEntry.COLUMN_CIRCUIT_ID} INTEGER," +
                 "${LeaderboardEntry.COLUMN_USER_ID} INTEGER," +
                 "${LeaderboardEntry.COLUMN_RANK} INTEGER," +
@@ -74,7 +74,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
                 "FOREIGN KEY(${LeaderboardEntry.COLUMN_USER_ID}) REFERENCES ${UserEntry.TABLE_NAME}(${UserEntry.COLUMN_USER_ID}))"
 
         private val SQL_CREATE_COMMUNITY = "CREATE TABLE ${CommunityEntry.TABLE_NAME} (" +
-                "${CommunityEntry.COLUMN_COMMUNITY_ID} INTEGER PRIMARY KEY," +
+                "${CommunityEntry.COLUMN_COMMUNITY_ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "${CommunityEntry.COLUMN_NAME} TEXT NOT NULL," +
                 "${CommunityEntry.COLUMN_DESCRIPTION} TEXT)"
 
@@ -88,14 +88,19 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
 
     }
     override fun onCreate(db: SQLiteDatabase) {
-        db.execSQL(SQL_CREATE_USER)
-        db.execSQL(SQL_CREATE_PROFILE)
-        db.execSQL(SQL_CREATE_SAVED_CIRCUITS)
-        db.execSQL(SQL_CREATE_CIRCUIT)
-        db.execSQL(SQL_CREATE_RUN)
-        db.execSQL(SQL_CREATE_LEADERBOARD)
-        db.execSQL(SQL_CREATE_COMMUNITY)
-        db.execSQL(SQL_CREATE_COMMUNITY_USERS)
+        try {
+            db.execSQL(SQL_CREATE_USER)
+            db.execSQL(SQL_CREATE_PROFILE)
+            db.execSQL(SQL_CREATE_SAVED_CIRCUITS)
+            db.execSQL(SQL_CREATE_CIRCUIT)
+            db.execSQL(SQL_CREATE_RUN)
+            db.execSQL(SQL_CREATE_LEADERBOARD)
+            db.execSQL(SQL_CREATE_COMMUNITY)
+            db.execSQL(SQL_CREATE_COMMUNITY_USERS)
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         // to do change the onUpgrade so it does not simply recreate the database
@@ -104,28 +109,4 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
 
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
