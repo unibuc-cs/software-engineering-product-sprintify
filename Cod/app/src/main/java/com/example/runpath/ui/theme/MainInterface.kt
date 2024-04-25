@@ -1,75 +1,86 @@
 package com.example.runpath.ui.theme
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import android.annotation.SuppressLint
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.*
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.Scaffold
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.currentBackStackEntryAsState
 
-@Composable
-fun MainInterface() {
 
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
+    object Home : BottomNavItem("home", Icons.Default.Home, "Home")
+    object Community : BottomNavItem("home", Icons.Default.Star, "Community")
 
-        // Start run button
-        Button (
-            onClick = {
-                // Logic for starting the run
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Start Run")
-        }
-
-        // Circuit selection button
-        Button (
-            onClick = {
-                // Logic for selecting the circuit
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Select Circuit")
-        }
-
-        // Join community button
-        Button (
-            onClick = {
-                // Logic for joining community
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Join Community")
-        }
-
-        // Account button
-        Button (
-            onClick = {
-                // Logic for seeing user account
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Account")
-        }
+    object Run : BottomNavItem("run", Icons.Default.Add, "Run")
+    object Search : BottomNavItem("search", Icons.Default.LocationOn, "Search")
+    object Profile : BottomNavItem("profile", Icons.Default.AccountBox, "Profile")
+    companion object {
+        val values = listOf(Home, Community, Run, Search, Profile)
     }
 }
 
 
-@Preview(showBackground = true)
 @Composable
-fun PreviewMainInterface() {
-    MainInterface()
+fun BottomNavigationBar(navController: NavController) {
+    BottomNavigation(
+        backgroundColor = Color.Gray,
+        contentColor = Color.White
+    ) {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+
+        BottomNavItem.values.forEach { item ->
+            BottomNavigationItem(
+                selected = currentRoute == item.route,
+                onClick = {
+                    navController.navigate(item.route) {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                },
+                icon = { Icon(item.icon, contentDescription = null) },
+                label = { Text(item.label) }
+            )
+        }
+    }
 }
+
+@Composable
+fun NavigationHost(navController: NavHostController) {
+    NavHost(navController, startDestination = BottomNavItem.Home.route) {
+        composable(BottomNavItem.Home.route) {
+            MainInterface()
+        }
+        composable(BottomNavItem.Community.route) { /* Community Screen UI */ }
+        composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
+        composable(BottomNavItem.Search.route) { /* Search Screen UI */ }
+        composable(BottomNavItem.Profile.route) { /* Profile Screen UI */ }
+    }
+}
+
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@Composable
+fun MainInterface() {
+    val navController = rememberNavController()
+    Scaffold(
+        bottomBar = { BottomNavigationBar(navController) }
+    ) {
+        NavigationHost(navController)
+    }
+}
+
+
