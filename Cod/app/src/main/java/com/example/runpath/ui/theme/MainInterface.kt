@@ -1,7 +1,7 @@
 package com.example.runpath.ui.theme
 
 import android.annotation.SuppressLint
-import androidx.compose.material3.Text
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.*
 import androidx.compose.material.*
@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
