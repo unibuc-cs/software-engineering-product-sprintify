@@ -1,12 +1,13 @@
 package com.example.runpath.database
 
+import FeedReaderDbHelper
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class SavedCircuitsDAO(context: Context, dbHelper: SQLiteOpenHelper) {
+class SavedCircuitsDAO(context: Context, dbHelper: FeedReaderDbHelper) {
     private val db: SQLiteDatabase = dbHelper.writableDatabase
 
     //create

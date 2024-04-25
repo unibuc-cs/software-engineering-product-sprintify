@@ -1,5 +1,6 @@
 package com.example.runpath.database
 
+import FeedReaderDbHelper
 import android.database.sqlite.SQLiteDatabase
 import android.content.Context
 import android.content.ContentValues
@@ -7,12 +8,11 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.database.Cursor
 
 
-class UserDAO (context: Context, dbHelper: SQLiteOpenHelper) {
+class UserDAO (context: Context, dbHelper: FeedReaderDbHelper) {
 
     private val db: SQLiteDatabase = dbHelper.writableDatabase
-    fun insertUser(userId: Int, username: String, email: String, password: String, dataCreated: String) : Long {
+    fun insertUser(username: String, email: String, password: String, dataCreated: String) : Long {
         val values = ContentValues().apply {
-            put(DataBase.UserEntry.COLUMN_USER_ID, userId)
             put(DataBase.UserEntry.COLUMN_USERNAME, username)
             put(DataBase.UserEntry.COLUMN_EMAIL, email)
             put(DataBase.UserEntry.COLUMN_PASSWORD, password)

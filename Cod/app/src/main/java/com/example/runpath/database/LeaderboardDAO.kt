@@ -1,5 +1,6 @@
 package com.example.runpath.database
 
+import FeedReaderDbHelper
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -7,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import kotlin.time.Duration
 
-class LeaderboardDAO(context: Context, dbHelper: SQLiteOpenHelper) {
+class LeaderboardDAO(context: Context, dbHelper: FeedReaderDbHelper) {
 
     private val db: SQLiteDatabase = dbHelper.writableDatabase
 

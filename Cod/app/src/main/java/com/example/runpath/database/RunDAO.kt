@@ -1,5 +1,6 @@
 package com.example.runpath.database
 
+import FeedReaderDbHelper
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -8,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import java.time.Instant
 import kotlin.time.Duration
 
-class RunDAO(context: Context, dbHelper: SQLiteOpenHelper) {
+class RunDAO(context: Context, dbHelper: FeedReaderDbHelper) {
 
     private val db: SQLiteDatabase = dbHelper.writableDatabase
 
