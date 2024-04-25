@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -24,14 +23,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
-    object Home : BottomNavItem("home", Icons.Default.Home, "Home")
-    object Community : BottomNavItem("home", Icons.Default.Star, "Community")
+    data object Home : BottomNavItem("home", Icons.Default.Home, "Home")
+    data object Community : BottomNavItem("home", Icons.Default.Star, "Community")
 
-    object Run : BottomNavItem("run", Icons.Default.Add, "Run")
-    object Search : BottomNavItem("search", Icons.Default.LocationOn, "Search")
-    object Profile : BottomNavItem("profile", Icons.Default.AccountBox, "Profile")
+    data object Run : BottomNavItem("run", Icons.Default.Add, "Run")
+    data object Circuit : BottomNavItem("circuit", Icons.Default.LocationOn, "Circuit")
+    data object Profile : BottomNavItem("profile", Icons.Default.AccountBox, "Profile")
     companion object {
-        val values = listOf(Home, Community, Run, Search, Profile)
+        val values = listOf(Home, Community, Run, Circuit, Profile)
     }
 }
 
@@ -69,7 +68,7 @@ fun NavigationHost(navController: NavHostController) {
         }
         composable(BottomNavItem.Community.route) { /* Community Screen UI */ }
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
-        composable(BottomNavItem.Search.route) { /* Search Screen UI */ }
+        composable(BottomNavItem.Circuit.route) { /* Search Screen UI */ }
         composable(BottomNavItem.Profile.route) { /* Profile Screen UI */ }
     }
 }
