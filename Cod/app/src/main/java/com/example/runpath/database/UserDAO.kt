@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.ContentValues
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.Cursor
+import androidx.compose.ui.platform.LocalContext
 import java.time.LocalDateTime
+
 
 
 class UserDAO (context: Context, dbHelper: FeedReaderDbHelper) {
@@ -30,15 +32,21 @@ class UserDAO (context: Context, dbHelper: FeedReaderDbHelper) {
         )
     }
 
-    fun login(username: String, password: String): Boolean {
+    fun login(username: String, password: String): Int {
         val cursor = getUserByUsername(username)
         if (cursor.moveToFirst()) {
             val storedPassword = cursor.getString(cursor.getColumnIndexOrThrow(DataBase.UserEntry.COLUMN_PASSWORD))
-            return storedPassword == password
-        }
+            if (storedPassword == password) {
+                //pastram id-ul userului logat in SharedPreferences
+                val userId = cursor.getInt(cursor.getColumnIndexOrThrow(DataBase.UserEntry.COLUMN_USER_ID))
+                cursor.close()
+                return userId
+            }        }
         cursor.close()
-        return false
+        return -1 // -1 indicates login failed
     }
+
+
 
     fun getUserByUsername(username: String): Cursor {
         return db.rawQuery(

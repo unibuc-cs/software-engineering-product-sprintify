@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.runpath.database.SessionManager
 import com.example.runpath.database.UserDAO
 
 
@@ -40,6 +41,8 @@ fun LoginPage(navController: NavController, dbHelper: FeedReaderDbHelper) {
     val dbHelper = FeedReaderDbHelper(context = LocalContext.current)
     val userDAO = UserDAO(context = LocalContext.current, dbHelper = dbHelper)
     var showErrorDialog by remember { mutableStateOf(false) }
+
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -114,11 +117,14 @@ fun LoginPage(navController: NavController, dbHelper: FeedReaderDbHelper) {
 
 
             Spacer(modifier = Modifier.height(16.dp))
+            val sessionManager = SessionManager(context = LocalContext.current)
 
             Button(
                 onClick = {
-                    val isLoginSuccesful = userDAO.login(username, password)
-                    if (isLoginSuccesful) {
+                    val userId = userDAO.login(username, password)
+                    if (userId != -1) {
+                        //daca loginul este reusit, se creeaza o sesiune
+                        sessionManager.createSession(userId)
                         navController.navigate("mainInterface")
                     } else {
                         showErrorDialog = true
