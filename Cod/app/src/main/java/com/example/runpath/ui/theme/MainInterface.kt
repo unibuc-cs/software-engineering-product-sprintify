@@ -1,6 +1,9 @@
 package com.example.runpath.ui.theme
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.*
@@ -16,10 +19,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Icon
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
@@ -73,6 +85,24 @@ fun NavigationHost(navController: NavHostController) {
     }
 }
 
+@Composable
+fun GMap() {
+    val singapore = LatLng(44.86, 13.84)
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(singapore, 10f)
+    }
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState
+    ) {
+        Marker(
+            state = MarkerState(position = singapore),
+            title = "Pula",
+            snippet = "Marker in Pula"
+        )
+    }
+}
+
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MainInterface() {
@@ -80,11 +110,16 @@ fun MainInterface() {
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
-    ) {
-        NavigationHost(navController)
+    ) {paddingValues ->
+        Column (
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            GMap()
+            NavigationHost(navController = navController)
+        }
     }
-
-
 }
 
 

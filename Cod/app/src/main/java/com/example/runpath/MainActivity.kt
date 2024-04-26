@@ -8,6 +8,9 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import com.example.runpath.ui.theme.RunPathTheme
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -16,11 +19,15 @@ import com.example.runpath.databinding.ActivityMapsBinding
 import com.example.runpath.ui.theme.MainInterface
 import com.example.runpath.ui.theme.RegisterPage
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 
 //class MainActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -48,11 +55,6 @@ import com.google.android.gms.maps.model.MarkerOptions
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
 //    }
 //}
-
-
-
-
-
 
 class MainActivity : AppCompatActivity() /*, OnMapReadyCallback*/ {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,6 +99,7 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback*/ {
                         composable("mainInterface") { MainInterface() }
                     }
                 }
+
             }
 
         }
