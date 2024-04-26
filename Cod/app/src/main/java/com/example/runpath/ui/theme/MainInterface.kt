@@ -77,6 +77,7 @@ fun NavigationHost(navController: NavHostController) {
 @Composable
 fun MainInterface() {
     val navController = rememberNavController()
+
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) {
