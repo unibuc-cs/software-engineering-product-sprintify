@@ -1,6 +1,11 @@
 package com.example.runpath.ui.theme
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.health.connect.datatypes.ExerciseRoute
+import android.location.Location
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,11 +25,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Icon
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -85,6 +93,122 @@ fun NavigationHost(navController: NavHostController) {
     }
 }
 
+
+fun savePermissionStatus(context: Context, isGranted: Boolean) {
+    val sharedPreferences = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    editor.putBoolean("LocationPermissionGranted", isGranted)
+    editor.apply()
+}
+
+fun getPermissionStatus(context: Context): Boolean {
+    val sharedPreferences = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+    return sharedPreferences.getBoolean("LocationPermissionGranted", false) // Default to false
+}
+
+
+
+@Composable
+fun RequestLocationPermission(
+    onPermissionGranted: () -> Unit,
+    onPermissionDenied: () -> Unit
+) {
+    val context = LocalContext.current
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            if(granted) {
+                savePermissionStatus(context, true) // Save permission status
+                onPermissionGranted()
+            } else {
+                savePermissionStatus(context, false) // Save denial status
+                onPermissionDenied()
+            }
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        // Check if the permission has already been granted
+        if (!getPermissionStatus(context)) {
+            locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+}
+
+
+@SuppressLint("MissingPermission")
+fun getCurrentLocation(
+    fusedLocationClient: FusedLocationProviderClient,
+    onLocationReceived: (Location) -> Unit
+) {
+    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+        if(location != null) {
+            onLocationReceived(location)
+        }
+    }
+}
+
+
+@Composable
+fun GMapWithCurrentLocation() {
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context)}
+
+    val currentLocation = remember { mutableStateOf<LatLng?>(null)}
+    val cameraPositionState = rememberCameraPositionState()
+
+    var showDialog by remember { mutableStateOf(false)}
+
+    // Request location permission
+    RequestLocationPermission(
+        onPermissionGranted = {
+            // Get current location when permission is granted
+            getCurrentLocation(fusedLocationClient) {location ->
+                val latLng = LatLng(location.latitude, location.longitude)
+                currentLocation.value = latLng
+
+                // Update the camera position
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 15f)
+            }
+        },
+        onPermissionDenied = {
+            // Permission denial logic
+            showDialog = true
+        }
+    )
+
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState  // Set camera position
+    ) {
+        currentLocation.value?.let {
+            Marker(
+                state = MarkerState(position = it),
+                title = "Current Location",
+                snippet = "You are here"
+            )
+        }
+    }
+
+    if(showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {
+                Text("Location Permission Denied")
+            },
+            text = {
+                Text("This app requires location access to function properly. Please grant location permission in your device settings.")
+            },
+            confirmButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+}
+
+
 @Composable
 fun GMap() {
     val singapore = LatLng(44.86, 13.84)
@@ -116,7 +240,7 @@ fun MainInterface() {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            GMap()
+            GMapWithCurrentLocation()
             NavigationHost(navController = navController)
         }
     }
