@@ -12,10 +12,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.runpath.database.SessionManager
+import com.example.runpath.databinding.ActivityMapsBinding
 import com.example.runpath.ui.theme.MainInterface
 import com.example.runpath.ui.theme.RegisterPage
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 
-//
+
 //class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 //    private lateinit var mMap: GoogleMap
 //    private lateinit var binding: ActivityMapsBinding
