@@ -82,7 +82,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation ("com.google.maps.android:maps-ktx:5.0.0")
-    implementation 'com.google.maps.android:maps-compose:2.17.0'
+    // Android Maps Compose composables for the Maps SDK for Android
+    implementation ("com.google.maps.android:maps-compose:4.4.0")
     implementation(libs.androidx.material3.android)
     implementation(libs.play.services.maps)
     implementation(libs.androidx.appcompat)
