@@ -192,11 +192,7 @@ fun GMapWithCurrentLocation() {
         cameraPositionState = cameraPositionState  // Set camera position
     ) {
         currentLocation.value?.let {
-            Marker(
-                state = MarkerState(position = it),
-                title = "Current Location",
-                snippet = "You are here"
-            )
+            placeMarkerOnMap(it, "Current Location")
         }
     }
 
@@ -217,7 +213,14 @@ fun GMapWithCurrentLocation() {
         )
     }
 }
-
+@Composable
+fun placeMarkerOnMap( location: LatLng, title: String) {
+    Marker(
+        state = MarkerState(position = location),
+        title = title,
+        snippet = "Marker at $title"
+    )
+}
 
 @Composable
 fun GMap() {   // momentarily unused
