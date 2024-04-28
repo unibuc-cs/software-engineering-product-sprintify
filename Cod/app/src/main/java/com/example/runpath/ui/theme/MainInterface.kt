@@ -42,12 +42,12 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import android.location.Geocoder
 import android.location.Address
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
 
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
@@ -101,6 +101,29 @@ fun NavigationHost(navController: NavHostController) {
     }
 }
 
+@Composable
+fun ShowPermissionDeniedDialog(
+    showDialog: Boolean,
+    onDismiss: () -> Unit
+) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Location Permission Denied") },
+            text = {
+                Text(
+                    "This app requires location access to function properly. "
+                            + "Please grant location permission in your device settings."
+                )
+            },
+            confirmButton = {
+                Button(onClick = onDismiss) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+}
 
 fun savePermissionStatus(context: Context, isGranted: Boolean) {
     val sharedPreferences = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
@@ -115,7 +138,6 @@ fun getPermissionStatus(context: Context): Boolean {
 }
 
 
-
 @Composable
 fun RequestLocationPermission(
     onPermissionGranted: () -> Unit,
@@ -125,7 +147,7 @@ fun RequestLocationPermission(
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { granted ->
-            if(granted) {
+            if (granted) {
                 savePermissionStatus(context, true) // Save permission status
                 onPermissionGranted()
             } else {
@@ -152,69 +174,16 @@ fun getCurrentLocation(
     onLocationReceived: (Location) -> Unit
 ) {
     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-        if(location != null) {
+        if (location != null) {
             onLocationReceived(location)
         }
     }
 }
 
 
+
 @Composable
-fun GMapWithCurrentLocation() {
-    val context = LocalContext.current
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context)}
-
-    val currentLocation = remember { mutableStateOf<LatLng?>(null)}
-    val cameraPositionState = rememberCameraPositionState()
-
-    var showDialog by remember { mutableStateOf(false)}
-
-    // Request location permission
-    RequestLocationPermission(
-        onPermissionGranted = {
-            // Get current location when permission is granted
-            getCurrentLocation(fusedLocationClient) {location ->
-                val latLng = LatLng(location.latitude, location.longitude)
-                currentLocation.value = latLng
-
-                // Update the camera position
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 15f)
-            }
-        },
-        onPermissionDenied = {
-            // Permission denial logic
-            showDialog = true
-        }
-    )
-
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState  // Set camera position
-    ) {
-        currentLocation.value?.let {
-            placeMarkerOnMap(it, "Current Location")
-        }
-    }
-
-    if(showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = {
-                Text("Location Permission Denied")
-            },
-            text = {
-                Text("This app requires location access to function properly. Please grant location permission in your device settings.")
-            },
-            confirmButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text("OK")
-                }
-            }
-        )
-    }
-}
-@Composable
-fun placeMarkerOnMap( location: LatLng, title: String) {
+fun placeMarkerOnMap(location: LatLng, title: String) {
     Marker(
         state = MarkerState(position = location),
         title = title,
@@ -223,60 +192,121 @@ fun placeMarkerOnMap( location: LatLng, title: String) {
 }
 
 @Composable
-fun GMap() {   // momentarily unused
-    val singapore = LatLng(44.86, 13.84)
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(singapore, 10f)
+fun GMap(
+    currentLocation: MutableState<LatLng?>,
+    searchedLocation: MutableState<LatLng?>
+) {
+    val cameraPositionState = rememberCameraPositionState().apply {
+        val initialLocation: LatLng = if(searchedLocation.value == null) {
+            currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
+        } else {
+            searchedLocation.value!!
+        }
+        position = CameraPosition.fromLatLngZoom(initialLocation, 15f)
     }
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState
     ) {
-        Marker(
-            state = MarkerState(position = singapore),
-            title = "Pula",
-            snippet = "Marker in Pula"
-        )
+        // Marker for current location
+        currentLocation.value?.let {
+            Marker(
+                state = MarkerState(position = it),
+                title = "Current Location",
+                snippet = "You are here"
+            )
+        }
+
+        // Marker for searched location
+        searchedLocation.value?.let {
+            Marker(
+                state = MarkerState(position = it),
+                title = "Searched Location",
+                snippet = "Your search result"
+            )
+        }
     }
 }
 
 @Composable
-fun LocationSearchBar(cameraPositionState: MutableState<CameraPosition>) {
+fun LocationSearchBar(
+    searchedLocation: MutableState<LatLng?>
+) {
     val context = LocalContext.current
     val geocoder = remember { Geocoder(context) }
-    var searchQuery by remember { mutableStateOf("") }
+    val searchQuery = remember { mutableStateOf("") }
+
+
+
 
     TextField(
-        value = searchQuery,
-        onValueChange = { searchQuery = it },
+        modifier = Modifier.fillMaxWidth(),
+        value = searchQuery.value,
+        onValueChange = { searchQuery.value = it },
         label = { Text("Search location") },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = {
-            val addresses: List<Address> = geocoder.getFromLocationName(searchQuery, 1) ?: listOf()
+            val addresses: List<Address> =
+                geocoder.getFromLocationName(searchQuery.value, 1) ?: listOf()
             if (addresses.isNotEmpty()) {
                 val location = LatLng(addresses[0].latitude, addresses[0].longitude)
-                cameraPositionState.value = CameraPosition.fromLatLngZoom(location, 15f)
+                searchedLocation.value = location
             }
         })
     )
-}
 
+
+}
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MainInterface() {
+    val context = LocalContext.current
     val navController = rememberNavController()
+    val currentLocation = remember { mutableStateOf<LatLng?>(null) }
+    val searchedLocation = remember { mutableStateOf<LatLng?>(null) }
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    var showDialog by remember { mutableStateOf(false) }
+
+    RequestLocationPermission(
+        onPermissionGranted = {
+            getCurrentLocation(fusedLocationClient) { location ->
+                val latLng = LatLng(location.latitude, location.longitude)
+                currentLocation.value = latLng
+                if (searchedLocation.value == null) {
+                    searchedLocation.value = latLng // Set default camera position
+                }
+            }
+        },
+        onPermissionDenied = {
+            showDialog = true
+            println("Location permission denied!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        }
+    )
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
-    ) {paddingValues ->
-        Column (
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            GMapWithCurrentLocation()   // Display the map
-            NavigationHost(navController = navController)
+            // Search bar for updating the searched location
+            LocationSearchBar(searchedLocation)
+
+            // Display map with current and searched locations
+
+            GMap(
+                currentLocation = currentLocation,
+                searchedLocation = searchedLocation
+            )
+            ShowPermissionDeniedDialog(showDialog) {
+                showDialog = false
+            }
+            NavigationHost(navController =  navController )
         }
     }
 
