@@ -40,6 +40,14 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import android.location.Geocoder
+import android.location.Address
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
@@ -129,7 +137,9 @@ fun RequestLocationPermission(
 
     LaunchedEffect(Unit) {
         // Check if the permission has already been granted
-        if (!getPermissionStatus(context)) {
+        if (getPermissionStatus(context)) {
+            onPermissionGranted()
+        } else {
             locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
@@ -210,7 +220,7 @@ fun GMapWithCurrentLocation() {
 
 
 @Composable
-fun GMap() {
+fun GMap() {   // momentarily unused
     val singapore = LatLng(44.86, 13.84)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(singapore, 10f)
@@ -227,6 +237,28 @@ fun GMap() {
     }
 }
 
+@Composable
+fun LocationSearchBar(cameraPositionState: MutableState<CameraPosition>) {
+    val context = LocalContext.current
+    val geocoder = remember { Geocoder(context) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    TextField(
+        value = searchQuery,
+        onValueChange = { searchQuery = it },
+        label = { Text("Search location") },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = {
+            val addresses: List<Address> = geocoder.getFromLocationName(searchQuery, 1) ?: listOf()
+            if (addresses.isNotEmpty()) {
+                val location = LatLng(addresses[0].latitude, addresses[0].longitude)
+                cameraPositionState.value = CameraPosition.fromLatLngZoom(location, 15f)
+            }
+        })
+    )
+}
+
+
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MainInterface() {
@@ -240,10 +272,11 @@ fun MainInterface() {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            GMapWithCurrentLocation()
+            GMapWithCurrentLocation()   // Display the map
             NavigationHost(navController = navController)
         }
     }
+
 }
 
 
