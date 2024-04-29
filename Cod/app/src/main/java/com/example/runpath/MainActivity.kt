@@ -4,6 +4,7 @@ package com.example.runpath
 import FeedReaderDbHelper
 import HomePage
 import LoginPage
+import ProfilePage
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import com.example.runpath.ui.theme.RunPathTheme
@@ -18,43 +19,9 @@ import com.example.runpath.database.SessionManager
 import com.example.runpath.databinding.ActivityMapsBinding
 import com.example.runpath.ui.theme.MainInterface
 import com.example.runpath.ui.theme.RegisterPage
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
 
 
-//class MainActivity : AppCompatActivity(), OnMapReadyCallback {
-//    private lateinit var mMap: GoogleMap
-//    private lateinit var binding: ActivityMapsBinding
-//
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//
-//        binding = ActivityMapsBinding.inflate(layoutInflater)
-//        setContentView(binding.root)
-//
-//        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-//        val mapFragment = supportFragmentManager
-//            .findFragmentById(R.id.map) as SupportMapFragment
-//        mapFragment.getMapAsync(this)
-//    }
-//
-//    override fun onMapReady(googleMap: GoogleMap) {
-//        mMap = googleMap
-//
-//        // Add a marker in Sydney and move the camera
-//        val sydney = LatLng(-34.0, 151.0)
-//        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
-//    }
-//}
+
 
 class MainActivity : AppCompatActivity() /*, OnMapReadyCallback*/ {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,6 +46,7 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback*/ {
                         }
                         composable("registerPage") { RegisterPage(navController, dbHelper) }
                         composable("mainInterface") { MainInterface() }
+                        composable("profilePage") { ProfilePage(navController, sessionManager) }
                     }
 //                Box(contentAlignment = Alignment.Center,modifier = Modifier.fillMaxWidth())
 //                {
@@ -97,6 +65,8 @@ class MainActivity : AppCompatActivity() /*, OnMapReadyCallback*/ {
                         }
                         composable("registerPage") { RegisterPage(navController, dbHelper) }
                         composable("mainInterface") { MainInterface() }
+                        composable("profilePage") { ProfilePage(navController, sessionManager) }
+
                     }
                 }
 

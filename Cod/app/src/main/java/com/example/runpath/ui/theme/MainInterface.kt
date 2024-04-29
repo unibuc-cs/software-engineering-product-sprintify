@@ -1,5 +1,6 @@
 package com.example.runpath.ui.theme
 
+import ProfilePage
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Address
@@ -44,6 +45,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.runpath.database.SessionManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -66,7 +68,7 @@ sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: 
 
     data object Run : BottomNavItem("run", Icons.Default.Add, "Run")
     data object Circuit : BottomNavItem("circuit", Icons.Default.LocationOn, "Circuit")
-    data object Profile : BottomNavItem("profile", Icons.Default.AccountBox, "Profile")
+    data object Profile : BottomNavItem("ProfilePage", Icons.Default.AccountBox, "Profile")
     companion object {
         val values = listOf(Home, Community, Run, Circuit, Profile)
     }
@@ -85,7 +87,9 @@ fun BottomNavigationBar(navController: NavController) {
         BottomNavItem.values.forEach { item ->
             BottomNavigationItem(
                 selected = currentRoute == item.route,
+
                 onClick = {
+
                     navController.navigate(item.route) {
                         popUpTo(navController.graph.startDestinationId)
                         launchSingleTop = true
@@ -100,6 +104,8 @@ fun BottomNavigationBar(navController: NavController) {
 
 @Composable
 fun NavigationHost(navController: NavHostController) {
+
+    var sessionManager = SessionManager(context = LocalContext.current)
     NavHost(navController, startDestination = BottomNavItem.Home.route) {
         composable(BottomNavItem.Home.route) {
             MainInterface()
@@ -107,7 +113,7 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Community.route) { /* Community Screen UI */ }
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
         composable(BottomNavItem.Circuit.route) { /* Search Screen UI */ }
-        composable(BottomNavItem.Profile.route) { ProfilePage() }
+        composable(BottomNavItem.Profile.route) { ProfilePage(navController,sessionManager ) }
     }
 }
 
@@ -303,6 +309,9 @@ fun LocationSearchBar(
         }
     }
 }
+
+
+
 
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
