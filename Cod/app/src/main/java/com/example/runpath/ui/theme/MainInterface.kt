@@ -356,6 +356,18 @@ fun MainInterface() {
                 searchedLocation = searchedLocation
             )
 
+//            searchedLocation.value?.let {
+//                Button(onClick = {
+//                    val intent = Intent(context, MapsActivity::class.java).apply {
+//                        putExtra("currentLocation", currentLocation.value)
+//                        putExtra("searchedLocation", searchedLocation.value)
+//                    }
+//                    context.startActivity(intent)
+//                }) {
+//                    Text("Show Route")
+//                }
+//            }
+
             NavigationHost(navController = navController )
         }
     }
