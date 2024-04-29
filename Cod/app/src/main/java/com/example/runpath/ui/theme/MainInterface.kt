@@ -2,7 +2,6 @@ package com.example.runpath.ui.theme
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.health.connect.datatypes.ExerciseRoute
 import android.location.Location
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,14 +25,11 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Icon
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -42,12 +38,13 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import android.location.Geocoder
 import android.location.Address
+import android.os.Looper
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.google.android.gms.location.LocationRequest
+
 
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
@@ -101,29 +98,6 @@ fun NavigationHost(navController: NavHostController) {
     }
 }
 
-@Composable
-fun ShowPermissionDeniedDialog(
-    showDialog: Boolean,
-    onDismiss: () -> Unit
-) {
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Location Permission Denied") },
-            text = {
-                Text(
-                    "This app requires location access to function properly. "
-                            + "Please grant location permission in your device settings."
-                )
-            },
-            confirmButton = {
-                Button(onClick = onDismiss) {
-                    Text("OK")
-                }
-            }
-        )
-    }
-}
 
 fun savePermissionStatus(context: Context, isGranted: Boolean) {
     val sharedPreferences = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
@@ -134,6 +108,7 @@ fun savePermissionStatus(context: Context, isGranted: Boolean) {
 
 fun getPermissionStatus(context: Context): Boolean {
     val sharedPreferences = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
+    println("LocationPermissionGranted: ${sharedPreferences.getBoolean("LocationPermissionGranted", false)}")
     return sharedPreferences.getBoolean("LocationPermissionGranted", false) // Default to false
 }
 
@@ -160,14 +135,14 @@ fun RequestLocationPermission(
     LaunchedEffect(Unit) {
         // Check if the permission has already been granted
         if (getPermissionStatus(context)) {
+            println("Permission was granted")
+            //the permission is retrieved successfully
             onPermissionGranted()
         } else {
             locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 }
-
-
 @SuppressLint("MissingPermission")
 fun getCurrentLocation(
     fusedLocationClient: FusedLocationProviderClient,
@@ -176,10 +151,27 @@ fun getCurrentLocation(
     fusedLocationClient.lastLocation.addOnSuccessListener { location ->
         if (location != null) {
             onLocationReceived(location)
+        } else {
+            // Constructing a location request with new builder pattern
+            val locationRequest = LocationRequest.Builder(10000L) // Set interval
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxUpdateDelayMillis(5000L) // Similar to fastestInterval
+                .build()
+
+            val locationCallback = object : com.google.android.gms.location.LocationCallback() {
+                override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
+                    locationResult.locations.firstOrNull()?.let {
+                        onLocationReceived(it)
+                        fusedLocationClient.removeLocationUpdates(this) // Remove updates after receiving location
+                    }
+                }
+            }
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
         }
+    }.addOnFailureListener { e ->
+        println("Error getting location: ${e.message}")
     }
 }
-
 
 
 @Composable
@@ -211,20 +203,12 @@ fun GMap(
     ) {
         // Marker for current location
         currentLocation.value?.let {
-            Marker(
-                state = MarkerState(position = it),
-                title = "Current Location",
-                snippet = "You are here"
-            )
+            placeMarkerOnMap(location = currentLocation.value!! , title = "Current Location")
         }
 
         // Marker for searched location
         searchedLocation.value?.let {
-            Marker(
-                state = MarkerState(position = it),
-                title = "Searched Location",
-                snippet = "Your search result"
-            )
+            placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
         }
     }
 }
@@ -268,10 +252,9 @@ fun MainInterface() {
     val searchedLocation = remember { mutableStateOf<LatLng?>(null) }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    var showDialog by remember { mutableStateOf(false) }
-
     RequestLocationPermission(
         onPermissionGranted = {
+            //the dubbger reaches this point
             getCurrentLocation(fusedLocationClient) { location ->
                 val latLng = LatLng(location.latitude, location.longitude)
                 currentLocation.value = latLng
@@ -281,11 +264,11 @@ fun MainInterface() {
             }
         },
         onPermissionDenied = {
-            showDialog = true
-            println("Location permission denied!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            // Handle permission denial logic, e.g., show a message to the user
+            println("Permission denied")
         }
     )
-
+    println("currentLocation: ${currentLocation.value}")
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) { paddingValues ->
@@ -298,15 +281,10 @@ fun MainInterface() {
             LocationSearchBar(searchedLocation)
 
             // Display map with current and searched locations
-
             GMap(
                 currentLocation = currentLocation,
                 searchedLocation = searchedLocation
             )
-            ShowPermissionDeniedDialog(showDialog) {
-                showDialog = false
-            }
-            NavigationHost(navController =  navController )
         }
     }
 
