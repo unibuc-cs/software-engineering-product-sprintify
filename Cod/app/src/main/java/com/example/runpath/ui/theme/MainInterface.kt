@@ -1,5 +1,6 @@
 package com.example.runpath.ui.theme
 
+import HomePage
 import ProfilePage
 import android.annotation.SuppressLint
 import android.content.Context
@@ -63,14 +64,14 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
-    data object Home : BottomNavItem("home", Icons.Default.Home, "Home")
+    data object Map : BottomNavItem("mapPage", Icons.Default.Home, "Map")
     data object Community : BottomNavItem("home", Icons.Default.Star, "Community")
 
     data object Run : BottomNavItem("run", Icons.Default.Add, "Run")
     data object Circuit : BottomNavItem("circuit", Icons.Default.LocationOn, "Circuit")
     data object Profile : BottomNavItem("ProfilePage", Icons.Default.AccountBox, "Profile")
     companion object {
-        val values = listOf(Home, Community, Run, Circuit, Profile)
+        val values = listOf(Map, Community, Run, Circuit, Profile)
     }
 }
 
@@ -99,21 +100,6 @@ fun BottomNavigationBar(navController: NavController) {
                 label = { Text(item.label) }
             )
         }
-    }
-}
-
-@Composable
-fun NavigationHost(navController: NavHostController) {
-
-    var sessionManager = SessionManager(context = LocalContext.current)
-    NavHost(navController, startDestination = BottomNavItem.Home.route) {
-        composable(BottomNavItem.Home.route) {
-            MainInterface()
-        }
-        composable(BottomNavItem.Community.route) { /* Community Screen UI */ }
-        composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
-        composable(BottomNavItem.Circuit.route) { /* Search Screen UI */ }
-        composable(BottomNavItem.Profile.route) { ProfilePage(navController,sessionManager ) }
     }
 }
 
@@ -229,6 +215,17 @@ fun GMap(
         searchedLocation.value?.let {
             placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
         }
+
+        if (currentLocation.value != null && searchedLocation.value != null) {
+            Polyline(
+                state = PolylineState(
+                    path = listOf(
+                        currentLocation.value!!,
+                        searchedLocation.value!!
+                    )
+                )
+            )
+        }
     }
 }
 @Composable
@@ -314,22 +311,19 @@ fun LocationSearchBar(
 
 
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun MainInterface() {
+fun MapScreen(
+    currentLocation: MutableState<LatLng?>,
+    searchedLocation: MutableState<LatLng?>
+) {
     val context = LocalContext.current
-    val navController = rememberNavController()
-    val currentLocation = remember { mutableStateOf<LatLng?>(null) }
-    val searchedLocation = remember { mutableStateOf<LatLng?>(null) }
     val apiKey = "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU"
     Places.initialize(context, apiKey)
     val placesClient = Places.createClient(context)
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-
     RequestLocationPermission(
         onPermissionGranted = {
-            //the dubbger reaches this point
             getCurrentLocation(fusedLocationClient) { location ->
                 val latLng = LatLng(location.latitude, location.longitude)
                 currentLocation.value = latLng
@@ -339,48 +333,53 @@ fun MainInterface() {
             }
         },
         onPermissionDenied = {
-            // Handle permission denial logic, e.g., show a message to the user
             println("Permission denied")
         }
     )
-    println("currentLocation: ${currentLocation.value}")
-    Scaffold(
-        bottomBar = { BottomNavigationBar(navController) }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // Search bar for updating the searched location
-            LocationSearchBar(
-                placesClient = placesClient,
-                searchedLocation = searchedLocation
-            )
 
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        // Search bar for updating the searched location
+        LocationSearchBar(
+            placesClient = placesClient,
+            searchedLocation = searchedLocation
+        )
 
-            // Display map with current and searched locations
-            GMap(
-                currentLocation = currentLocation,
-                searchedLocation = searchedLocation
-            )
-
-//            searchedLocation.value?.let {
-//                Button(onClick = {
-//                    val intent = Intent(context, MapsActivity::class.java).apply {
-//                        putExtra("currentLocation", currentLocation.value)
-//                        putExtra("searchedLocation", searchedLocation.value)
-//                    }
-//                    context.startActivity(intent)
-//                }) {
-//                    Text("Show Route")
-//                }
-//            }
-
-            NavigationHost(navController = navController )
-        }
+        // Display map with current and searched locations
+        GMap(
+            currentLocation = currentLocation,
+            searchedLocation = searchedLocation
+        )
     }
-
 }
 
+@Composable
+fun NavigationHost(navController: NavHostController) {
+    var sessionManager = SessionManager(context = LocalContext.current)
+    val currentLocation = remember { mutableStateOf<LatLng?>(null) }
+    val searchedLocation = remember { mutableStateOf<LatLng?>(null) }
 
+    NavHost(navController, startDestination = BottomNavItem.Map.route) {
+        composable(BottomNavItem.Map.route) {
+            MapScreen(currentLocation, searchedLocation)
+        }
+        composable(BottomNavItem.Community.route) { /* Community Screen UI */ }
+        composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
+        composable(BottomNavItem.Circuit.route) { /* Search Screen UI */ }
+        composable(BottomNavItem.Profile.route) { ProfilePage(navController,sessionManager ) }
+    }
+}
+
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@Composable
+fun MainInterface() {
+    val navController = rememberNavController()
+
+    Scaffold(
+        bottomBar = { BottomNavigationBar(navController) }
+    ) {  paddingValues ->
+        NavigationHost(navController = navController )
+    }
+}
