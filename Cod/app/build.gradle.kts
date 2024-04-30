@@ -91,7 +91,7 @@ dependencies {
     implementation ("com.google.android.libraries.places:places:3.4.0")
     implementation ("com.google.maps.android:places-ktx:3.1.1")
     implementation(libs.play.services.location)
-    implementation ("com.google.maps:google-maps-services:0.20.1")
+    implementation ("com.google.maps:google-maps-services:0.15.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

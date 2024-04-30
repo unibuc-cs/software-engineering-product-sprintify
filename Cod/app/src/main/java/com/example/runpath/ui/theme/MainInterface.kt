@@ -50,18 +50,24 @@ import com.example.runpath.database.SessionManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import com.google.maps.android.compose.Polyline
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.maps.DirectionsApi
+import com.google.maps.GeoApiContext
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.model.DirectionsResult
+import com.google.maps.model.TravelMode
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     data object Map : BottomNavItem("mapPage", Icons.Default.Home, "Map")
@@ -193,6 +199,7 @@ fun GMap(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>
 ) {
+
     val cameraPositionState = rememberCameraPositionState().apply {
         val initialLocation: LatLng = if(searchedLocation.value == null) {
             currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
@@ -218,14 +225,13 @@ fun GMap(
 
         if (currentLocation.value != null && searchedLocation.value != null) {
             Polyline(
-                state = PolylineState(
-                    path = listOf(
-                        currentLocation.value!!,
-                        searchedLocation.value!!
-                    )
-                )
+                points = listOf(currentLocation.value!!, searchedLocation.value!!),
+                color = Color.Red,
+                width = 5f
             )
         }
+
+
     }
 }
 @Composable
@@ -317,6 +323,9 @@ fun MapScreen(
     searchedLocation: MutableState<LatLng?>
 ) {
     val context = LocalContext.current
+    val contextMap = GeoApiContext.Builder()
+        .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
+        .build()
     val apiKey = "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU"
     Places.initialize(context, apiKey)
     val placesClient = Places.createClient(context)
@@ -348,10 +357,11 @@ fun MapScreen(
         )
 
         // Display map with current and searched locations
-        GMap(
+        val map = GMap(
             currentLocation = currentLocation,
             searchedLocation = searchedLocation
         )
+
     }
 }
 
