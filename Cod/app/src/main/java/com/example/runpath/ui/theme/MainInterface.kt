@@ -33,8 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -48,7 +50,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.runpath.database.SessionManager
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.maps.android.compose.Polyline
 import com.google.android.gms.maps.model.CameraPosition
@@ -185,6 +189,37 @@ fun getCurrentLocation(
 }
 
 
+// Code for live tracking
+@SuppressLint("MissingPermission")
+fun getCurrentLocationAndTrack(
+    fusedLocationClient: FusedLocationProviderClient,
+    locationPoints: SnapshotStateList<LatLng>
+) {
+    val locationRequest = LocationRequest.create().apply {
+        interval = 10000
+        fastestInterval = 5000
+        priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+    }
+
+    val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            val locationList = locationResult.locations
+            if(locationList.isNotEmpty()) {
+                val newLocation = locationList.last()
+                val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
+                locationPoints += newLatLng
+            }
+        }
+    }
+
+    fusedLocationClient.requestLocationUpdates(
+        locationRequest,
+        locationCallback,
+        Looper.getMainLooper()
+    )
+}
+
+
 @Composable
 fun placeMarkerOnMap(location: LatLng, title: String) {
     Marker(
@@ -197,7 +232,8 @@ fun placeMarkerOnMap(location: LatLng, title: String) {
 @Composable
 fun GMap(
     currentLocation: MutableState<LatLng?>,
-    searchedLocation: MutableState<LatLng?>
+    searchedLocation: MutableState<LatLng?>,
+    locationPoints: SnapshotStateList<LatLng>
 ) {
 
     val cameraPositionState = rememberCameraPositionState().apply {
@@ -218,19 +254,31 @@ fun GMap(
             placeMarkerOnMap(location = currentLocation.value!! , title = "Current Location")
         }
 
-        // Marker for searched location
-        searchedLocation.value?.let {
-            placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
-        }
+//        // Marker for searched location
+//        searchedLocation.value?.let {
+//            placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
+//        }
+//
+//        if (currentLocation.value != null && searchedLocation.value != null) {
+//            Polyline(
+//                points = listOf(currentLocation.value!!, searchedLocation.value!!),
+//                color = Color.Red,
+//                width = 5f
+//            )
+//        }
 
-        if (currentLocation.value != null && searchedLocation.value != null) {
-            Polyline(
-                points = listOf(currentLocation.value!!, searchedLocation.value!!),
-                color = Color.Red,
-                width = 5f
+        Polyline(
+            points = locationPoints,
+            color = Color.Red,
+            width = 5f
+        )
+
+        locationPoints.forEach {
+            Marker(
+                state = MarkerState(position = it),
+                title = "Visited"
             )
         }
-
 
     }
 }
@@ -313,10 +361,6 @@ fun LocationSearchBar(
     }
 }
 
-
-
-
-
 @Composable
 fun MapScreen(
     currentLocation: MutableState<LatLng?>,
@@ -331,6 +375,8 @@ fun MapScreen(
     val placesClient = Places.createClient(context)
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
+    val locationPoints = remember {mutableStateListOf<LatLng>()}
+
     RequestLocationPermission(
         onPermissionGranted = {
             getCurrentLocation(fusedLocationClient) { location ->
@@ -339,6 +385,8 @@ fun MapScreen(
                 if (searchedLocation.value == null) {
                     searchedLocation.value = latLng // Set default camera position
                 }
+
+                getCurrentLocationAndTrack(fusedLocationClient, locationPoints)
             }
         },
         onPermissionDenied = {
@@ -359,7 +407,8 @@ fun MapScreen(
         // Display map with current and searched locations
         val map = GMap(
             currentLocation = currentLocation,
-            searchedLocation = searchedLocation
+            searchedLocation = searchedLocation,
+            locationPoints = locationPoints
         )
 
     }
@@ -367,9 +416,12 @@ fun MapScreen(
 
 @Composable
 fun NavigationHost(navController: NavHostController) {
-    var sessionManager = SessionManager(context = LocalContext.current)
+    val context = LocalContext.current
+    var sessionManager = SessionManager(context)
     val currentLocation = remember { mutableStateOf<LatLng?>(null) }
     val searchedLocation = remember { mutableStateOf<LatLng?>(null) }
+
+    //val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
     NavHost(navController, startDestination = BottomNavItem.Map.route) {
         composable(BottomNavItem.Map.route) {
