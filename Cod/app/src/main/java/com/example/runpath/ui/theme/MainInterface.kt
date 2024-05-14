@@ -191,6 +191,13 @@ fun getCurrentLocation(
 
 
 // Code for live tracking
+
+fun formatLatLngList(latlngList: List<LatLng>): String {
+    return latlngList.joinToString(separator = ", ") { latlng ->
+        "(${latlng.latitude}, ${latlng.longitude})"
+    }
+}
+
 @SuppressLint("MissingPermission")
 fun getCurrentLocationAndTrack(
     fusedLocationClient: FusedLocationProviderClient,
@@ -209,7 +216,7 @@ fun getCurrentLocationAndTrack(
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 locationPoints += newLatLng
-                Log.d("LocationUpdate", "Current points list: $locationPoints")
+                Log.d("LocationUpdate", "Updated points list: ${formatLatLngList(locationPoints)}")
             }
         }
     }
