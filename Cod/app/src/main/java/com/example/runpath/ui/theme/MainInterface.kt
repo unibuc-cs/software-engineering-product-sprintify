@@ -267,11 +267,13 @@ fun GMap(
 //            )
 //        }
 
-        Polyline(
-            points = locationPoints,
-            color = Color.Red,
-            width = 5f
-        )
+        if (locationPoints.isNotEmpty()) {
+            Polyline(
+                points = locationPoints,
+                color = Color.Red,
+                width = 5f
+            )
+        }
 
         locationPoints.forEach {
             Marker(
