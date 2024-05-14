@@ -55,6 +55,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.Polyline
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -254,6 +255,12 @@ fun GMap(
         position = CameraPosition.fromLatLngZoom(initialLocation, 15f)
     }
 
+    LaunchedEffect(locationPoints.hashCode()) {
+        if (locationPoints.isNotEmpty()) {
+            cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(locationPoints.last(), 15f))
+        }
+    }
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState
@@ -276,8 +283,7 @@ fun GMap(
 //            )
 //        }
 
-//        if (locationPoints.isNotEmpty()) {
-//            Log.d("PolylineDebug", "Drawing polyline with points: $locationPoints")
+//        if (locationPoints.size >= 2) {
 //            Polyline(
 //                points = listOf(locationPoints[locationPoints.size - 2], locationPoints.last()),
 //                color = Color.Red,
@@ -285,16 +291,8 @@ fun GMap(
 //            )
 //        }
 
-        if (locationPoints.size >= 2) {
-            Polyline(
-                points = listOf(locationPoints[locationPoints.size - 2], locationPoints.last()),
-                color = Color.Red,
-                width = 5f
-            )
-        }
-
         Polyline(
-            points = listOf(LatLng(40.7128, -74.0060), LatLng(34.0522, -118.2437)),
+            points = locationPoints,
             color = Color.Red,
             width = 5f
         )
@@ -308,6 +306,8 @@ fun GMap(
 
     }
 }
+
+
 @Composable
 fun LocationSearchBar(
     placesClient: PlacesClient,
