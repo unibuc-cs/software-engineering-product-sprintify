@@ -417,7 +417,7 @@ fun MapScreen(
         )
 
         // Display map with current and searched locations
-        val map = GMap(
+        GMap(
             currentLocation = currentLocation,
             searchedLocation = searchedLocation,
             locationPoints = locationPoints
