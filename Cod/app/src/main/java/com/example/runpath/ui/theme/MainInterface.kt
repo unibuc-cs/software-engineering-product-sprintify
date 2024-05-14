@@ -279,7 +279,7 @@ fun GMap(
         if (locationPoints.isNotEmpty()) {
             Log.d("PolylineDebug", "Drawing polyline with points: $locationPoints")
             Polyline(
-                points = locationPoints,
+                points = listOf(locationPoints.last(), locationPoints[locationPoints.size - 2]),
                 color = Color.Red,
                 width = 5f
             )
