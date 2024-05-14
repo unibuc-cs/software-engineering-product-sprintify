@@ -276,8 +276,16 @@ fun GMap(
 //            )
 //        }
 
-        if (locationPoints.isNotEmpty()) {
-            Log.d("PolylineDebug", "Drawing polyline with points: $locationPoints")
+//        if (locationPoints.isNotEmpty()) {
+//            Log.d("PolylineDebug", "Drawing polyline with points: $locationPoints")
+//            Polyline(
+//                points = listOf(locationPoints[locationPoints.size - 2], locationPoints.last()),
+//                color = Color.Red,
+//                width = 5f
+//            )
+//        }
+
+        if (locationPoints.size >= 2) {
             Polyline(
                 points = listOf(locationPoints[locationPoints.size - 2], locationPoints.last()),
                 color = Color.Red,
