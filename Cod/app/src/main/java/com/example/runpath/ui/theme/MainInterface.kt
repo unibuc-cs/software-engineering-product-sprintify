@@ -285,6 +285,12 @@ fun GMap(
             )
         }
 
+        Polyline(
+            points = listOf(LatLng(40.7128, -74.0060), LatLng(34.0522, -118.2437)),
+            color = Color.Red,
+            width = 5f
+        )
+
         locationPoints.forEach {
             Marker(
                 state = MarkerState(position = it),
