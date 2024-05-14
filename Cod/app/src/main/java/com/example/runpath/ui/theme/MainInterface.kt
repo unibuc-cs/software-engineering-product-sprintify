@@ -427,7 +427,7 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Map.route) {
             MapScreen(currentLocation, searchedLocation)
         }
-        composable(BottomNavItem.Community.route) { /* Community Screen UI */ }
+        composable(BottomNavItem.Community.route) { CommunityPage(navController,sessionManager) }
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
         composable(BottomNavItem.Circuit.route) { /* Search Screen UI */ }
         composable(BottomNavItem.Profile.route) { ProfilePage(navController,sessionManager ) }
