@@ -209,6 +209,7 @@ fun getCurrentLocationAndTrack(
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 locationPoints += newLatLng
+                Log.d("LocationUpdate", "Current points list: $locationPoints")
             }
         }
     }
