@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomNavigation
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -41,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -186,6 +189,20 @@ fun getCurrentLocation(
 
 // Code for live tracking
 
+@Composable
+fun RunControlButton(isRunActive: MutableState<Boolean>) {
+    val buttonText = if (isRunActive.value) "Pause Run" else "Start Run"
+
+    Button(
+        onClick = { isRunActive.value = !isRunActive.value },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(text = buttonText)
+    }
+}
+
 fun formatLatLngList(latlngList: List<LatLng>): String {
     return latlngList.joinToString(separator = ", ") { latlng ->
         "(${latlng.latitude}, ${latlng.longitude})"
@@ -239,8 +256,11 @@ fun placeMarkerOnMap(location: LatLng, title: String) {
 fun GMap(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>,
-    locationPoints: SnapshotStateList<LatLng>
+    locationPoints: SnapshotStateList<LatLng>,
+    isRunActive: Boolean
 ) {
+
+    val polylineColor = if (!isRunActive) Color.Blue else Color.Red
 
     val cameraPositionState = rememberCameraPositionState().apply {
         val initialLocation: LatLng = if(searchedLocation.value == null) {
@@ -276,7 +296,7 @@ fun GMap(
 
         Polyline(
             points = locationPoints.toList(),
-            color = Color.Red,
+            color = polylineColor,
             width = 5f
         )
 
@@ -393,6 +413,7 @@ fun MapScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
     val locationPoints = remember {mutableStateListOf<LatLng>()}
+    val isRunActive = remember { mutableStateOf(false) }
 
     RequestLocationPermission(
         onPermissionGranted = {
@@ -425,8 +446,12 @@ fun MapScreen(
         GMap(
             currentLocation = currentLocation,
             searchedLocation = searchedLocation,
-            locationPoints = locationPoints
+            locationPoints = locationPoints,
+            isRunActive = isRunActive.value
         )
+
+        // Start/Pause Button
+        RunControlButton(isRunActive)
 
     }
 }
