@@ -205,8 +205,11 @@ fun getCurrentLocationAndTrack(
     locationPoints: SnapshotStateList<LatLng>
 ) {
     val locationRequest = LocationRequest.create().apply {
-        interval = 10000
-        fastestInterval = 5000
+        // Setting the min and max intervals at witch the application retrieves the
+        // current location of the user
+        // max set to 5s and min set to 2s
+        interval = 5000
+        fastestInterval = 2000
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
