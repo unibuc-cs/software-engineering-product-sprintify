@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -439,17 +440,20 @@ fun MapScreen(
             searchedLocation = searchedLocation
         )
 
-        // Display map with current and searched locations
-        GMap(
-            currentLocation = currentLocation,
-            searchedLocation = searchedLocation,
-            locationPoints = locationPoints,
-            isRunActive = isRunActive.value
-        )
+        Box(
+            modifier = Modifier.weight(1f)
+        ) {
+            // Display map with current and searched locations
+            GMap(
+                currentLocation = currentLocation,
+                searchedLocation = searchedLocation,
+                locationPoints = locationPoints,
+                isRunActive = isRunActive.value
+            )
 
-        // Start/Pause Button
-        RunControlButton(isRunActive)
-
+            // Start/Pause Button
+            RunControlButton(isRunActive)
+        }
     }
 }
 
