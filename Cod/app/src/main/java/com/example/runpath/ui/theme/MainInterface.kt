@@ -255,12 +255,6 @@ fun GMap(
         position = CameraPosition.fromLatLngZoom(initialLocation, 15f)
     }
 
-    LaunchedEffect(locationPoints.hashCode()) {
-        if (locationPoints.isNotEmpty()) {
-            cameraPositionState.move(CameraUpdateFactory.newLatLngZoom(locationPoints.last(), 15f))
-        }
-    }
-
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState
