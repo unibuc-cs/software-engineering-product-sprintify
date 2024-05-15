@@ -46,6 +46,22 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
     }
 
+    fun getRoutePoints(point1: LatLng, point2: LatLng): List<LatLng> {
+        val context = GeoApiContext.Builder()
+            .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
+            .build()
+
+        val result: DirectionsResult = DirectionsApi.newRequest(context)
+            .mode(TravelMode.WALKING)
+            .origin(com.google.maps.model.LatLng(point1.latitude, point1.longitude))
+            .destination(com.google.maps.model.LatLng(point2.latitude, point2.longitude))
+            .await()
+
+        return result.routes[0].overviewPolyline.decodePath().map {
+            LatLng(it.lat, it.lng)
+        }
+    }
+
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 

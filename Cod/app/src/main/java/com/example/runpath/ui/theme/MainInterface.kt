@@ -1,6 +1,5 @@
 package com.example.runpath.ui.theme
 
-import HomePage
 import ProfilePage
 import android.annotation.SuppressLint
 import android.content.Context
@@ -15,7 +14,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomNavigation
@@ -55,25 +53,20 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.maps.android.compose.Polyline
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
-import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.model.DirectionsResult
-import com.google.maps.model.TravelMode
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     data object Map : BottomNavItem("mapPage", Icons.Default.Home, "Map")
@@ -258,6 +251,15 @@ fun GMap(
         position = CameraPosition.fromLatLngZoom(initialLocation, 15f)
     }
 
+    val mapsActivity = MapsActivity()
+    val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
+
+    LaunchedEffect(key1 = currentLocation.value, key2 = searchedLocation.value) {
+        if (currentLocation.value != null && searchedLocation.value != null) {
+            routePoints.value = mapsActivity.getRoutePoints(currentLocation.value!!, searchedLocation.value!!)
+        }
+    }
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState
@@ -267,26 +269,10 @@ fun GMap(
             placeMarkerOnMap(location = currentLocation.value!! , title = "Current Location")
         }
 
-//        // Marker for searched location
-//        searchedLocation.value?.let {
-//            placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
-//        }
-//
-//        if (currentLocation.value != null && searchedLocation.value != null) {
-//            Polyline(
-//                points = listOf(currentLocation.value!!, searchedLocation.value!!),
-//                color = Color.Red,
-//                width = 5f
-//            )
-//        }
-
-//        if (locationPoints.size >= 2) {
-//            Polyline(
-//                points = listOf(locationPoints[locationPoints.size - 2], locationPoints.last()),
-//                color = Color.Red,
-//                width = 5f
-//            )
-//        }
+        // Marker for searched location
+        searchedLocation.value?.let {
+            placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
+        }
 
         Polyline(
             points = locationPoints.toList(),
@@ -298,6 +284,14 @@ fun GMap(
             Marker(
                 state = MarkerState(position = it),
                 title = "Visited"
+            )
+        }
+
+        if (routePoints.value.isNotEmpty()) {
+            Polyline(
+                points = routePoints.value,
+                color = Color.Red,
+                width = 10f
             )
         }
 
