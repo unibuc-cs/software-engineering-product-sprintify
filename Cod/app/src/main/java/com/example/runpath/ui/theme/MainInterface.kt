@@ -292,7 +292,7 @@ fun GMap(
 //        }
 
         Polyline(
-            points = locationPoints,
+            points = locationPoints.toList(),
             color = Color.Red,
             width = 5f
         )
