@@ -259,9 +259,6 @@ fun GMap(
     locationPoints: SnapshotStateList<LatLng>,
     isRunActive: Boolean
 ) {
-
-    val polylineColor = if (!isRunActive) Color.Blue else Color.Red
-
     val cameraPositionState = rememberCameraPositionState().apply {
         val initialLocation: LatLng = if(searchedLocation.value == null) {
             currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
@@ -296,7 +293,7 @@ fun GMap(
 
         Polyline(
             points = locationPoints.toList(),
-            color = polylineColor,
+            color = if(isRunActive) Color.Red else Color.Blue,
             width = 5f
         )
 
