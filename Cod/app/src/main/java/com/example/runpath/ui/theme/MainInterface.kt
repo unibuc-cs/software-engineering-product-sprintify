@@ -7,7 +7,6 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.os.Looper
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -289,7 +288,10 @@ fun GMap(
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState
+        cameraPositionState = cameraPositionState,
+        onMapLongClick = { latLng ->
+            searchedLocation.value = latLng
+        }
     ) {
         // Marker for current location
         currentLocation.value?.let {
