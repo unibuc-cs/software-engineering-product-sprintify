@@ -190,12 +190,20 @@ fun getCurrentLocation(
 
 // Code for live tracking
 
+// special data class for memorizing the polyline segments
+data class PolylineSegment(val points: List<LatLng>, val color: Color)
+
 @Composable
-fun RunControlButton(isRunActive: MutableState<Boolean>) {
+fun RunControlButton(
+    isRunActive: MutableState<Boolean>,
+    onToggle: () -> Unit
+) {
     val buttonText = if (isRunActive.value) "Pause Run" else "Start Run"
 
     Button(
-        onClick = { isRunActive.value = !isRunActive.value },
+        onClick = { isRunActive.value = !isRunActive.value
+                    onToggle()
+                  },
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
@@ -257,7 +265,7 @@ fun placeMarkerOnMap(location: LatLng, title: String) {
 fun GMap(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>,
-    locationPoints: SnapshotStateList<LatLng>,
+    locationPoints: SnapshotStateList<PolylineSegment>,
     isRunActive: Boolean
 ) {
     val cameraPositionState = rememberCameraPositionState().apply {
@@ -292,18 +300,20 @@ fun GMap(
             placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
         }
 
-        Polyline(
-            points = locationPoints.toList(),
-            color = if(isRunActive) Color.Red else Color.Blue,
-            width = 5f
-        )
-
-        locationPoints.forEach {
-            Marker(
-                state = MarkerState(position = it),
-                title = "Visited"
+        locationPoints.forEach { segment ->
+            Polyline(
+                points = segment.points,
+                color = segment.color,
+                width = 5f
             )
         }
+
+//        locationPoints.forEach {
+//            Marker(
+//                state = MarkerState(position = it),
+//                title = "Visited"
+//            )
+//        }
 
         if (routePoints.value.isNotEmpty()) {
             Polyline(
@@ -410,8 +420,9 @@ fun MapScreen(
     val placesClient = Places.createClient(context)
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    val locationPoints = remember {mutableStateListOf<LatLng>()}
+    val locationSegments = remember {mutableStateListOf<PolylineSegment>()}
     val isRunActive = remember { mutableStateOf(false) }
+    val currentSegment = remember {mutableStateListOf<LatLng>()}
 
     RequestLocationPermission(
         onPermissionGranted = {
@@ -422,7 +433,7 @@ fun MapScreen(
                     searchedLocation.value = latLng // Set default camera position
                 }
 
-                getCurrentLocationAndTrack(fusedLocationClient, locationPoints)
+                getCurrentLocationAndTrack(fusedLocationClient, currentSegment)
             }
         },
         onPermissionDenied = {
@@ -447,12 +458,20 @@ fun MapScreen(
             GMap(
                 currentLocation = currentLocation,
                 searchedLocation = searchedLocation,
-                locationPoints = locationPoints,
+                locationPoints = locationSegments,
                 isRunActive = isRunActive.value
             )
 
             // Start/Pause Button
-            RunControlButton(isRunActive)
+            RunControlButton(isRunActive) {
+                if(isRunActive.value) {
+                    locationSegments.add(PolylineSegment(currentSegment.toList(), Color.Red))
+                } else {
+                    locationSegments.add(PolylineSegment(currentSegment.toList(), Color.Blue))
+                }
+
+                currentSegment.clear()
+            }
         }
     }
 }
