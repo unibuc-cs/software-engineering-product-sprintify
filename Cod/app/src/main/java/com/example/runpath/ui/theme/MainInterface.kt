@@ -191,7 +191,7 @@ fun getCurrentLocation(
 // Code for live tracking
 
 // special data class for memorizing the polyline segments
-data class PolylineSegment(val points: List<LatLng>, val color: Color)
+data class PolylineSegment(val points: MutableList<LatLng>, val color: Color)
 
 @Composable
 fun RunControlButton(
@@ -221,7 +221,9 @@ fun formatLatLngList(latlngList: List<LatLng>): String {
 @SuppressLint("MissingPermission")
 fun getCurrentLocationAndTrack(
     fusedLocationClient: FusedLocationProviderClient,
-    locationPoints: SnapshotStateList<LatLng>
+    currentSegment: MutableState<PolylineSegment>,
+    locationSegments: SnapshotStateList<PolylineSegment>,
+    isRunActive: MutableState<Boolean>
 ) {
     val locationRequest = LocationRequest.create().apply {
         // Setting the min and max intervals at witch the application retrieves the
@@ -238,8 +240,10 @@ fun getCurrentLocationAndTrack(
             if(locationList.isNotEmpty()) {
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
-                locationPoints += newLatLng
-                Log.d("LocationUpdate", "Updated points list: ${formatLatLngList(locationPoints)}")
+                currentSegment.value.points.add(newLatLng)
+                locationSegments.remove(currentSegment.value)
+                locationSegments.add(currentSegment.value)
+                //Log.d("LocationUpdate", "Updated points list: ${formatLatLngList(locationSegments)}")
             }
         }
     }
@@ -265,7 +269,7 @@ fun placeMarkerOnMap(location: LatLng, title: String) {
 fun GMap(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>,
-    locationPoints: SnapshotStateList<PolylineSegment>,
+    locationSegments: SnapshotStateList<PolylineSegment>,
     isRunActive: Boolean
 ) {
     val cameraPositionState = rememberCameraPositionState().apply {
@@ -300,7 +304,7 @@ fun GMap(
             placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
         }
 
-        locationPoints.forEach { segment ->
+        locationSegments.forEach { segment ->
             Polyline(
                 points = segment.points,
                 color = segment.color,
@@ -422,7 +426,7 @@ fun MapScreen(
 
     val locationSegments = remember {mutableStateListOf<PolylineSegment>()}
     val isRunActive = remember { mutableStateOf(false) }
-    val currentSegment = remember {mutableStateListOf<LatLng>()}
+    val currentSegment = remember {mutableStateOf(PolylineSegment(mutableListOf(), Color.Blue))}
 
     RequestLocationPermission(
         onPermissionGranted = {
@@ -433,7 +437,7 @@ fun MapScreen(
                     searchedLocation.value = latLng // Set default camera position
                 }
 
-                getCurrentLocationAndTrack(fusedLocationClient, currentSegment)
+                getCurrentLocationAndTrack(fusedLocationClient, currentSegment, locationSegments,isRunActive)
             }
         },
         onPermissionDenied = {
@@ -458,19 +462,19 @@ fun MapScreen(
             GMap(
                 currentLocation = currentLocation,
                 searchedLocation = searchedLocation,
-                locationPoints = locationSegments,
+                locationSegments = locationSegments,
                 isRunActive = isRunActive.value
             )
 
             // Start/Pause Button
             RunControlButton(isRunActive) {
                 if(isRunActive.value) {
-                    locationSegments.add(PolylineSegment(currentSegment.toList(), Color.Red))
+                    currentSegment.value = PolylineSegment(mutableListOf(), Color.Red)
                 } else {
-                    locationSegments.add(PolylineSegment(currentSegment.toList(), Color.Blue))
+                    currentSegment.value = PolylineSegment(mutableListOf(), Color.Blue)
                 }
 
-                currentSegment.clear()
+                locationSegments.add(currentSegment.value)
             }
         }
     }
