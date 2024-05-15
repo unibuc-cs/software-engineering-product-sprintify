@@ -201,7 +201,8 @@ fun RunControlButton(
     val buttonText = if (isRunActive.value) "Pause Run" else "Start Run"
 
     Button(
-        onClick = { isRunActive.value = !isRunActive.value
+        onClick = {
+                    isRunActive.value = !isRunActive.value
                     onToggle()
                   },
         modifier = Modifier
@@ -221,9 +222,7 @@ fun formatLatLngList(latlngList: List<LatLng>): String {
 @SuppressLint("MissingPermission")
 fun getCurrentLocationAndTrack(
     fusedLocationClient: FusedLocationProviderClient,
-    currentSegment: MutableState<PolylineSegment>,
-    locationSegments: SnapshotStateList<PolylineSegment>,
-    isRunActive: MutableState<Boolean>
+    currentSegment: MutableState<PolylineSegment>
 ) {
     val locationRequest = LocationRequest.create().apply {
         // Setting the min and max intervals at witch the application retrieves the
@@ -241,8 +240,6 @@ fun getCurrentLocationAndTrack(
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 currentSegment.value.points.add(newLatLng)
-                locationSegments.remove(currentSegment.value)
-                locationSegments.add(currentSegment.value)
                 //Log.d("LocationUpdate", "Updated points list: ${formatLatLngList(locationSegments)}")
             }
         }
@@ -437,7 +434,7 @@ fun MapScreen(
                     searchedLocation.value = latLng // Set default camera position
                 }
 
-                getCurrentLocationAndTrack(fusedLocationClient, currentSegment, locationSegments,isRunActive)
+                getCurrentLocationAndTrack(fusedLocationClient, currentSegment)
             }
         },
         onPermissionDenied = {
@@ -468,13 +465,13 @@ fun MapScreen(
 
             // Start/Pause Button
             RunControlButton(isRunActive) {
-                if(isRunActive.value) {
-                    currentSegment.value = PolylineSegment(mutableListOf(), Color.Red)
-                } else {
-                    currentSegment.value = PolylineSegment(mutableListOf(), Color.Blue)
-                }
-
                 locationSegments.add(currentSegment.value)
+
+                currentSegment.value = if(isRunActive.value) {
+                    PolylineSegment(mutableStateListOf(), Color.Red)
+                } else {
+                    PolylineSegment(mutableListOf(), Color.Blue)
+                }
             }
         }
     }
