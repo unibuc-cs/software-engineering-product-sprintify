@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -190,19 +191,19 @@ fun getCurrentLocation(
 // Code for live tracking
 
 // special data class for memorizing the polyline segments
-data class PolylineSegment(val points: MutableList<LatLng>, val color: Color)
+data class PolylineSegment(var points: List<LatLng>, val color: Color, val id: Int)
 
 @Composable
 fun RunControlButton(
     isRunActive: MutableState<Boolean>,
-    onToggle: () -> Unit
+    onButtonClick: () -> Unit
 ) {
     val buttonText = if (isRunActive.value) "Pause Run" else "Start Run"
 
     Button(
         onClick = {
                     isRunActive.value = !isRunActive.value
-                    onToggle()
+                    onButtonClick()
                   },
         modifier = Modifier
             .fillMaxWidth()
@@ -221,7 +222,10 @@ fun formatLatLngList(latlngList: List<LatLng>): String {
 @SuppressLint("MissingPermission")
 fun getCurrentLocationAndTrack(
     fusedLocationClient: FusedLocationProviderClient,
-    currentSegment: MutableState<PolylineSegment>
+    locationPoints: SnapshotStateList<LatLng>,
+    polylineSegments: SnapshotStateList<PolylineSegment>,
+    isRunActive: MutableState<Boolean>,
+    currentSegmentId: MutableState<Int>
 ) {
     val locationRequest = LocationRequest.create().apply {
         // Setting the min and max intervals at witch the application retrieves the
@@ -238,8 +242,17 @@ fun getCurrentLocationAndTrack(
             if(locationList.isNotEmpty()) {
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
-                currentSegment.value.points.add(newLatLng)
+                locationPoints += newLatLng
                 //Log.d("LocationUpdate", "Updated points list: ${formatLatLngList(locationSegments)}")
+
+                val currentColor = if(isRunActive.value) Color.Red else Color.Blue
+
+                if(polylineSegments.isEmpty() || polylineSegments.last().color != currentColor) {
+                    currentSegmentId.value += 1
+                    polylineSegments += PolylineSegment(listOf(newLatLng), currentColor, currentSegmentId.value)
+                } else {
+                    polylineSegments.last().points += newLatLng
+                }
             }
         }
     }
@@ -265,7 +278,8 @@ fun placeMarkerOnMap(location: LatLng, title: String) {
 fun GMap(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>,
-    locationSegments: SnapshotStateList<PolylineSegment>,
+    locationPoints: SnapshotStateList<LatLng>,
+    polylineSegments: SnapshotStateList<PolylineSegment>,
     isRunActive: Boolean
 ) {
     val cameraPositionState = rememberCameraPositionState().apply {
@@ -303,7 +317,7 @@ fun GMap(
             placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
         }
 
-        locationSegments.forEach { segment ->
+        polylineSegments.forEach { segment ->
             Polyline(
                 points = segment.points,
                 color = segment.color,
@@ -423,9 +437,10 @@ fun MapScreen(
     val placesClient = Places.createClient(context)
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    val locationSegments = remember {mutableStateListOf<PolylineSegment>()}
+    val locationPoints = remember { mutableStateListOf<LatLng>()}
+    val polylineSegments = remember {mutableStateListOf<PolylineSegment>()}
     val isRunActive = remember { mutableStateOf(false) }
-    val currentSegment = remember {mutableStateOf(PolylineSegment(mutableListOf(), Color.Blue))}
+    val currentSegmentId = remember { mutableIntStateOf(0) }
 
     RequestLocationPermission(
         onPermissionGranted = {
@@ -436,7 +451,7 @@ fun MapScreen(
                     searchedLocation.value = latLng // Set default camera position
                 }
 
-                getCurrentLocationAndTrack(fusedLocationClient, currentSegment)
+                getCurrentLocationAndTrack(fusedLocationClient, locationPoints, polylineSegments, isRunActive, currentSegmentId)
             }
         },
         onPermissionDenied = {
@@ -461,19 +476,14 @@ fun MapScreen(
             GMap(
                 currentLocation = currentLocation,
                 searchedLocation = searchedLocation,
-                locationSegments = locationSegments,
+                locationPoints = locationPoints,
+                polylineSegments = polylineSegments,
                 isRunActive = isRunActive.value
             )
 
             // Start/Pause Button
             RunControlButton(isRunActive) {
-                locationSegments.add(currentSegment.value)
-
-                currentSegment.value = if(isRunActive.value) {
-                    PolylineSegment(mutableStateListOf(), Color.Red)
-                } else {
-                    PolylineSegment(mutableListOf(), Color.Blue)
-                }
+                currentSegmentId.intValue += 1
             }
         }
     }
