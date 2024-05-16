@@ -193,6 +193,8 @@ fun getCurrentLocation(
 // special data class for memorizing the polyline segments
 data class PolylineSegment(var points: List<LatLng>, val color: Color, val id: Int)
 
+data class Segment(val startIndex: Int, val color: Color)
+
 @Composable
 fun RunControlButton(
     isRunActive: MutableState<Boolean>,
@@ -223,9 +225,8 @@ fun formatLatLngList(latlngList: List<LatLng>): String {
 fun getCurrentLocationAndTrack(
     fusedLocationClient: FusedLocationProviderClient,
     locationPoints: SnapshotStateList<LatLng>,
-    polylineSegments: SnapshotStateList<PolylineSegment>,
-    isRunActive: MutableState<Boolean>,
-    currentSegmentId: MutableState<Int>
+    segments: SnapshotStateList<Segment>,
+    isRunActive: MutableState<Boolean>
 ) {
     val locationRequest = LocationRequest.create().apply {
         // Setting the min and max intervals at witch the application retrieves the
@@ -245,13 +246,12 @@ fun getCurrentLocationAndTrack(
                 locationPoints += newLatLng
                 //Log.d("LocationUpdate", "Updated points list: ${formatLatLngList(locationSegments)}")
 
-                val currentColor = if(isRunActive.value) Color.Red else Color.Blue
-
-                if(polylineSegments.isEmpty() || polylineSegments.last().color != currentColor) {
-                    currentSegmentId.value += 1
-                    polylineSegments += PolylineSegment(listOf(newLatLng), currentColor, currentSegmentId.value)
-                } else {
-                    polylineSegments.last().points += newLatLng
+                if(locationPoints.size == 1 || isRunActive.value && segments.isEmpty()) {
+                    segments.add(Segment(0, Color.Red))
+                } else if(!isRunActive.value && segments.last().color == Color.Red) {
+                    segments.add(Segment(locationPoints.size - 1, Color.Blue))
+                } else if(isRunActive.value && segments.last().color == Color.Blue) {
+                    segments.add(Segment(locationPoints.size - 1, Color.Red))
                 }
             }
         }
@@ -279,7 +279,7 @@ fun GMap(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>,
     locationPoints: SnapshotStateList<LatLng>,
-    polylineSegments: SnapshotStateList<PolylineSegment>,
+    segments: SnapshotStateList<Segment>,
     isRunActive: Boolean
 ) {
     val cameraPositionState = rememberCameraPositionState().apply {
@@ -317,9 +317,10 @@ fun GMap(
             placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
         }
 
-        polylineSegments.forEach { segment ->
+        segments.forEachIndexed { index, segment ->
+            val endIndex = if(index < segments.size - 1) segments[index + 1].startIndex else locationPoints.size
             Polyline(
-                points = segment.points,
+                points = locationPoints.subList(segment.startIndex, endIndex),
                 color = segment.color,
                 width = 5f
             )
@@ -438,9 +439,8 @@ fun MapScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
     val locationPoints = remember { mutableStateListOf<LatLng>()}
-    val polylineSegments = remember {mutableStateListOf<PolylineSegment>()}
+    val segments = remember {mutableStateListOf<Segment>()}
     val isRunActive = remember { mutableStateOf(false) }
-    val currentSegmentId = remember { mutableIntStateOf(0) }
 
     RequestLocationPermission(
         onPermissionGranted = {
@@ -451,7 +451,7 @@ fun MapScreen(
                     searchedLocation.value = latLng // Set default camera position
                 }
 
-                getCurrentLocationAndTrack(fusedLocationClient, locationPoints, polylineSegments, isRunActive, currentSegmentId)
+                getCurrentLocationAndTrack(fusedLocationClient, locationPoints, segments, isRunActive)
             }
         },
         onPermissionDenied = {
@@ -477,13 +477,20 @@ fun MapScreen(
                 currentLocation = currentLocation,
                 searchedLocation = searchedLocation,
                 locationPoints = locationPoints,
-                polylineSegments = polylineSegments,
+                segments = segments,
                 isRunActive = isRunActive.value
             )
 
             // Start/Pause Button
             RunControlButton(isRunActive) {
-                currentSegmentId.intValue += 1
+                if(locationPoints.isNotEmpty()) {
+                    val lastSegment = segments.last()
+                    if(isRunActive.value) {
+                        segments.add(Segment(locationPoints.size - 1, Color.Red))
+                    } else {
+                        segments.add(Segment(locationPoints.size - 1, Color.Blue))
+                    }
+                }
             }
         }
     }
