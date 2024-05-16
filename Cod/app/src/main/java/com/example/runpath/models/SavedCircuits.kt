@@ -1,7 +1,7 @@
 package com.example.runpath.models
 
 data class SavedCircuits (
-    val savedCircuitId: Int,
-            val userId: Int,
-                    val circuitId: Int
+    val savedCircuitID: String? = null,
+    val userID: String? = null,
+    val circuitID: String? = null,
 )

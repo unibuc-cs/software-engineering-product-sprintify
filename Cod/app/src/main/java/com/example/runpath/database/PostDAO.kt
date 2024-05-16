@@ -11,7 +11,7 @@ class PostDAO {
     fun insertPost(post: Post, onComplete: (Post) -> Unit) {
         val documentReference = db.collection("posts").document()
         val postId = documentReference.id
-        val newPost = post.copy(postId = postId)
+        val newPost = post.copy(postID = postId)
 
         documentReference.set(newPost)
             .addOnSuccessListener {
@@ -42,7 +42,7 @@ class PostDAO {
         db.collection("posts")
             .get()
             .addOnSuccessListener { documents ->
-                val posts = documents.map { it.toObject<Post>().copy(postId = it.id) }
+                val posts = documents.map { it.toObject<Post>().copy(postID = it.id) }
                 onComplete(posts)
             }
             .addOnFailureListener { e ->
@@ -59,29 +59,29 @@ class PostDAO {
                 }
 
                 if (snapshots != null) {
-                    val posts = snapshots.map { it.toObject<Post>().copy(postId = it.id) }
+                    val posts = snapshots.map { it.toObject<Post>().copy(postID = it.id) }
                     onPostsUpdated(posts)
                 }
             }
     }
 
     fun updatePost(
-        postId: String,
-        userId: Int,
+        postID: String,
+        userID: String,
         author: String,
         timestamp: String,
         content: String
     ) {
         val post = Post(
-            userId = userId,
+            userID = userID,
+            postID = postID,
             author = author,
             timestamp = timestamp,
-            content = content,
-            postId = postId
+            content = content
         )
 
         db.collection("posts")
-            .document(postId)
+            .document(postID)
             .set(post)
             .addOnSuccessListener { println("DocumentSnapshot successfully updated!") }
             .addOnFailureListener { e -> println("Error updating document: $e") }
