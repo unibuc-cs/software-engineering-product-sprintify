@@ -77,4 +77,16 @@ class UserDAO (context: Context, dbHelper: FeedReaderDbHelper) {
             arrayOf(userId.toString())
         )
     }
+
+    fun setPassword(userId: Int, password: String): Int {
+        val values = ContentValues().apply {
+            put(DataBase.UserEntry.COLUMN_PASSWORD, password)
+        }
+        return db.update(
+            DataBase.UserEntry.TABLE_NAME,
+            values,
+            "${DataBase.UserEntry.COLUMN_USER_ID} = ?",
+            arrayOf(userId.toString())
+        )
+    }
 }
