@@ -11,7 +11,7 @@ class PostDAO {
     fun insertPost(post: Post, onComplete: (Post) -> Unit) {
         val documentReference = db.collection("posts").document()
         val postId = documentReference.id
-        val newPost = post.copy(postID = postId)
+        val newPost = post.copy(postId = postId)
 
         documentReference.set(newPost)
             .addOnSuccessListener {
@@ -42,7 +42,7 @@ class PostDAO {
         db.collection("posts")
             .get()
             .addOnSuccessListener { documents ->
-                val posts = documents.map { it.toObject<Post>().copy(postID = it.id) }
+                val posts = documents.map { it.toObject<Post>().copy(postId = it.id) }
                 onComplete(posts)
             }
             .addOnFailureListener { e ->
@@ -59,7 +59,7 @@ class PostDAO {
                 }
 
                 if (snapshots != null) {
-                    val posts = snapshots.map { it.toObject<Post>().copy(postID = it.id) }
+                    val posts = snapshots.map { it.toObject<Post>().copy(postId = it.id) }
                     onPostsUpdated(posts)
                 }
             }
@@ -67,14 +67,14 @@ class PostDAO {
 
     fun updatePost(
         postID: String,
-        userID: String,
+        userID: Int,
         author: String,
         timestamp: String,
         content: String
     ) {
         val post = Post(
-            userID = userID,
-            postID = postID,
+            userId = userID,
+            postId = postID,
             author = author,
             timestamp = timestamp,
             content = content
