@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.runpath.models.Post
 import com.example.runpath.models.User
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
 import java.time.LocalDateTime
 
 
@@ -48,69 +49,80 @@ class UserDAO() {
 
     }
 
-    fun login(username: String, password: String): Int {
-        val cursor = getUserByUsername(username)
-        if (cursor.moveToFirst()) {
-            val storedPassword =
-                cursor.getString(cursor.getColumnIndexOrThrow(DataBase.UserEntry.COLUMN_PASSWORD))
-            if (storedPassword == password) {
-                //pastram id-ul userului logat in SharedPreferences
-                val userId =
-                    cursor.getInt(cursor.getColumnIndexOrThrow(DataBase.UserEntry.COLUMN_USER_ID))
-                cursor.close()
-                return userId
-            }
+  /*  fun login(username: String, password: String): Int {
+
+        val cursor = db.query(
+            DataBase.UserEntry.TABLE_NAME,
+            arrayOf(DataBase.UserEntry.COLUMN_USER_ID),
+            "${DataBase.UserEntry.COLUMN_USERNAME} = ? AND ${DataBase.UserEntry.COLUMN_PASSWORD} = ?",
+            arrayOf(username, password),
+            null,
+            null,
+            null
+        )
+
+        val userId = if (cursor.moveToFirst()) {
+            cursor.getInt(cursor.getColumnIndex(DataBase.UserEntry.COLUMN_USER_ID))
+        } else {
+            -1
         }
+
         cursor.close()
-        return -1 // -1 indicates login failed
-    }
+        return userId
+    }*/
 
 
-    fun getUserByUsername(username: String): Cursor {
-        return db.rawQuery(
-            "SELECT * FROM ${DataBase.UserEntry.TABLE_NAME} WHERE ${DataBase.UserEntry.COLUMN_USERNAME} = ?",
-            arrayOf(username)
-        )
+    fun getUserByUsername(username: String, onComplete: (List<User>) -> Unit){
+        db.collection("users")
+            .whereEqualTo(DataBase.UserEntry.COLUMN_USERNAME, username)
+            .get()
+            .addOnSuccessListener { documents ->
+                val users = documents.map { it.toObject<User>().copy(userId = it.id) }
+                onComplete(users)
+            }
+            .addOnFailureListener { e ->
+                println("Error getting documents: $e")
+            }
     }
 
-    fun updateUser(
-        userId: Int,
-        username: String?,
-        email: String?,
-        password: String?,
-        dataCreated: String?
-    ): Int {
-        val values = ContentValues().apply {
-            username?.let { put(DataBase.UserEntry.COLUMN_USERNAME, it) }
-            email?.let { put(DataBase.UserEntry.COLUMN_EMAIL, it) }
-            password?.let { put(DataBase.UserEntry.COLUMN_PASSWORD, it) }
-            dataCreated?.let { put(DataBase.UserEntry.COLUMN_DATE_CREATED, it) }
-        }
-        return db.update(
-            DataBase.UserEntry.TABLE_NAME,
-            values,
-            "${DataBase.UserEntry.COLUMN_USER_ID} = ?",
-            arrayOf(userId.toString())
-        )
-    }
-
-    fun deleteUser(userId: Int): Int {
-        return db.delete(
-            DataBase.UserEntry.TABLE_NAME,
-            "${DataBase.UserEntry.COLUMN_USER_ID} = ?",
-            arrayOf(userId.toString())
-        )
-    }
-
-    fun setPassword(userId: Int, password: String): Int {
-        val values = ContentValues().apply {
-            put(DataBase.UserEntry.COLUMN_PASSWORD, password)
-        }
-        return db.update(
-            DataBase.UserEntry.TABLE_NAME,
-            values,
-            "${DataBase.UserEntry.COLUMN_USER_ID} = ?",
-            arrayOf(userId.toString())
-        )
-    }
+//    fun updateUser(
+//        userId: Int,
+//        username: String?,
+//        email: String?,
+//        password: String?,
+//        dataCreated: String?
+//    ): Int {
+//        val values = ContentValues().apply {
+//            username?.let { put(DataBase.UserEntry.COLUMN_USERNAME, it) }
+//            email?.let { put(DataBase.UserEntry.COLUMN_EMAIL, it) }
+//            password?.let { put(DataBase.UserEntry.COLUMN_PASSWORD, it) }
+//            dataCreated?.let { put(DataBase.UserEntry.COLUMN_DATE_CREATED, it) }
+//        }
+//        return db.update(
+//            DataBase.UserEntry.TABLE_NAME,
+//            values,
+//            "${DataBase.UserEntry.COLUMN_USER_ID} = ?",
+//            arrayOf(userId.toString())
+//        )
+//    }
+//
+//    fun deleteUser(userId: Int): Int {
+//        return db.delete(
+//            DataBase.UserEntry.TABLE_NAME,
+//            "${DataBase.UserEntry.COLUMN_USER_ID} = ?",
+//            arrayOf(userId.toString())
+//        )
+//    }
+//
+//    fun setPassword(userId: Int, password: String): Int {
+//        val values = ContentValues().apply {
+//            put(DataBase.UserEntry.COLUMN_PASSWORD, password)
+//        }
+//        return db.update(
+//            DataBase.UserEntry.TABLE_NAME,
+//            values,
+//            "${DataBase.UserEntry.COLUMN_USER_ID} = ?",
+//            arrayOf(userId.toString())
+//        )
+//    }
 }
