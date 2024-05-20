@@ -206,17 +206,18 @@ fun RunControlButton(
 
     Button(
         onClick = {
-            val lastIndex = locationPoints.size - 1
             val currentColor = if (isRunActive.value) Color.Red else Color.Blue
 
             if(segments.isNotEmpty()) {
                 val lastSegment = segments.last()
                 if(lastSegment.color != currentColor) {
                     val tempSegments = segments.toMutableList()
-                    tempSegments.add(Segment(lastIndex, currentColor))
+                    tempSegments.add(Segment(locationPoints.size - 1, currentColor))
                     segments.clear()
                     segments.addAll(tempSegments)
                 }
+            } else {
+                segments.add(Segment(0, currentColor))
             }
 
             onButtonClick()
