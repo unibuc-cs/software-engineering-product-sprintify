@@ -198,6 +198,8 @@ data class Segment(val startIndex: Int, val color: Color)
 @Composable
 fun RunControlButton(
     isRunActive: MutableState<Boolean>,
+    locationPoints: SnapshotStateList<LatLng>,
+    segments: SnapshotStateList<Segment>,
     onButtonClick: () -> Unit
 ) {
     val buttonText = if (isRunActive.value) "Pause Run" else "Start Run"
@@ -206,6 +208,20 @@ fun RunControlButton(
         onClick = {
             onButtonClick()
             isRunActive.value = !isRunActive.value
+
+            val lastIndex = locationPoints.size - 1
+            val currentColor = if (isRunActive.value) Color.Red else Color.Blue
+
+            if(segments.isNotEmpty()) {
+                val lastSegment = segments.last()
+                if(lastSegment.color != currentColor) {
+                    val tempSegments = segments.toMutableList()
+                    tempSegments.add(Segment(lastIndex, currentColor))
+                    segments.clear()
+                    segments.addAll(tempSegments)
+                }
+            }
+
                   },
         modifier = Modifier
             .fillMaxWidth()
@@ -254,16 +270,33 @@ fun getCurrentLocationAndTrack(
 //                    segments.add(Segment(locationPoints.size - 1, Color.Red))
 //                }
 
-                if(segments.isEmpty()) {
-                    segments.add(Segment(0, Color.Red))
+                val tempSegments = segments.toMutableList();
+
+//                if(segments.isEmpty()) {
+//                    segments.add(Segment(0, Color.Red))
+//                } else {
+//                    val lastSegment = segments.last()
+//                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
+//
+//                    if(lastSegment.color != currentColor) {
+//                        segments.add(Segment(locationPoints.size - 1, currentColor))
+//                    }
+//                }
+
+                if(tempSegments.isEmpty()) {
+                    tempSegments.add(Segment(0, Color.Red))
                 } else {
-                    val lastSegment = segments.last()
+                    val lastSegment = tempSegments.last()
                     val currentColor = if(isRunActive.value) Color.Red else Color.Blue
 
                     if(lastSegment.color != currentColor) {
-                        segments.add(Segment(locationPoints.size - 1, currentColor))
+                        tempSegments.add(Segment(locationPoints.size - 1, currentColor))
                     }
                 }
+
+                // Update segments
+                segments.clear()
+                segments.addAll(tempSegments)
             }
         }
     }
@@ -493,7 +526,11 @@ fun MapScreen(
             )
 
             // Start/Pause Button
-            RunControlButton(isRunActive) {
+            RunControlButton(
+                isRunActive = isRunActive,
+                locationPoints = locationPoints,
+                segments = segments
+            ) {
 //                if(locationPoints.isNotEmpty()) {
 //                    val lastSegment = segments.last()
 //                    if(isRunActive.value) {
