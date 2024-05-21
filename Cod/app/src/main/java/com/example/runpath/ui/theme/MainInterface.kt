@@ -198,27 +198,12 @@ data class Segment(val startIndex: Int, val color: Color)
 @Composable
 fun RunControlButton(
     isRunActive: MutableState<Boolean>,
-    locationPoints: SnapshotStateList<LatLng>,
-    segments: SnapshotStateList<Segment>,
     onButtonClick: () -> Unit
 ) {
     val buttonText = if (isRunActive.value) "Pause Run" else "Start Run"
 
     Button(
         onClick = {
-            val currentColor = if (isRunActive.value) Color.Red else Color.Blue
-
-            if(segments.isNotEmpty()) {
-                val lastSegment = segments.last()
-                if(lastSegment.color != currentColor) {
-                    val tempSegments = segments.toMutableList()
-                    tempSegments.add(Segment(locationPoints.size - 1, currentColor))
-                    segments.clear()
-                    segments.addAll(tempSegments)
-                }
-            } else {
-                segments.add(Segment(0, currentColor))
-            }
 
             onButtonClick()
             isRunActive.value = !isRunActive.value
@@ -260,44 +245,18 @@ fun getCurrentLocationAndTrack(
             if(locationList.isNotEmpty()) {
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
-                locationPoints += newLatLng
-                //Log.d("LocationUpdate", "Updated points list: ${formatLatLngList(locationSegments)}")
+                locationPoints.add(newLatLng)
 
-//                if(locationPoints.size == 1 || isRunActive.value && segments.isEmpty()) {
-//                    segments.add(Segment(0, Color.Red))
-//                } else if(!isRunActive.value && segments.last().color == Color.Red) {
-//                    segments.add(Segment(locationPoints.size - 1, Color.Blue))
-//                } else if(isRunActive.value && segments.last().color == Color.Blue) {
-//                    segments.add(Segment(locationPoints.size - 1, Color.Red))
-//                }
-
-                val tempSegments = segments.toMutableList();
-
-//                if(segments.isEmpty()) {
-//                    segments.add(Segment(0, Color.Red))
-//                } else {
-//                    val lastSegment = segments.last()
-//                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
-//
-//                    if(lastSegment.color != currentColor) {
-//                        segments.add(Segment(locationPoints.size - 1, currentColor))
-//                    }
-//                }
-
-                if(tempSegments.isEmpty()) {
-                    tempSegments.add(Segment(0, Color.Red))
-                } else {
-                    val lastSegment = tempSegments.last()
-                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
-
-                    if(lastSegment.color != currentColor) {
-                        tempSegments.add(Segment(locationPoints.size - 1, currentColor))
+                if(segments.isNotEmpty()) {
+                    val lastSegment = segments.last()
+                    if(lastSegment.color == (if(isRunActive.value) Color.Red else Color.Blue)) {
+                        segments[segments.size - 1] = lastSegment.copy(startIndex = lastSegment.startIndex)
+                    } else {
+                        segments.add(Segment(locationPoints.size - 1, if (isRunActive.value) Color.Red else Color.Red))
                     }
+                } else {
+                    segments.add(Segment(0, if(isRunActive.value) Color.Red else Color.Blue))
                 }
-
-                // Update segments
-                segments.clear()
-                segments.addAll(tempSegments)
             }
         }
     }
@@ -472,7 +431,8 @@ fun LocationSearchBar(
 @Composable
 fun MapScreen(
     currentLocation: MutableState<LatLng?>,
-    searchedLocation: MutableState<LatLng?>
+    searchedLocation: MutableState<LatLng?>,
+    fusedLocationClient: FusedLocationProviderClient
 ) {
     val context = LocalContext.current
     val contextMap = GeoApiContext.Builder()
@@ -528,11 +488,18 @@ fun MapScreen(
 
             // Start/Pause Button
             RunControlButton(
-                isRunActive = isRunActive,
-                locationPoints = locationPoints,
-                segments = segments,
-                onButtonClick = {}
-            )
+                isRunActive = isRunActive
+            ) {
+                val currentColor = if(isRunActive.value) Color.Red else Color.Blue
+                if(segments.isNotEmpty()) {
+                    val lastSegment = segments.last()
+                    if(lastSegment.color != currentColor) {
+                        segments.add(Segment(locationPoints.size, currentColor))
+                    } else {
+                        segments.add(Segment(0, currentColor))
+                    }
+                }
+            }
 //            ) {
 ////                if(locationPoints.isNotEmpty()) {
 ////                    val lastSegment = segments.last()
@@ -564,11 +531,11 @@ fun NavigationHost(navController: NavHostController) {
     val currentLocation = remember { mutableStateOf<LatLng?>(null) }
     val searchedLocation = remember { mutableStateOf<LatLng?>(null) }
 
-    //val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
     NavHost(navController, startDestination = BottomNavItem.Map.route) {
         composable(BottomNavItem.Map.route) {
-            MapScreen(currentLocation, searchedLocation)
+            MapScreen(currentLocation, searchedLocation, fusedLocationClient)
         }
         composable(BottomNavItem.Community.route) { CommunityPage(navController,sessionManager) }
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
