@@ -222,6 +222,9 @@ fun RunControlButton(
 //
 //            onButtonClick()
 //            isRunActive.value = !isRunActive.value
+
+                    onButtonClick()
+                    isRunActive.value = !isRunActive.value
                     val currentColor = if(isRunActive.value) Color.Red else Color.Blue
 
                     if(locationPoints.isEmpty()) {
