@@ -222,7 +222,7 @@ fun RunControlButton(
 //
 //            onButtonClick()
 //            isRunActive.value = !isRunActive.value
-                    val currentColor = if(isRunActive.value) Color.Blue else Color.Red
+                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
 
                     if(locationPoints.isEmpty()) {
                         val tempSegments = segments.toMutableList()
