@@ -373,8 +373,9 @@ fun GMap(
 
         segments.forEachIndexed { index, segment ->
             val endIndex = if(index < segments.size - 1) segments[index + 1].startIndex else locationPoints.size
+            val segmentPoints = locationPoints.subList(segment.startIndex, endIndex)
             Polyline(
-                points = locationPoints.subList(segment.startIndex, endIndex),
+                points = segmentPoints,
                 color = segment.color,
                 width = 5f
             )
