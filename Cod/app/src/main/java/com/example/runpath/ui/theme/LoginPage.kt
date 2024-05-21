@@ -35,6 +35,7 @@ import com.example.runpath.database.DataBase
 import com.example.runpath.database.SessionManager
 
 import com.example.runpath.database.UserDAO
+import com.example.runpath.others.USER_NOT_FOUND
 
 
 @Composable
@@ -124,32 +125,33 @@ fun LoginPage(navController: NavController, dbHelper: FeedReaderDbHelper) {
 
             Button(
                 onClick = {
-                    val userId = userDAO.login(username, password)
-                    if (userId != -1) {
-                        //daca loginul este reusit, se creeaza o sesiune
-                        val cursor = userDAO.getUserById(userId)
-
-                        if (cursor.moveToFirst()) {
-                            val usernameIndex = cursor.getColumnIndexOrThrow(UserEntry.COLUMN_USERNAME)
-                            val emailIndex = cursor.getColumnIndexOrThrow(UserEntry.COLUMN_EMAIL)
-                            val dateCreatedIndex = cursor.getColumnIndexOrThrow(UserEntry.COLUMN_DATE_CREATED)
-                            val username = cursor.getString(usernameIndex)
-                            val email = cursor.getString(emailIndex)
-                            val dateCreated = cursor.getString(dateCreatedIndex)
-
-                            println("User: $username, Email: $email, Date Created: $dateCreated")
-
-                            sessionManager.createSession(userId, username, email, dateCreated)
+                    println("username and password: $username $password")
+                    userDAO.login(username, password) { userId ->
+                        println("userId: $userId")
+                        if (userId != USER_NOT_FOUND) {
+                            // If login is successful, create a session
+                            println("Login successful")
+                            userDAO.getUserById(userId) { user ->
+                                if (user?.userId != null) {
+                                    sessionManager.createSession(
+                                        user.userId,
+                                        user.username,
+                                        user.email,
+                                        user.dateCreated
+                                    )
+                                    // Navigate to the main interface after creating the session
+                                    navController.navigate("mainInterface")
+                                } else {
+                                    println(USER_NOT_FOUND)
+                                    showErrorDialog = true
+                                }
+                            }
                         } else {
-                            println("No user found with the provided userId")
+                            showErrorDialog = true
                         }
-
-                        cursor.close()
-                        navController.navigate("mainInterface")
-                    } else {
-                        showErrorDialog = true
                     }
-                },
+                }
+                ,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = username.isNotEmpty() && password.isNotEmpty()
             ) {

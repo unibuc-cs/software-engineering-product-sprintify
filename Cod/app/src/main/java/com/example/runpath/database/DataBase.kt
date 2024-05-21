@@ -6,11 +6,11 @@ object DataBase {
     // User table
     object UserEntry : BaseColumns {
         const val TABLE_NAME = "User"
-        const val COLUMN_USER_ID = "UserID"
-        const val COLUMN_USERNAME = "Username"
-        const val COLUMN_PASSWORD = "Password"
-        const val COLUMN_EMAIL = "Email"
-        const val COLUMN_DATE_CREATED = "DateCreated"
+        const val COLUMN_USER_ID = "userID"
+        const val COLUMN_USERNAME = "username"
+        const val COLUMN_PASSWORD = "password"
+        const val COLUMN_EMAIL = "email"
+        const val COLUMN_DATE_CREATED = "dateCreated"
     }
 
     // Profile table

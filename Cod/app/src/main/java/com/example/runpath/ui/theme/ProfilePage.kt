@@ -26,7 +26,7 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
     val dateCreated = sharedPreferences.getString("dateCreated", "N/A")
     val dbHelper = FeedReaderDbHelper(context)
     val userDAO = UserDAO(context, dbHelper)
-    val userId = sessionManager.getsharedPreferences().getInt(SessionManager.KEY_USER_ID, -1)
+    val userId = sessionManager.getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
 
 
     println("profile accessed")  // debugging

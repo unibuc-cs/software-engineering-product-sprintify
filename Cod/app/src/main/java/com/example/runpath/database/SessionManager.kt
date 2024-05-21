@@ -19,9 +19,9 @@ class SessionManager(context: Context) {
         return sharedPreferences
     }
 
-    fun createSession(userId: Int, username: String, email: String, dateCreated: String) {
+    fun createSession(userId: String, username: String, email: String, dateCreated: String) {
         with(sharedPreferences.edit()) {
-            putInt(KEY_USER_ID, userId)
+            putString(KEY_USER_ID, userId)
             putBoolean(KEY_IS_LOGGED_IN, true)
             putString(KEY_USERNAME, username)
             putString(KEY_EMAIL, email)

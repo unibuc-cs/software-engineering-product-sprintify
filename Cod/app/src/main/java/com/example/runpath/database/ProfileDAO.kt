@@ -14,6 +14,7 @@ class ProfileDAO (context: Context, dbHelper: FeedReaderDbHelper) {
         userId: Int,
         preferredTerrain: Int,
         preferredLightLevel: Int,
+
         isPetOwner: Boolean
     ): Long {
         val values = ContentValues().apply {

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.runpath.database.UserDAO
+import com.example.runpath.models.User
 
 @Composable
 fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
@@ -201,9 +202,15 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
             onClick = {
                 if (passwordMatch) {
                     // Register user logic
-                    userDAO.insertUser(username, email, password)
+                    val dateCreated = System.currentTimeMillis().toString()
+                    val user = User(username = username, email = email, password = password, dateCreated = dateCreated)
 
-                    navcontroller.navigate("loginPage")
+                    //on successfull registration navigate to login page
+                    userDAO.insertUser(user) {
+                        navcontroller.navigate("loginPage")
+                    }
+
+
                 }
             },
             modifier = Modifier.fillMaxWidth(),
