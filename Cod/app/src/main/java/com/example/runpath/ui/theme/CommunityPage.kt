@@ -27,7 +27,7 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
     val sharedPreferences = sessionManager.getsharedPreferences()
     var text by remember { mutableStateOf("Community") }
     val username = sharedPreferences.getString("username", "N/A") ?: "N/A"
-    val userId = sharedPreferences.getInt("user_id", -1)
+    val userId = sharedPreferences.getString("user_id", "N/A")
     var posts by remember { mutableStateOf(listOf<Post>()) }
     var showDialog by remember { mutableStateOf(false) }
     var newPostContent by remember { mutableStateOf("") }
@@ -120,7 +120,7 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
                     Button(
                         onClick = {
                             val post = Post(
-                                userId = userId,
+                                userId = userId ?: "N/A",
                                 author = username,
                                 content = newPostContent,
                                 timestamp = LocalDateTime.now().toString()

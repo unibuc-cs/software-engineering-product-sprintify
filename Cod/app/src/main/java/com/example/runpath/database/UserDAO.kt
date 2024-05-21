@@ -1,21 +1,15 @@
 package com.example.runpath.database
 
-import FeedReaderDbHelper
 import android.database.sqlite.SQLiteDatabase
 import android.content.Context
-import android.content.ContentValues
-import android.database.sqlite.SQLiteOpenHelper
-import android.database.Cursor
-import androidx.compose.ui.platform.LocalContext
 import com.example.runpath.models.User
 import com.example.runpath.others.*
 import com.google.firebase.firestore.FirebaseFirestore
-import java.time.LocalDateTime
 
 
-class UserDAO(context: Context, dbHelper: FeedReaderDbHelper) {
+class UserDAO(context: Context) {
 
-    private val db2: SQLiteDatabase = dbHelper.writableDatabase
+
     private val db = FirebaseFirestore.getInstance()
 
     //functie pentru a insera un user in baza de date
@@ -38,7 +32,7 @@ class UserDAO(context: Context, dbHelper: FeedReaderDbHelper) {
 
 
     //getter pentru a prelua un user dupa id
-    fun getUserById(userId: String, onComplete: (User?) -> Unit) {
+    fun getUserById(userId: String, onComplete: (User?)-> Unit) {
         db.collection("users")
             .document(userId)
             .get()

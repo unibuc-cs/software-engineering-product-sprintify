@@ -4,9 +4,9 @@ import java.time.Instant
 import kotlin.time.Duration
 
 data class Run (
-    val runID: String? = null,
-    val userID: String? = null,
-    val circuitID: String? = null,
+    val runId: String? = null,
+    val userId: String? = null,
+    val circuitId: String? = null,
     val startTime: Instant,
     val endTime: Instant,
     val pauseTime: Duration,

@@ -14,7 +14,7 @@ class RunDAO{
     fun insertRun(run: Run, onComplete: (Run) -> Unit) {
         val documentReference = db.collection("runs").document()
         val runId = documentReference.id
-        val newRun = run.copy(runID = runId)
+        val newRun = run.copy(runId = runId)
 
         documentReference.set(newRun)
             .addOnSuccessListener {
@@ -45,7 +45,7 @@ class RunDAO{
         db.collection("runs")
             .get()
             .addOnSuccessListener { documents ->
-                val runs = documents.map { it.toObject<Run>().copy(runID = it.id) }
+                val runs = documents.map { it.toObject<Run>().copy(runId = it.id) }
                 onComplete(runs)
             }
             .addOnFailureListener { e ->
@@ -62,16 +62,16 @@ class RunDAO{
                 }
 
                 if(snapshots != null){
-                    val runs = snapshots.map { it.toObject<Run>().copy(runID = it.id) }
+                    val runs = snapshots.map { it.toObject<Run>().copy(runId = it.id) }
                     onRunsUpdated(runs)
                 }
             }
     }
 
     fun updateRun(
-        runID: String,
-        userID: String,
-        circuitID: String,
+        runId: String,
+        userId: String,
+        circuitId: String,
         startTime: Instant,
         endTime: Instant,
         pauseTime: Duration,
@@ -80,9 +80,9 @@ class RunDAO{
         distanceTracker: Double
     ){
         val run = Run(
-            runID = runID,
-            userID = userID,
-            circuitID = circuitID,
+            runId = runId,
+            userId = userId,
+            circuitId = circuitId,
             startTime = startTime,
             endTime = endTime,
             pauseTime = pauseTime,
@@ -92,7 +92,7 @@ class RunDAO{
         )
 
         db.collection("runs")
-            .document(runID)
+            .document(runId)
             .set(run)
             .addOnSuccessListener {
                 println("DocumentSnapshot successfully written!")

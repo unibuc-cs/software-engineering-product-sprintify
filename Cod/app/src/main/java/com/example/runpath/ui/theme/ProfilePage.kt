@@ -24,8 +24,7 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
     val email = sharedPreferences.getString("email", "N/A")
     val context = LocalContext.current
     val dateCreated = sharedPreferences.getString("dateCreated", "N/A")
-    val dbHelper = FeedReaderDbHelper(context)
-    val userDAO = UserDAO(context, dbHelper)
+    val userDAO = UserDAO(context)
     val userId = sessionManager.getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
 
 

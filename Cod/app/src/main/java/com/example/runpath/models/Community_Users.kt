@@ -1,7 +1,7 @@
 package com.example.runpath.models
 
 data class Community_Users (
-    val community_usersID: String? = null,
-    val userID: String? = null,
+    val community_usersId: String? = null,
+    val userId: String? = null,
     val dateJoined: String
 )

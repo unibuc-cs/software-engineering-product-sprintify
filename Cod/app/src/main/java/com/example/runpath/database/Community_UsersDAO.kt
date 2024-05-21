@@ -12,7 +12,7 @@ class Community_UsersDAO{
     fun insertCommunity_Users(community_users: Community_Users, onComplete: (Community_Users) -> Unit) {
         val documentReference = db.collection("community_users").document()
         val community_usersId = documentReference.id
-        val newCommunity_Users = community_users.copy(community_usersID = community_usersId)
+        val newCommunity_Users = community_users.copy(community_usersId = community_usersId)
 
         documentReference.set(newCommunity_Users)
             .addOnSuccessListener {
@@ -43,7 +43,7 @@ class Community_UsersDAO{
         db.collection("community_users")
             .get()
             .addOnSuccessListener { documents ->
-                val community_users = documents.map { it.toObject<Community_Users>().copy(community_usersID = it.id) }
+                val community_users = documents.map { it.toObject<Community_Users>().copy(community_usersId = it.id) }
                 onComplete(community_users)
             }
             .addOnFailureListener { e ->
@@ -59,7 +59,7 @@ class Community_UsersDAO{
                     return@addSnapshotListener
                 }
                 if (snapshots != null) {
-                    val community_users = snapshots.map { it.toObject<Community_Users>().copy(community_usersID = it.id) }
+                    val community_users = snapshots.map { it.toObject<Community_Users>().copy(community_usersId = it.id) }
                     onCommunity_UsersUpdated(community_users)
                 }
             }
@@ -71,8 +71,8 @@ class Community_UsersDAO{
         dateJoined: String
     ){
         val community_users = Community_Users(
-            community_usersID = community_usersId,
-            userID = userId,
+            community_usersId = community_usersId,
+            userId = userId,
             dateJoined = dateJoined
         )
 

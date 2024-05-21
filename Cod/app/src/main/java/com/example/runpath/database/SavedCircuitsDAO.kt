@@ -12,7 +12,7 @@ class SavedCircuitsDAO{
     fun insertSavedCircuit(savedCircuit: SavedCircuits, onComplete: (SavedCircuits) -> Unit) {
         val documentReference = db.collection("savedCircuits").document()
         val savedCircuitId = documentReference.id
-        val newSavedCircuit = savedCircuit.copy(savedCircuitID = savedCircuitId)
+        val newSavedCircuit = savedCircuit.copy(savedCircuitId = savedCircuitId)
 
         documentReference.set(newSavedCircuit)
             .addOnSuccessListener {
@@ -43,7 +43,7 @@ class SavedCircuitsDAO{
         db.collection("savedCircuits")
             .get()
             .addOnSuccessListener { documents ->
-                val savedCircuits = documents.map { it.toObject<SavedCircuits>().copy(savedCircuitID = it.id) }
+                val savedCircuits = documents.map { it.toObject<SavedCircuits>().copy(savedCircuitId = it.id) }
                 onComplete(savedCircuits)
             }
             .addOnFailureListener { e ->
@@ -62,18 +62,18 @@ class SavedCircuitsDAO{
     }
 
     fun updateSavedCircuit(
-        savedCircuitID: String,
-        circuitID: String,
-        userID: String,
+        savedCircuitId: String,
+        circuitId: String,
+        userId: String,
     ){
         val savedCircuit = SavedCircuits(
-            savedCircuitID = savedCircuitID,
-            circuitID = circuitID,
-            userID = userID
+            savedCircuitId = savedCircuitId,
+            circuitId = circuitId,
+            userId = userId
         )
 
         db.collection("savedCircuits")
-            .document(savedCircuitID)
+            .document(savedCircuitId)
             .set(savedCircuit)
             .addOnSuccessListener {
                 println("DocumentSnapshot successfully updated!")
@@ -83,9 +83,9 @@ class SavedCircuitsDAO{
             }
     }
 
-    fun deleteSavedCircuit(savedCircuitID: String){
+    fun deleteSavedCircuit(savedCircuitId: String){
         db.collection("savedCircuits")
-            .document(savedCircuitID)
+            .document(savedCircuitId)
             .delete()
             .addOnSuccessListener {
                 println("DocumentSnapshot successfully deleted!")

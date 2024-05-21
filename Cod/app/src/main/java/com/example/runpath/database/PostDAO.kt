@@ -66,22 +66,22 @@ class PostDAO {
     }
 
     fun updatePost(
-        postID: String,
-        userID: Int,
+        postId: String,
+        userId: String,
         author: String,
         timestamp: String,
         content: String
     ) {
         val post = Post(
-            userId = userID,
-            postId = postID,
+            userId = userId,
+            postId = postId,
             author = author,
             timestamp = timestamp,
             content = content
         )
 
         db.collection("posts")
-            .document(postID)
+            .document(postId)
             .set(post)
             .addOnSuccessListener { println("DocumentSnapshot successfully updated!") }
             .addOnFailureListener { e -> println("Error updating document: $e") }

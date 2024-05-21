@@ -39,11 +39,10 @@ import com.example.runpath.others.USER_NOT_FOUND
 
 
 @Composable
-fun LoginPage(navController: NavController, dbHelper: FeedReaderDbHelper) {
+fun LoginPage(navController: NavController) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val dbHelper = FeedReaderDbHelper(context = LocalContext.current)
-    val userDAO = UserDAO(context = LocalContext.current, dbHelper = dbHelper)
+    val userDAO = UserDAO(context = LocalContext.current)
     var showErrorDialog by remember { mutableStateOf(false) }
 
 

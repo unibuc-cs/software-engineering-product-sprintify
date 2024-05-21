@@ -6,7 +6,7 @@ object DataBase {
     // User table
     object UserEntry : BaseColumns {
         const val TABLE_NAME = "User"
-        const val COLUMN_USER_ID = "userID"
+        const val COLUMN_USER_ID = "userId"
         const val COLUMN_USERNAME = "username"
         const val COLUMN_PASSWORD = "password"
         const val COLUMN_EMAIL = "email"
@@ -16,7 +16,7 @@ object DataBase {
     // Profile table
     object ProfileEntry : BaseColumns {
         const val TABLE_NAME = "Profile"
-        const val COLUMN_USER_ID = "UserID" // Foreign Key
+        const val COLUMN_USER_ID = "userId" // Foreign Key
         const val COLUMN_PREFERRED_TERRAIN = "PreferredTerrain"
         const val COLUMN_PREFERRED_LIGHT_LEVEL = "PreferredLightLevel"
         const val COLUMN_PET_OWNER = "PetOwner"

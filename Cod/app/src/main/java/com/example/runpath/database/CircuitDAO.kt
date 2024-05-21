@@ -13,7 +13,7 @@ class CircuitDAO {
     fun insertCircuit(circuit: Circuit, onComplete: (Circuit) -> Unit) {
         val documentReference = db.collection("circuits").document()
         val circuitId = documentReference.id
-        val newCircuit = circuit.copy(circuitID = circuitId)
+        val newCircuit = circuit.copy(circuitId = circuitId)
 
         documentReference.set(newCircuit)
             .addOnSuccessListener {
@@ -44,7 +44,7 @@ class CircuitDAO {
         db.collection("circuits")
             .get()
             .addOnSuccessListener { documents ->
-                val circuits = documents.map { it.toObject<Circuit>().copy(circuitID = it.id) }
+                val circuits = documents.map { it.toObject<Circuit>().copy(circuitId = it.id) }
                 onComplete(circuits)
             }
             .addOnFailureListener { e ->
@@ -60,7 +60,7 @@ class CircuitDAO {
                     return@addSnapshotListener
                 }
                 if(snapshots != null){
-                    val circuits = snapshots.map { it.toObject<Circuit>().copy(circuitID = it.id) }
+                    val circuits = snapshots.map { it.toObject<Circuit>().copy(circuitId = it.id) }
                     onCircuitsUpdated(circuits)
                 }
             }
@@ -80,7 +80,7 @@ class CircuitDAO {
         difficulty: Int
     ) {
         val circuit = Circuit(
-            circuitID = circuitId,
+            circuitId = circuitId,
             name = name,
             description = description,
             distance = distance,

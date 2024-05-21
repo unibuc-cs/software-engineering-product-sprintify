@@ -1,7 +1,7 @@
 package com.example.runpath.models
 
 data class Circuit (
-    val circuitID: String? = null,
+    val circuitId: String? = null,
     val name: String,
     val description: String,
     val distance: Double,

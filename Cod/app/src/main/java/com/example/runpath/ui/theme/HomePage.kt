@@ -148,8 +148,8 @@ fun SprintifyTitleCard() {
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun HomePage(dbHelper: FeedReaderDbHelper, navController: NavController) {
-    val dbHelper = FeedReaderDbHelper(context = LocalContext.current)
+fun HomePage( navController: NavController) {
+
     val images = listOf(
         "https://media.self.com/photos/64063998753c98598ce42cde/1:1/w_5588,h_5588,c_limit/benfits%20of%20running.jpeg",
         "https://i0.wp.com/post.healthline.com/wp-content/uploads/2021/06/running-runner-1296x728-header.jpg?w=1155&h=1528",

@@ -12,7 +12,7 @@ class CommunityDAO{
     fun insertCommunity(community: Community, onComplete: (Community) -> Unit) {
         val documentReference = db.collection("communities").document()
         val communityId = documentReference.id
-        val newCommunity = community.copy(communityID = communityId)
+        val newCommunity = community.copy(communityId = communityId)
 
         documentReference.set(newCommunity)
             .addOnSuccessListener {
@@ -43,7 +43,7 @@ class CommunityDAO{
         db.collection("communities")
             .get()
             .addOnSuccessListener { documents ->
-                val communities = documents.map { it.toObject<Community>().copy(communityID = it.id) }
+                val communities = documents.map { it.toObject<Community>().copy(communityId = it.id) }
                 onComplete(communities)
             }
             .addOnFailureListener { e ->
@@ -59,25 +59,25 @@ class CommunityDAO{
                     return@addSnapshotListener
                 }
                 if(snapshots != null){
-                    val communities = snapshots.map { it.toObject<Community>().copy(communityID = it.id) }
+                    val communities = snapshots.map { it.toObject<Community>().copy(communityId = it.id) }
                     onCommunitiesUpdated(communities)
                 }
             }
     }
 
     fun updateCommunity(
-        communityID: String,
+        communityId: String,
         name: String,
         description: String
     ){
         val community= Community(
-            communityID = communityID,
+            communityId = communityId,
             name = name,
             description = description
         )
 
         db.collection("communities")
-            .document(communityID)
+            .document(communityId)
             .set(community)
             .addOnSuccessListener {
                 println("DocumentSnapshot successfully updated!")
@@ -87,9 +87,9 @@ class CommunityDAO{
             }
     }
 
-    fun deleteCommunity(communityID: String){
+    fun deleteCommunity(communityId: String){
         db.collection("communities")
-            .document(communityID)
+            .document(communityId)
             .delete()
             .addOnSuccessListener {
                 println("DocumentSnapshot successfully deleted!")

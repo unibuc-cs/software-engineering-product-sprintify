@@ -13,7 +13,7 @@ class LeaderboardDAO{
     fun insertLeaderboard(leaderboard: Leaderboard, onComplete: (Leaderboard) -> Unit) {
         val documentReference = db.collection("leaderboards").document()
         val leaderboardId = documentReference.id
-        val newLeaderboard = leaderboard.copy(leaderboardID = leaderboardId)
+        val newLeaderboard = leaderboard.copy(leaderboardId = leaderboardId)
 
         documentReference.set(newLeaderboard)
             .addOnSuccessListener {
@@ -44,7 +44,7 @@ class LeaderboardDAO{
         db.collection("leaderboards")
             .get()
             .addOnSuccessListener { documents ->
-                val leaderboards = documents.map { it.toObject<Leaderboard>().copy(leaderboardID = it.id) }
+                val leaderboards = documents.map { it.toObject<Leaderboard>().copy(leaderboardId = it.id) }
                 onComplete(leaderboards)
             }
             .addOnFailureListener { e ->
@@ -60,29 +60,29 @@ class LeaderboardDAO{
                     return@addSnapshotListener
                 }
                 if(snapshots != null){
-                    val leaderboards = snapshots.map { it.toObject<Leaderboard>().copy(leaderboardID = it.id) }
+                    val leaderboards = snapshots.map { it.toObject<Leaderboard>().copy(leaderboardId = it.id) }
                     onLeaderboardsUpdated(leaderboards)
                 }
             }
     }
 
     fun updateLeaderboard(
-        leaderboardID : String,
-        circuitID: String,
+        leaderboardId : String,
+        circuitId: String,
         userID: String,
         rank: Int,
         time: String
     ){
         val leaderboard = Leaderboard(
-            leaderboardID = leaderboardID,
-            circuitID = circuitID,
+            leaderboardId = leaderboardId,
+            circuitId = circuitId,
             userID = userID,
             rank = rank,
             time = time
         )
 
         db.collection("leaderboards")
-            .document(leaderboardID)
+            .document(leaderboardId)
             .set(leaderboard)
             .addOnSuccessListener {
                 println("DocumentSnapshot successfully written!")
@@ -92,9 +92,9 @@ class LeaderboardDAO{
             }
     }
 
-    fun deleteLeaderboard(leaderboardID: String){
+    fun deleteLeaderboard(leaderboardId: String){
         db.collection("leaderboards")
-            .document(leaderboardID)
+            .document(leaderboardId)
             .delete()
             .addOnSuccessListener {
                 println("DocumentSnapshot successfully deleted!")
