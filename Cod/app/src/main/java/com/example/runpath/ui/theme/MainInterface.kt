@@ -191,6 +191,8 @@ fun getCurrentLocation(
 // Code for live tracking
 
 // special data class for memorizing the polyline segments
+data class PolylineSegment(var points: List<LatLng>, val color: Color, val id: Int)
+
 data class Segment(val startIndex: Int, val color: Color)
 
 @Composable
@@ -204,40 +206,23 @@ fun RunControlButton(
 
     Button(
         onClick = {
-//            val currentColor = if (isRunActive.value) Color.Red else Color.Blue
-//
-//            if(segments.isNotEmpty()) {
-//                val lastSegment = segments.last()
-//                if(lastSegment.color != currentColor) {
-//                    val tempSegments = segments.toMutableList()
-//                    tempSegments.add(Segment(locationPoints.size - 1, currentColor))
-//                    segments.clear()
-//                    segments.addAll(tempSegments)
-//                }
-//            } else {
-//                segments.add(Segment(0, currentColor))
-//            }
-//
-//            onButtonClick()
-//            isRunActive.value = !isRunActive.value
+            onButtonClick()
+            isRunActive.value = !isRunActive.value
 
-                    onButtonClick()
-                    isRunActive.value = !isRunActive.value
+            val lastIndex = locationPoints.size - 1
+            val currentColor = if (isRunActive.value) Color.Red else Color.Blue
 
-                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
+            if(segments.isNotEmpty()) {
+                val lastSegment = segments.last()
+                if(lastSegment.color != currentColor) {
+                    val tempSegments = segments.toMutableList()
+                    tempSegments.add(Segment(lastIndex, currentColor))
+                    segments.clear()
+                    segments.addAll(tempSegments)
+                }
+            }
 
-                    if(locationPoints.isNotEmpty()) {
-                        val lastPointIndex = locationPoints.size - 1
-                        if(segments.isNotEmpty()) {
-                            val lastSegment = segments.last()
-                            if(lastSegment.color != currentColor) {
-                                segments.add(Segment(lastPointIndex, currentColor))
-                            }
-                        } else {
-                            segments.add(Segment(lastPointIndex, currentColor))
-                        }
-                    }
-                  },
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
@@ -285,33 +270,33 @@ fun getCurrentLocationAndTrack(
 //                    segments.add(Segment(locationPoints.size - 1, Color.Red))
 //                }
 
-//                val tempSegments = segments.toMutableList()
+                val tempSegments = segments.toMutableList();
 
-                if(segments.isEmpty()) {
-                    segments.add(Segment(0, Color.Red))
-                } else {
-                    val lastSegment = segments.last()
-                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
-
-                    if(lastSegment.color != currentColor) {
-                        segments.add(Segment(locationPoints.size - 1, currentColor))
-                    }
-                }
-
-//                if(tempSegments.isEmpty()) {
-//                    tempSegments.add(Segment(0, Color.Red))
+//                if(segments.isEmpty()) {
+//                    segments.add(Segment(0, Color.Red))
 //                } else {
-//                    val lastSegment = tempSegments.last()
+//                    val lastSegment = segments.last()
 //                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
 //
 //                    if(lastSegment.color != currentColor) {
-//                        tempSegments.add(Segment(locationPoints.size - 1, currentColor))
+//                        segments.add(Segment(locationPoints.size - 1, currentColor))
 //                    }
 //                }
-//
-//                // Update segments
-//                segments.clear()
-//                segments.addAll(tempSegments)
+
+                if(tempSegments.isEmpty()) {
+                    tempSegments.add(Segment(0, Color.Red))
+                } else {
+                    val lastSegment = tempSegments.last()
+                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
+
+                    if(lastSegment.color != currentColor) {
+                        tempSegments.add(Segment(locationPoints.size - 1, currentColor))
+                    }
+                }
+
+                // Update segments
+                segments.clear()
+                segments.addAll(tempSegments)
             }
         }
     }
@@ -378,15 +363,11 @@ fun GMap(
 
         segments.forEachIndexed { index, segment ->
             val endIndex = if(index < segments.size - 1) segments[index + 1].startIndex else locationPoints.size
-            if(segment.startIndex < endIndex) {
-                val segmentPoints = locationPoints.subList(segment.startIndex, endIndex)
-
-                Polyline(
-                    points = segmentPoints,
-                    color = segment.color,
-                    width = 5f
-                )
-            }
+            Polyline(
+                points = locationPoints.subList(segment.startIndex, endIndex),
+                color = segment.color,
+                width = 5f
+            )
         }
 
 //        locationPoints.forEach {
@@ -548,29 +529,27 @@ fun MapScreen(
             RunControlButton(
                 isRunActive = isRunActive,
                 locationPoints = locationPoints,
-                segments = segments,
-                onButtonClick = {}
-            )
-//            ) {
-////                if(locationPoints.isNotEmpty()) {
-////                    val lastSegment = segments.last()
-////                    if(isRunActive.value) {
-////                        segments.add(Segment(locationPoints.size - 1, Color.Red))
-////                    } else {
-////                        segments.add(Segment(locationPoints.size - 1, Color.Blue))
-////                    }
-////                }
-//
-//                val lastIndex = locationPoints.size - 1
-//                val currentColor = if(isRunActive.value) Color.Blue else Color.Red
-//
-//                if(segments.isNotEmpty()) {
+                segments = segments
+            ) {
+//                if(locationPoints.isNotEmpty()) {
 //                    val lastSegment = segments.last()
-//                    if(lastSegment.color != currentColor) {
-//                        segments.add(Segment(lastIndex, currentColor))
+//                    if(isRunActive.value) {
+//                        segments.add(Segment(locationPoints.size - 1, Color.Red))
+//                    } else {
+//                        segments.add(Segment(locationPoints.size - 1, Color.Blue))
 //                    }
 //                }
-//            }
+
+                val lastIndex = locationPoints.size - 1
+                val currentColor = if(isRunActive.value) Color.Blue else Color.Red
+
+                if(segments.isNotEmpty()) {
+                    val lastSegment = segments.last()
+                    if(lastSegment.color != currentColor) {
+                        segments.add(Segment(lastIndex, currentColor))
+                    }
+                }
+            }
         }
     }
 }
