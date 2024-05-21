@@ -206,23 +206,30 @@ fun RunControlButton(
 
     Button(
         onClick = {
-            val currentColor = if (isRunActive.value) Color.Red else Color.Blue
+//            val currentColor = if (isRunActive.value) Color.Red else Color.Blue
+//
+//            if(segments.isNotEmpty()) {
+//                val lastSegment = segments.last()
+//                if(lastSegment.color != currentColor) {
+//                    val tempSegments = segments.toMutableList()
+//                    tempSegments.add(Segment(locationPoints.size - 1, currentColor))
+//                    segments.clear()
+//                    segments.addAll(tempSegments)
+//                }
+//            } else {
+//                segments.add(Segment(0, currentColor))
+//            }
+//
+//            onButtonClick()
+//            isRunActive.value = !isRunActive.value
+                    val currentColor = if(isRunActive.value) Color.Blue else Color.Red
 
-            if(segments.isNotEmpty()) {
-                val lastSegment = segments.last()
-                if(lastSegment.color != currentColor) {
-                    val tempSegments = segments.toMutableList()
-                    tempSegments.add(Segment(locationPoints.size - 1, currentColor))
-                    segments.clear()
-                    segments.addAll(tempSegments)
-                }
-            } else {
-                segments.add(Segment(0, currentColor))
-            }
-
-            onButtonClick()
-            isRunActive.value = !isRunActive.value
-
+                    if(locationPoints.isEmpty()) {
+                        val tempSegments = segments.toMutableList()
+                        tempSegments.add(Segment(locationPoints.size - 1, currentColor))
+                        segments.clear()
+                        segments.addAll(tempSegments)
+                    }
                   },
         modifier = Modifier
             .fillMaxWidth()
@@ -271,33 +278,33 @@ fun getCurrentLocationAndTrack(
 //                    segments.add(Segment(locationPoints.size - 1, Color.Red))
 //                }
 
-                val tempSegments = segments.toMutableList();
+//                val tempSegments = segments.toMutableList()
 
-//                if(segments.isEmpty()) {
-//                    segments.add(Segment(0, Color.Red))
-//                } else {
-//                    val lastSegment = segments.last()
-//                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
-//
-//                    if(lastSegment.color != currentColor) {
-//                        segments.add(Segment(locationPoints.size - 1, currentColor))
-//                    }
-//                }
-
-                if(tempSegments.isEmpty()) {
-                    tempSegments.add(Segment(0, Color.Red))
+                if(segments.isEmpty()) {
+                    segments.add(Segment(0, Color.Red))
                 } else {
-                    val lastSegment = tempSegments.last()
+                    val lastSegment = segments.last()
                     val currentColor = if(isRunActive.value) Color.Red else Color.Blue
 
                     if(lastSegment.color != currentColor) {
-                        tempSegments.add(Segment(locationPoints.size - 1, currentColor))
+                        segments.add(Segment(locationPoints.size - 1, currentColor))
                     }
                 }
 
-                // Update segments
-                segments.clear()
-                segments.addAll(tempSegments)
+//                if(tempSegments.isEmpty()) {
+//                    tempSegments.add(Segment(0, Color.Red))
+//                } else {
+//                    val lastSegment = tempSegments.last()
+//                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
+//
+//                    if(lastSegment.color != currentColor) {
+//                        tempSegments.add(Segment(locationPoints.size - 1, currentColor))
+//                    }
+//                }
+//
+//                // Update segments
+//                segments.clear()
+//                segments.addAll(tempSegments)
             }
         }
     }
