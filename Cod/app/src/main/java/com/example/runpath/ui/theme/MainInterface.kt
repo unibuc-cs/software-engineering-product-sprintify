@@ -191,8 +191,6 @@ fun getCurrentLocation(
 // Code for live tracking
 
 // special data class for memorizing the polyline segments
-data class PolylineSegment(var points: List<LatLng>, val color: Color, val id: Int)
-
 data class Segment(val startIndex: Int, val color: Color)
 
 @Composable
@@ -225,9 +223,10 @@ fun RunControlButton(
 
                     onButtonClick()
                     isRunActive.value = !isRunActive.value
+
                     val currentColor = if(isRunActive.value) Color.Red else Color.Blue
 
-                    if(locationPoints.isEmpty()) {
+                    if(locationPoints.isNotEmpty()) {
                         val tempSegments = segments.toMutableList()
                         tempSegments.add(Segment(locationPoints.size - 1, currentColor))
                         segments.clear()
