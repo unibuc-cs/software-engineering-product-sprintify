@@ -226,11 +226,12 @@ fun RunControlButton(
 
                     val currentColor = if(isRunActive.value) Color.Red else Color.Blue
 
-                    if(locationPoints.isNotEmpty()) {
-                        val tempSegments = segments.toMutableList()
-                        tempSegments.add(Segment(locationPoints.size - 1, currentColor))
-                        segments.clear()
-                        segments.addAll(tempSegments)
+                    if(locationPoints.isNotEmpty() && segments.isNotEmpty()) {
+                        val lastPoint = locationPoints.last()
+                        val lastSegment = segments.last()
+                        if(lastSegment.color != currentColor) {
+                            segments.add(Segment(locationPoints.size - 1, currentColor))
+                        }
                     }
                   },
         modifier = Modifier
