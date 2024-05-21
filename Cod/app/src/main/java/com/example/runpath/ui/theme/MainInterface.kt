@@ -223,7 +223,7 @@ fun RunControlButton(
             onButtonClick()
             isRunActive.value = !isRunActive.value
 
-                  },
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
