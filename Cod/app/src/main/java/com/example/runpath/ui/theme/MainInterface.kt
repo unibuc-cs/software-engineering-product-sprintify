@@ -191,9 +191,23 @@ fun getCurrentLocation(
 // Code for live tracking
 
 // special data class for memorizing the polyline segments
-data class PolylineSegment(var points: List<LatLng>, val color: Color, val id: Int)
-
 data class Segment(val startIndex: Int, val color: Color)
+
+fun addSegment(
+    locationPoints: SnapshotStateList<LatLng>,
+    segments: SnapshotStateList<Segment>,
+    isRunActive: Boolean
+) {
+    val currentColor = if (isRunActive) Color.Red else Color.Blue
+    if(segments.isNotEmpty()) {
+        val lastSegment = segments.last()
+        if(lastSegment.color != currentColor) {
+            segments.add(Segment(locationPoints.size - 1, currentColor))
+        }
+    } else {
+        segments.add(Segment(0, currentColor))
+    }
+}
 
 @Composable
 fun RunControlButton(
@@ -206,23 +220,9 @@ fun RunControlButton(
 
     Button(
         onClick = {
-            val currentColor = if (isRunActive.value) Color.Red else Color.Blue
-
-            if(segments.isNotEmpty()) {
-                val lastSegment = segments.last()
-                if(lastSegment.color != currentColor) {
-                    val tempSegments = segments.toMutableList()
-                    tempSegments.add(Segment(locationPoints.size - 1, currentColor))
-                    segments.clear()
-                    segments.addAll(tempSegments)
-                }
-            } else {
-                segments.add(Segment(0, currentColor))
-            }
-
             onButtonClick()
             isRunActive.value = !isRunActive.value
-
+            addSegment(locationPoints, segments, isRunActive.value)
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -257,47 +257,12 @@ fun getCurrentLocationAndTrack(
     val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val locationList = locationResult.locations
-            if(locationList.isNotEmpty()) {
+            if (locationList.isNotEmpty()) {
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 locationPoints += newLatLng
-                //Log.d("LocationUpdate", "Updated points list: ${formatLatLngList(locationSegments)}")
 
-//                if(locationPoints.size == 1 || isRunActive.value && segments.isEmpty()) {
-//                    segments.add(Segment(0, Color.Red))
-//                } else if(!isRunActive.value && segments.last().color == Color.Red) {
-//                    segments.add(Segment(locationPoints.size - 1, Color.Blue))
-//                } else if(isRunActive.value && segments.last().color == Color.Blue) {
-//                    segments.add(Segment(locationPoints.size - 1, Color.Red))
-//                }
-
-                val tempSegments = segments.toMutableList();
-
-//                if(segments.isEmpty()) {
-//                    segments.add(Segment(0, Color.Red))
-//                } else {
-//                    val lastSegment = segments.last()
-//                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
-//
-//                    if(lastSegment.color != currentColor) {
-//                        segments.add(Segment(locationPoints.size - 1, currentColor))
-//                    }
-//                }
-
-                if(tempSegments.isEmpty()) {
-                    tempSegments.add(Segment(0, Color.Red))
-                } else {
-                    val lastSegment = tempSegments.last()
-                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
-
-                    if(lastSegment.color != currentColor) {
-                        tempSegments.add(Segment(locationPoints.size - 1, currentColor))
-                    }
-                }
-
-                // Update segments
-                segments.clear()
-                segments.addAll(tempSegments)
+                addSegment(locationPoints, segments, isRunActive.value)
             }
         }
     }
