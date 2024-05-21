@@ -226,11 +226,15 @@ fun RunControlButton(
 
                     val currentColor = if(isRunActive.value) Color.Red else Color.Blue
 
-                    if(locationPoints.isNotEmpty() && segments.isNotEmpty()) {
-                        val lastPoint = locationPoints.last()
-                        val lastSegment = segments.last()
-                        if(lastSegment.color != currentColor) {
-                            segments.add(Segment(locationPoints.size - 1, currentColor))
+                    if(locationPoints.isNotEmpty()) {
+                        val lastPointIndex = locationPoints.size - 1
+                        if(segments.isNotEmpty()) {
+                            val lastSegment = segments.last()
+                            if(lastSegment.color != currentColor) {
+                                segments.add(Segment(lastPointIndex, currentColor))
+                            }
+                        } else {
+                            segments.add(Segment(lastPointIndex, currentColor))
                         }
                     }
                   },
@@ -374,12 +378,15 @@ fun GMap(
 
         segments.forEachIndexed { index, segment ->
             val endIndex = if(index < segments.size - 1) segments[index + 1].startIndex else locationPoints.size
-            val segmentPoints = locationPoints.subList(segment.startIndex, endIndex)
-            Polyline(
-                points = segmentPoints,
-                color = segment.color,
-                width = 5f
-            )
+            if(segment.startIndex < endIndex) {
+                val segmentPoints = locationPoints.subList(segment.startIndex, endIndex)
+
+                Polyline(
+                    points = segmentPoints,
+                    color = segment.color,
+                    width = 5f
+                )
+            }
         }
 
 //        locationPoints.forEach {
