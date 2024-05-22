@@ -3,6 +3,7 @@ package com.example.runpath.ui.theme
 import ProfilePage
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -51,6 +52,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.runpath.MainActivity
 import com.example.runpath.database.SessionManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -581,10 +583,15 @@ fun NavigationHost(navController: NavHostController) {
 @Composable
 fun MainInterface() {
     val navController = rememberNavController()
-
+    val context = LocalContext.current
+    val sessionManager = SessionManager(context)
+    sessionManager.clearSession()
+    val intent = Intent(context, MainActivity::class.java)
+    context.startActivity(intent)
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) {  paddingValues ->
         NavigationHost(navController = navController )
+
     }
 }
