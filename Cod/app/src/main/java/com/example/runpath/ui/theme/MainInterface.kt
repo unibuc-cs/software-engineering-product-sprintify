@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -323,6 +324,7 @@ fun placeMarkerOnMap(location: LatLng, title: String) {
 fun GMap(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>,
+    cameraPosition: MutableState<LatLng?>,
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
     isRunActive: Boolean
@@ -342,6 +344,12 @@ fun GMap(
     LaunchedEffect(key1 = currentLocation.value, key2 = searchedLocation.value) {
         if (currentLocation.value != null && searchedLocation.value != null) {
             routePoints.value = mapsActivity.getRoutePoints(currentLocation.value!!, searchedLocation.value!!)
+        }
+    }
+
+    LaunchedEffect(cameraPosition.value) {
+        cameraPosition.value?.let {
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
         }
     }
 
@@ -470,6 +478,18 @@ fun LocationSearchBar(
 }
 
 @Composable
+fun CurrentLocationButton(onClick: () -> Unit) {
+    Box(
+        m/odifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Button(onClick = onClick) {
+            Text("Go to Current Location")
+        }
+    }
+}
+
+@Composable
 fun MapScreen(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>
@@ -486,6 +506,15 @@ fun MapScreen(
     val locationPoints = remember { mutableStateListOf<LatLng>()}
     val segments = remember {mutableStateListOf<Segment>()}
     val isRunActive = remember { mutableStateOf(false) }
+<<<<<<< Updated upstream
+=======
+    val currentSegmentId = remember { mutableIntStateOf(0) }
+    val cameraPosition = remember { mutableStateOf<LatLng?>(null) }
+
+    CurrentLocationButton(onClick = {
+        cameraPosition.value = currentLocation.value
+    })
+>>>>>>> Stashed changes
 
     RequestLocationPermission(
         onPermissionGranted = {
@@ -521,6 +550,7 @@ fun MapScreen(
             GMap(
                 currentLocation = currentLocation,
                 searchedLocation = searchedLocation,
+                cameraPosition = cameraPosition,
                 locationPoints = locationPoints,
                 segments = segments,
                 isRunActive = isRunActive.value
