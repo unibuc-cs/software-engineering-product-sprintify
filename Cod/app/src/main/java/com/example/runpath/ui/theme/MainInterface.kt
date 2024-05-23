@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -123,7 +124,14 @@ fun savePermissionStatus(context: Context, isGranted: Boolean) {
 
 fun getPermissionStatus(context: Context): Boolean {
     val sharedPreferences = context.getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE)
-    println("LocationPermissionGranted: ${sharedPreferences.getBoolean("LocationPermissionGranted", false)}")
+    println(
+        "LocationPermissionGranted: ${
+            sharedPreferences.getBoolean(
+                "LocationPermissionGranted",
+                false
+            )
+        }"
+    )
     return sharedPreferences.getBoolean("LocationPermissionGranted", false) // Default to false
 }
 
@@ -158,6 +166,7 @@ fun RequestLocationPermission(
         }
     }
 }
+
 @SuppressLint("MissingPermission")
 fun getCurrentLocation(
     fusedLocationClient: FusedLocationProviderClient,
@@ -181,7 +190,11 @@ fun getCurrentLocation(
                     }
                 }
             }
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
         }
     }.addOnFailureListener { e ->
         println("Error getting location: ${e.message}")
@@ -209,9 +222,9 @@ fun RunControlButton(
         onClick = {
             val currentColor = if (isRunActive.value) Color.Red else Color.Blue
 
-            if(segments.isNotEmpty()) {
+            if (segments.isNotEmpty()) {
                 val lastSegment = segments.last()
-                if(lastSegment.color != currentColor) {
+                if (lastSegment.color != currentColor) {
                     val tempSegments = segments.toMutableList()
                     tempSegments.add(Segment(locationPoints.size - 1, currentColor))
                     segments.clear()
@@ -258,7 +271,7 @@ fun getCurrentLocationAndTrack(
     val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val locationList = locationResult.locations
-            if(locationList.isNotEmpty()) {
+            if (locationList.isNotEmpty()) {
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 locationPoints += newLatLng
@@ -285,13 +298,13 @@ fun getCurrentLocationAndTrack(
 //                    }
 //                }
 
-                if(tempSegments.isEmpty()) {
+                if (tempSegments.isEmpty()) {
                     tempSegments.add(Segment(0, Color.Red))
                 } else {
                     val lastSegment = tempSegments.last()
-                    val currentColor = if(isRunActive.value) Color.Red else Color.Blue
+                    val currentColor = if (isRunActive.value) Color.Red else Color.Blue
 
-                    if(lastSegment.color != currentColor) {
+                    if (lastSegment.color != currentColor) {
                         tempSegments.add(Segment(locationPoints.size - 1, currentColor))
                     }
                 }
@@ -327,15 +340,20 @@ fun GMap(
     cameraPosition: MutableState<LatLng?>,
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
-    isRunActive: Boolean
+    isRunActive: Boolean,
+    cameraTilt: MutableState<Float>
 ) {
     val cameraPositionState = rememberCameraPositionState().apply {
-        val initialLocation: LatLng = if(searchedLocation.value == null) {
+        val initialLocation: LatLng = if (searchedLocation.value == null) {
             currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
         } else {
             searchedLocation.value!!
         }
-        position = CameraPosition.fromLatLngZoom(initialLocation, 15f)
+        position = CameraPosition.builder()
+            .target(initialLocation)
+            .zoom(15f)
+            .tilt(cameraTilt.value) // Set tilt to the current tilt value
+            .build()
     }
 
     val mapsActivity = MapsActivity()
@@ -343,7 +361,8 @@ fun GMap(
 
     LaunchedEffect(key1 = currentLocation.value, key2 = searchedLocation.value) {
         if (currentLocation.value != null && searchedLocation.value != null) {
-            routePoints.value = mapsActivity.getRoutePoints(currentLocation.value!!, searchedLocation.value!!)
+            routePoints.value =
+                mapsActivity.getRoutePoints(currentLocation.value!!, searchedLocation.value!!)
         }
     }
 
@@ -354,7 +373,7 @@ fun GMap(
     }
 
     GoogleMap(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(bottom = 56.dp),
         cameraPositionState = cameraPositionState,
         onMapLongClick = { latLng ->
             searchedLocation.value = latLng
@@ -362,7 +381,7 @@ fun GMap(
     ) {
         // Marker for current location
         currentLocation.value?.let {
-            placeMarkerOnMap(location = currentLocation.value!! , title = "Current Location")
+            placeMarkerOnMap(location = currentLocation.value!!, title = "Current Location")
         }
 
         // Marker for searched location
@@ -371,7 +390,8 @@ fun GMap(
         }
 
         segments.forEachIndexed { index, segment ->
-            val endIndex = if(index < segments.size - 1) segments[index + 1].startIndex else locationPoints.size
+            val endIndex =
+                if (index < segments.size - 1) segments[index + 1].startIndex else locationPoints.size
             Polyline(
                 points = locationPoints.subList(segment.startIndex, endIndex),
                 color = segment.color,
@@ -463,8 +483,10 @@ fun LocationSearchBar(
                             if (task.isSuccessful) {
                                 val place = task.result
                                 searchedLocation.value = place.place.latLng
-                                searchQuery.value = prediction.getFullText(null).toString() // Update the search bar text
-                                showSuggestions.value = false  // Ensure it remains hidden after the update
+                                searchQuery.value = prediction.getFullText(null)
+                                    .toString() // Update the search bar text
+                                showSuggestions.value =
+                                    false  // Ensure it remains hidden after the update
                             } else {
                                 // Handle the error.
                                 println("Place fetch failed: ${task.exception?.message}")
@@ -478,15 +500,35 @@ fun LocationSearchBar(
 }
 
 @Composable
-fun CurrentLocationButton(onClick: () -> Unit) {
-    Box(
-        m/odifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Button(onClick = onClick) {
-            Text("Go to Current Location")
+fun CurrentLocationButton(
+    currentLocation: MutableState<LatLng?>,
+    cameraPosition: MutableState<LatLng?>,
+    fusedLocationClient: FusedLocationProviderClient
+) {
+
+    Button(onClick = {
+        getCurrentLocation(fusedLocationClient) { location ->
+            val latLng = LatLng(location.latitude, location.longitude)
+            currentLocation.value = latLng
+            cameraPosition.value = currentLocation.value
+            println("Current location: ${currentLocation.value}")
         }
+    }) {
+        Text("Go to Current Location")
     }
+
+}
+
+@Composable
+fun TiltButton(cameraTilt: MutableState<Float>) {
+
+    Button(onClick = {
+        // Toggle tilt between 0 and 45 degrees
+        cameraTilt.value = if (cameraTilt.value == 0f) 45f else 0f
+    }) {
+        Text("Toggle Tilt")
+    }
+
 }
 
 @Composable
@@ -503,18 +545,16 @@ fun MapScreen(
     val placesClient = Places.createClient(context)
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    val locationPoints = remember { mutableStateListOf<LatLng>()}
-    val segments = remember {mutableStateListOf<Segment>()}
+    val locationPoints = remember { mutableStateListOf<LatLng>() }
+    val segments = remember { mutableStateListOf<Segment>() }
     val isRunActive = remember { mutableStateOf(false) }
-<<<<<<< Updated upstream
-=======
+
+    //camera position
     val currentSegmentId = remember { mutableIntStateOf(0) }
     val cameraPosition = remember { mutableStateOf<LatLng?>(null) }
 
-    CurrentLocationButton(onClick = {
-        cameraPosition.value = currentLocation.value
-    })
->>>>>>> Stashed changes
+    //tilt
+    val cameraTilt = remember { mutableStateOf(0f) } // Initial tilt is 0
 
     RequestLocationPermission(
         onPermissionGranted = {
@@ -525,7 +565,12 @@ fun MapScreen(
                     searchedLocation.value = latLng // Set default camera position
                 }
 
-                getCurrentLocationAndTrack(fusedLocationClient, locationPoints, segments, isRunActive)
+                getCurrentLocationAndTrack(
+                    fusedLocationClient,
+                    locationPoints,
+                    segments,
+                    isRunActive
+                )
             }
         },
         onPermissionDenied = {
@@ -553,8 +598,10 @@ fun MapScreen(
                 cameraPosition = cameraPosition,
                 locationPoints = locationPoints,
                 segments = segments,
-                isRunActive = isRunActive.value
+                isRunActive = isRunActive.value,
+                cameraTilt = cameraTilt
             )
+
 
             // Start/Pause Button
             RunControlButton(
@@ -563,6 +610,25 @@ fun MapScreen(
                 segments = segments,
                 onButtonClick = {}
             )
+
+            // Current Location Button in the bottom-left corner
+
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart) // This positions the Column at the bottom left corner
+                    .padding(bottom = 56.dp) // Optional padding
+
+            ) {
+                CurrentLocationButton(
+                    currentLocation = currentLocation,
+                    cameraPosition = cameraPosition,
+                    fusedLocationClient = fusedLocationClient
+                )
+                TiltButton(cameraTilt = cameraTilt)
+            }
+
+
 //            ) {
 ////                if(locationPoints.isNotEmpty()) {
 ////                    val lastSegment = segments.last()
@@ -600,10 +666,10 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Map.route) {
             MapScreen(currentLocation, searchedLocation)
         }
-        composable(BottomNavItem.Community.route) { CommunityPage(navController,sessionManager) }
+        composable(BottomNavItem.Community.route) { CommunityPage(navController, sessionManager) }
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
         composable(BottomNavItem.Circuit.route) { /* Search Screen UI */ }
-        composable(BottomNavItem.Profile.route) { ProfilePage(navController,sessionManager ) }
+        composable(BottomNavItem.Profile.route) { ProfilePage(navController, sessionManager) }
     }
 }
 
@@ -614,8 +680,8 @@ fun MainInterface() {
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
-    ) {  paddingValues ->
-        NavigationHost(navController = navController )
+    ) { paddingValues ->
+        NavigationHost(navController = navController)
 
     }
 }
