@@ -79,7 +79,7 @@ sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: 
     data object Community : BottomNavItem("home", Icons.Default.Star, "Community")
 
     data object Run : BottomNavItem("run", Icons.Default.Add, "Run")
-    data object Circuit : BottomNavItem("circuit", Icons.Default.LocationOn, "Circuit")
+    data object Circuit : BottomNavItem("circuitsPage", Icons.Default.LocationOn, "Circuit")
     data object Profile : BottomNavItem("ProfilePage", Icons.Default.AccountBox, "Profile")
     companion object {
         val values = listOf(Map, Community, Run, Circuit, Profile)
@@ -373,7 +373,9 @@ fun GMap(
     }
 
     GoogleMap(
-        modifier = Modifier.fillMaxSize().padding(bottom = 56.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 56.dp),
         cameraPositionState = cameraPositionState,
         onMapLongClick = { latLng ->
             searchedLocation.value = latLng
@@ -668,7 +670,7 @@ fun NavigationHost(navController: NavHostController) {
         }
         composable(BottomNavItem.Community.route) { CommunityPage(navController, sessionManager) }
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
-        composable(BottomNavItem.Circuit.route) { /* Search Screen UI */ }
+        composable(BottomNavItem.Circuit.route) { CircuitsPage() }
         composable(BottomNavItem.Profile.route) { ProfilePage(navController, sessionManager) }
     }
 }
