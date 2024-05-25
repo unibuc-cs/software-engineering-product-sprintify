@@ -3,6 +3,10 @@ package com.example.runpath.ui.theme
 import ProfilePage
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -43,8 +47,12 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -53,12 +61,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.runpath.R
 import com.example.runpath.database.SessionManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.Places
@@ -210,6 +221,16 @@ data class PolylineSegment(var points: List<LatLng>, val color: Color, val id: I
 data class Segment(val startIndex: Int, val color: Color)
 
 @Composable
+fun placeMarker(location: LatLng, title: String, icon: BitmapDescriptor) {
+    Marker(
+        state = MarkerState(position = location),
+        title = title,
+        snippet = "Marker at $title",
+        icon = icon
+    )
+}
+
+@Composable
 fun RunControlButton(
     isRunActive: MutableState<Boolean>,
     locationPoints: SnapshotStateList<LatLng>,
@@ -257,7 +278,8 @@ fun getCurrentLocationAndTrack(
     fusedLocationClient: FusedLocationProviderClient,
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
-    isRunActive: MutableState<Boolean>
+    isRunActive: MutableState<Boolean>,
+    steps: Int = 5
 ) {
     val locationRequest = LocationRequest.create().apply {
         // Setting the min and max intervals at witch the application retrieves the
@@ -274,7 +296,14 @@ fun getCurrentLocationAndTrack(
             if (locationList.isNotEmpty()) {
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
-                locationPoints += newLatLng
+                val interpolatedPoints = if(locationPoints.isNotEmpty()) {
+                    val lastPoint = locationPoints.last()
+                    interpolatePoints(lastPoint, newLatLng, steps)
+                } else {
+                    emptyList()
+                }
+                locationPoints.addAll(interpolatedPoints)
+                locationPoints.add(newLatLng)
                 //Log.d("LocationUpdate", "Updated points list: ${formatLatLngList(locationSegments)}")
 
 //                if(locationPoints.size == 1 || isRunActive.value && segments.isEmpty()) {
@@ -372,6 +401,12 @@ fun GMap(
         }
     }
 
+    val context = LocalContext.current
+    val drawable: Drawable = context.resources.getDrawable(R.drawable.current_location_icon)
+    val bitmap: Bitmap = (drawable as BitmapDrawable).bitmap
+    val currentLocationIcon: BitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap)
+
+
     GoogleMap(
         modifier = Modifier
             .fillMaxSize()
@@ -383,7 +418,7 @@ fun GMap(
     ) {
         // Marker for current location
         currentLocation.value?.let {
-            placeMarkerOnMap(location = currentLocation.value!!, title = "Current Location")
+            placeMarker(location = it, title = "Current Location", icon = currentLocationIcon)
         }
 
         // Marker for searched location
@@ -672,6 +707,15 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
         composable(BottomNavItem.Circuit.route) { CircuitsPage(navController,sessionManager) }
         composable(BottomNavItem.Profile.route) { ProfilePage(navController, sessionManager) }
+    }
+}
+
+fun interpolatePoints(start: LatLng, end: LatLng, steps: Int): List<LatLng> {
+    val latStep = (end.latitude - start.latitude) / steps
+    val lngStep = (end.longitude - start.longitude) / steps
+
+    return(1 until steps).map {
+        LatLng(start.latitude + it * latStep, start.longitude + it * lngStep)
     }
 }
 
