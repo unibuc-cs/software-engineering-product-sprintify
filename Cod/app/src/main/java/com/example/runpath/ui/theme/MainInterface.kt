@@ -54,6 +54,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.runpath.database.SessionManager
+import com.example.runpath.tracking.LocationViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -212,31 +213,19 @@ data class Segment(val startIndex: Int, val color: Color)
 @Composable
 fun RunControlButton(
     isRunActive: MutableState<Boolean>,
-    locationPoints: SnapshotStateList<LatLng>,
-    segments: SnapshotStateList<Segment>,
-    onButtonClick: () -> Unit
+    onStartClick: () -> Unit,
+    onPauseClick: () -> Unit
 ) {
     val buttonText = if (isRunActive.value) "Pause Run" else "Start Run"
 
     Button(
         onClick = {
-            val currentColor = if (isRunActive.value) Color.Red else Color.Blue
-
-            if (segments.isNotEmpty()) {
-                val lastSegment = segments.last()
-                if (lastSegment.color != currentColor) {
-                    val tempSegments = segments.toMutableList()
-                    tempSegments.add(Segment(locationPoints.size - 1, currentColor))
-                    segments.clear()
-                    segments.addAll(tempSegments)
-                }
-            } else {
-                segments.add(Segment(0, currentColor))
-            }
-
-            onButtonClick()
+                  if(isRunActive.value) {
+                      onPauseClick()
+                  } else {
+                      onStartClick()
+                  }
             isRunActive.value = !isRunActive.value
-
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -339,7 +328,6 @@ fun GMap(
     searchedLocation: MutableState<LatLng?>,
     cameraPosition: MutableState<LatLng?>,
     locationPoints: SnapshotStateList<LatLng>,
-    segments: SnapshotStateList<Segment>,
     isRunActive: Boolean,
     cameraTilt: MutableState<Float>
 ) {
@@ -391,12 +379,10 @@ fun GMap(
             placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
         }
 
-        segments.forEachIndexed { index, segment ->
-            val endIndex =
-                if (index < segments.size - 1) segments[index + 1].startIndex else locationPoints.size
-            Polyline(
-                points = locationPoints.subList(segment.startIndex, endIndex),
-                color = segment.color,
+        if(isRunActive && locationPoints.isNotEmpty()) {
+            Polyline (
+                points = locationPoints,
+                color = Color.Red,
                 width = 5f
             )
         }
@@ -536,7 +522,8 @@ fun TiltButton(cameraTilt: MutableState<Float>) {
 @Composable
 fun MapScreen(
     currentLocation: MutableState<LatLng?>,
-    searchedLocation: MutableState<LatLng?>
+    searchedLocation: MutableState<LatLng?>,
+    locationViewModel: LocationViewModel
 ) {
     val context = LocalContext.current
     val contextMap = GeoApiContext.Builder()
@@ -567,12 +554,14 @@ fun MapScreen(
                     searchedLocation.value = latLng // Set default camera position
                 }
 
-                getCurrentLocationAndTrack(
-                    fusedLocationClient,
-                    locationPoints,
-                    segments,
-                    isRunActive
-                )
+//                getCurrentLocationAndTrack(
+//                    fusedLocationClient,
+//                    locationPoints,
+//                    segments,
+//                    isRunActive
+//                )
+
+                locationViewModel.startTracking()
             }
         },
         onPermissionDenied = {
@@ -599,7 +588,7 @@ fun MapScreen(
                 searchedLocation = searchedLocation,
                 cameraPosition = cameraPosition,
                 locationPoints = locationPoints,
-                segments = segments,
+                //segments = segments,
                 isRunActive = isRunActive.value,
                 cameraTilt = cameraTilt
             )
@@ -608,9 +597,8 @@ fun MapScreen(
             // Start/Pause Button
             RunControlButton(
                 isRunActive = isRunActive,
-                locationPoints = locationPoints,
-                segments = segments,
-                onButtonClick = {}
+                onStartClick = {locationViewModel.startTracking()},
+                onPauseClick = {locationViewModel.pauseTracking()}
             )
 
             // Current Location Button in the bottom-left corner
@@ -656,7 +644,7 @@ fun MapScreen(
 }
 
 @Composable
-fun NavigationHost(navController: NavHostController) {
+fun NavigationHost(navController: NavHostController, locationViewModel: LocationViewModel) {
     val context = LocalContext.current
     var sessionManager = SessionManager(context)
     val currentLocation = remember { mutableStateOf<LatLng?>(null) }
@@ -666,7 +654,7 @@ fun NavigationHost(navController: NavHostController) {
 
     NavHost(navController, startDestination = BottomNavItem.Map.route) {
         composable(BottomNavItem.Map.route) {
-            MapScreen(currentLocation, searchedLocation)
+            MapScreen(currentLocation, searchedLocation, locationViewModel)
         }
         composable(BottomNavItem.Community.route) { CommunityPage(navController, sessionManager) }
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
@@ -677,13 +665,13 @@ fun NavigationHost(navController: NavHostController) {
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun MainInterface() {
+fun MainInterface(locationViewModel: LocationViewModel) {
     val navController = rememberNavController()
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) { paddingValues ->
-        NavigationHost(navController = navController)
+        NavigationHost(navController = navController, locationViewModel = locationViewModel)
 
     }
 }
