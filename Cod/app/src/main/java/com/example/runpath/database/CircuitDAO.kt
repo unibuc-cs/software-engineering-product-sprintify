@@ -2,6 +2,7 @@ package com.example.runpath.database
 
 import androidx.compose.animation.core.snap
 import com.example.runpath.models.Circuit
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
@@ -75,9 +76,10 @@ class CircuitDAO {
         intensity: Int,
         terrain: String,
         petFriendly: Boolean,
-        lightlevel: Int,
+        lightLevel: Int,
         rating: Double,
-        difficulty: Int
+        difficulty: Int,
+        route : List<LatLng>
     ) {
         val circuit = Circuit(
             circuitId = circuitId,
@@ -88,9 +90,10 @@ class CircuitDAO {
             intensity = intensity,
             terrain = terrain,
             petFriendly = petFriendly,
-            lightlevel = lightlevel,
+            lightLevel = lightLevel,
             rating = rating,
-            difficulty = difficulty
+            difficulty = difficulty,
+            route = route
         )
 
         db.collection("circuits")
