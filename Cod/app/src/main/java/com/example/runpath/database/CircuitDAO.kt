@@ -2,10 +2,11 @@ package com.example.runpath.database
 
 import androidx.compose.animation.core.snap
 import com.example.runpath.models.Circuit
-import com.google.android.gms.maps.model.LatLng
+
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
+import com.google.maps.model.LatLng
 
 
 class CircuitDAO {

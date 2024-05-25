@@ -1,6 +1,7 @@
 package com.example.runpath.models
 
-import com.google.android.gms.maps.model.LatLng
+
+import com.google.maps.model.LatLng
 
 data class Circuit (
     val circuitId: String? = null,

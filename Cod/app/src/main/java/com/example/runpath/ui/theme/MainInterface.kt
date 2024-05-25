@@ -670,7 +670,7 @@ fun NavigationHost(navController: NavHostController) {
         }
         composable(BottomNavItem.Community.route) { CommunityPage(navController, sessionManager) }
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
-        composable(BottomNavItem.Circuit.route) { CircuitsPage() }
+        composable(BottomNavItem.Circuit.route) { CircuitsPage(navController,sessionManager) }
         composable(BottomNavItem.Profile.route) { ProfilePage(navController, sessionManager) }
     }
 }
