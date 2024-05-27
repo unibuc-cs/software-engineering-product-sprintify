@@ -345,15 +345,19 @@ fun GMap(
 ) {
 
     val cameraMovedFlag = remember { mutableStateOf(false)}
-    val cameraPositionState = rememberCameraPositionState()
 
-    LaunchedEffect(key1 = currentLocation.value, key2 = searchedLocation.value) {
-        if(searchedLocation.value != null) {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(searchedLocation.value!!, 15f)
-        } else if(!cameraMovedFlag.value) {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(currentLocation.value ?: LatLng(0.0, 0.0), 15f)
-            cameraMovedFlag.value = true
+    val cameraPositionState = rememberCameraPositionState().apply {
+        val initialLocation: LatLng = if (searchedLocation.value == null) {
+            currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
+        } else {
+            searchedLocation.value!!
         }
+        position = CameraPosition.builder()
+            .target(initialLocation)
+            .zoom(15f)
+            .tilt(cameraTilt.value) // Set tilt to the current tilt value
+            .build()
+        cameraMovedFlag.value = true
     }
 
     val mapsActivity = MapsActivity()
@@ -386,7 +390,7 @@ fun GMap(
             placeMarker(
                 location = it,
                 title = "Current Location"
-                )
+            )
         }
 
         // Marker for searched location
