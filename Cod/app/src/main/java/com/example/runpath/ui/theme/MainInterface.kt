@@ -55,6 +55,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -342,17 +343,23 @@ fun GMap(
     isRunActive: Boolean,
     cameraTilt: MutableState<Float>
 ) {
+
+    val cameraMovedFlag = remember { mutableStateOf(false)}
+
     val cameraPositionState = rememberCameraPositionState().apply {
-        val initialLocation: LatLng = if (searchedLocation.value == null) {
-            currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
-        } else {
-            searchedLocation.value!!
+        if(!cameraMovedFlag.value) {
+            val initialLocation: LatLng = if (searchedLocation.value == null) {
+                currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
+            } else {
+                searchedLocation.value!!
+            }
+            position = CameraPosition.builder()
+                .target(initialLocation)
+                .zoom(15f)
+                .tilt(cameraTilt.value) // Set tilt to the current tilt value
+                .build()
+            cameraMovedFlag.value = true
         }
-        position = CameraPosition.builder()
-            .target(initialLocation)
-            .zoom(15f)
-            .tilt(cameraTilt.value) // Set tilt to the current tilt value
-            .build()
     }
 
     val mapsActivity = MapsActivity()
@@ -400,13 +407,6 @@ fun GMap(
                 width = 5f
             )
         }
-
-//        locationPoints.forEach {
-//            Marker(
-//                state = MarkerState(position = it),
-//                title = "Visited"
-//            )
-//        }
 
         if (routePoints.value.isNotEmpty()) {
             Polyline(
@@ -557,6 +557,8 @@ fun MapScreen(
 
     //tilt
     val cameraTilt = remember { mutableStateOf(0f) } // Initial tilt is 0
+
+
 
     RequestLocationPermission(
         onPermissionGranted = {
