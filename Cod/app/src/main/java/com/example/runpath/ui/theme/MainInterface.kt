@@ -3,6 +3,7 @@ package com.example.runpath.ui.theme
 import CircuitsPage
 import ProfilePage
 import android.annotation.SuppressLint
+import android.app.UiModeManager
 import android.content.Context
 import android.location.Address
 import android.location.Geocoder
@@ -350,11 +351,27 @@ fun GMap(
     }
 
     val context = LocalContext.current
-    val mapProperties = remember {
-        MapProperties(
-        mapStyleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.dark_mode_map)
-        )
+    val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+    val isNightMode = when (uiModeManager.nightMode) {
+        UiModeManager.MODE_NIGHT_YES -> true
+        else -> false
     }
+
+    val mapProperties: MapProperties;
+    val mapStyle = if (isNightMode) {
+        mapProperties = remember {
+            MapProperties(
+                mapStyleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.dark_mode_map)
+            )
+        }
+    } else {
+        mapProperties = remember {
+            MapProperties(
+                mapStyleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.light_mode_map)
+            )
+        }
+    }
+
 
     val mapsActivity = MapsActivity()
     val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
