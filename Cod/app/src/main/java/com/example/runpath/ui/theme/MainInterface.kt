@@ -217,22 +217,6 @@ fun getCurrentLocation(
 // Code for live tracking
 
 // special data class for memorizing the polyline segments
-
-fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): BitmapDescriptor {
-    val vectorDrawable = context.getDrawable(vectorResId)
-    vectorDrawable?.setBounds(0, 0, vectorDrawable.intrinsicWidth, vectorDrawable.intrinsicHeight)
-
-    val bitmap = Bitmap.createBitmap(
-        vectorDrawable?.intrinsicWidth ?: 0,
-        vectorDrawable?.intrinsicHeight ?: 0,
-        Bitmap.Config.ARGB_8888
-    )
-
-    val canvas = Canvas(bitmap)
-    vectorDrawable?.draw(canvas)
-    return BitmapDescriptorFactory.fromBitmap(bitmap)
-}
-
 data class Segment(val startIndex: Int, val endIndex: Int, val color: Color)
 
 @Composable
@@ -286,6 +270,7 @@ fun getCurrentLocationAndTrack(
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
     isRunActive: MutableState<Boolean>,
+    currentLocation: MutableState<LatLng?>,
     steps: Int = 5
 ) {
     val locationRequest = LocationRequest.create().apply {
@@ -303,6 +288,7 @@ fun getCurrentLocationAndTrack(
             if (locationList.isNotEmpty()) {
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
+                currentLocation.value = newLatLng
                 val interpolatedPoints = if(locationPoints.isNotEmpty()) {
                     val lastPoint = locationPoints.last()
                     interpolatePoints(lastPoint, newLatLng, steps)
@@ -585,7 +571,8 @@ fun MapScreen(
                     fusedLocationClient,
                     locationPoints,
                     segments,
-                    isRunActive
+                    isRunActive,
+                    currentLocation
                 )
             }
         },
@@ -643,28 +630,6 @@ fun MapScreen(
                 )
                 TiltButton(cameraTilt = cameraTilt)
             }
-
-
-//            ) {
-////                if(locationPoints.isNotEmpty()) {
-////                    val lastSegment = segments.last()
-////                    if(isRunActive.value) {
-////                        segments.add(Segment(locationPoints.size - 1, Color.Red))
-////                    } else {
-////                        segments.add(Segment(locationPoints.size - 1, Color.Blue))
-////                    }
-////                }
-//
-//                val lastIndex = locationPoints.size - 1
-//                val currentColor = if(isRunActive.value) Color.Blue else Color.Red
-//
-//                if(segments.isNotEmpty()) {
-//                    val lastSegment = segments.last()
-//                    if(lastSegment.color != currentColor) {
-//                        segments.add(Segment(lastIndex, currentColor))
-//                    }
-//                }
-//            }
         }
     }
 }
