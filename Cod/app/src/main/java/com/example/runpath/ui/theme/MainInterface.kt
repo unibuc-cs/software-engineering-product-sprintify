@@ -343,9 +343,6 @@ fun GMap(
     isRunActive: Boolean,
     cameraTilt: MutableState<Float>
 ) {
-
-    val cameraMovedFlag = remember { mutableStateOf(false)}
-
     val cameraPositionState = rememberCameraPositionState().apply {
         val initialLocation: LatLng = if (searchedLocation.value == null) {
             currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
@@ -357,7 +354,6 @@ fun GMap(
             .zoom(15f)
             .tilt(cameraTilt.value) // Set tilt to the current tilt value
             .build()
-        cameraMovedFlag.value = true
     }
 
     val mapsActivity = MapsActivity()
@@ -388,7 +384,7 @@ fun GMap(
         // Marker for current location
         currentLocation.value?.let {
             placeMarker(
-                location = it,
+                location = currentLocation.value!!,
                 title = "Current Location"
             )
         }
