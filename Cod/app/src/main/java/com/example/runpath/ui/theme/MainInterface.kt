@@ -281,7 +281,7 @@ fun getCurrentLocationAndTrack(
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 currentLocation.value = newLatLng
-                //cameraPosition.value = newLatLng
+                cameraPosition.value = newLatLng
                 val interpolatedPoints = if(locationPoints.isNotEmpty()) {
                     val lastPoint = locationPoints.last()
                     interpolatePoints(lastPoint, newLatLng, steps)
