@@ -272,6 +272,7 @@ fun getCurrentLocationAndTrack(
     segments: SnapshotStateList<Segment>,
     isRunActive: MutableState<Boolean>,
     currentLocation: MutableState<LatLng?>,
+    cameraPosition: MutableState<LatLng?>,
     steps: Int = 5
 ) {
     val locationRequest = LocationRequest.create().apply {
@@ -290,6 +291,7 @@ fun getCurrentLocationAndTrack(
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 currentLocation.value = newLatLng
+                cameraPosition.value = newLatLng
                 val interpolatedPoints = if(locationPoints.isNotEmpty()) {
                     val lastPoint = locationPoints.last()
                     interpolatePoints(lastPoint, newLatLng, steps)
@@ -366,9 +368,23 @@ fun GMap(
         }
     }
 
+    LaunchedEffect(key1 = currentLocation.value) {
+        currentLocation.value?.let {
+            cameraPositionState.position = CameraPosition.builder()
+                .target(it)
+                .zoom(15f)
+                .tilt(cameraTilt.value)
+                .build()
+        }
+    }
+
     LaunchedEffect(cameraPosition.value) {
         cameraPosition.value?.let {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
+            cameraPositionState.position = CameraPosition.builder()
+                .target(it)
+                .zoom(15f)
+                .tilt(cameraTilt.value)
+                .build()
         }
     }
 
@@ -568,7 +584,8 @@ fun MapScreen(
                     locationPoints,
                     segments,
                     isRunActive,
-                    currentLocation
+                    currentLocation,
+                    cameraPosition
                 )
             }
         },
