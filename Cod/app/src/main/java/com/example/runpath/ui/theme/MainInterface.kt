@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Address
@@ -216,7 +217,21 @@ fun getCurrentLocation(
 // Code for live tracking
 
 // special data class for memorizing the polyline segments
-data class PolylineSegment(var points: List<LatLng>, val color: Color, val id: Int)
+
+fun bitmapDescriptorFromVector(context: Context, vectorResId: Int): BitmapDescriptor {
+    val vectorDrawable = context.getDrawable(vectorResId)
+    vectorDrawable?.setBounds(0, 0, vectorDrawable.intrinsicWidth, vectorDrawable.intrinsicHeight)
+
+    val bitmap = Bitmap.createBitmap(
+        vectorDrawable?.intrinsicWidth ?: 0,
+        vectorDrawable?.intrinsicHeight ?: 0,
+        Bitmap.Config.ARGB_8888
+    )
+
+    val canvas = Canvas(bitmap)
+    vectorDrawable?.draw(canvas)
+    return BitmapDescriptorFactory.fromBitmap(bitmap)
+}
 
 data class Segment(val startIndex: Int, val endIndex: Int, val color: Color)
 
@@ -225,7 +240,8 @@ fun placeMarker(location: LatLng, title: String) {
     Marker(
         state = MarkerState(position = location),
         title = title,
-        snippet = "Marker at $title"
+        snippet = "Marker at $title",
+        icon = BitmapDescriptorFactory.fromResource(R.drawable.current_location_icon)
     )
 }
 
@@ -261,12 +277,6 @@ fun RunControlButton(
             .padding(16.dp)
     ) {
         Text(text = buttonText)
-    }
-}
-
-fun formatLatLngList(latlngList: List<LatLng>): String {
-    return latlngList.joinToString(separator = ", ") { latlng ->
-        "(${latlng.latitude}, ${latlng.longitude})"
     }
 }
 
@@ -375,11 +385,6 @@ fun GMap(
         }
     }
 
-    val context = LocalContext.current
-    val drawable: Drawable = context.resources.getDrawable(R.drawable.current_location_icon)
-
-
-
     GoogleMap(
         modifier = Modifier
             .fillMaxSize()
@@ -391,7 +396,10 @@ fun GMap(
     ) {
         // Marker for current location
         currentLocation.value?.let {
-            placeMarker(location = it, title = "Current Location")
+            placeMarker(
+                location = it,
+                title = "Current Location"
+                )
         }
 
         // Marker for searched location
