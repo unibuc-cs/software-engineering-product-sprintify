@@ -1,11 +1,9 @@
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.material3.Card
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,12 +15,12 @@ import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.runpath.R
 
 @Composable
 fun NetworkImage(
@@ -49,13 +47,11 @@ fun ImageSlider(images: List<String>) {
     var isAnimating by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
-                .weight(1f)
-                .height(100.dp)
+                .height(200.dp)
                 .fillMaxWidth()
-                .padding(16.dp)
         ) {
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -105,50 +101,33 @@ fun ImageSlider(images: List<String>) {
 
 @Composable
 fun SprintifyTitleCard() {
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier = Modifier
-            .padding(16.dp)
             .fillMaxWidth()
+            .padding(16.dp)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-                .background(Color(0xFF4CAF50)) // Greenish background for energetic feel
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-
-            ) {
-                Text(
-                    text = "Sprintify",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Your Running Companion, Every Step of the Way",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.White,
-                    modifier = Modifier.padding(8.dp),
-                    textAlign = TextAlign.Center
-
-
-                )
-            }
-        }
+        Text(
+            text = "Sprintify",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Your Running Companion, Every Step of the Way",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun HomePage( navController: NavController) {
+fun HomePage(navController: NavController) {
 
     val images = listOf(
         "https://media.self.com/photos/64063998753c98598ce42cde/1:1/w_5588,h_5588,c_limit/benfits%20of%20running.jpeg",
@@ -157,21 +136,34 @@ fun HomePage( navController: NavController) {
     )
 
     Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Top,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF8A2BE2)) // Purple background for the entire screen
+            .padding(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        SprintifyTitleCard()
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate("loginPage") },
-        ) {
-            Text("Login")
-        }
-        Button (onClick = { navController.navigate("registerPage") }) {
-            Text("Register")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
         ImageSlider(images)
+        SprintifyTitleCard()
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(
+                onClick = { navController.navigate("loginPage") },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Log in", color = Color.Black)
+            }
+            Button(
+                onClick = { navController.navigate("registerPage") },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Sign up", color = Color.Black)
+            }
+        }
     }
 }
