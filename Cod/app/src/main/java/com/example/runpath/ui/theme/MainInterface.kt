@@ -347,19 +347,16 @@ fun GMap(
     val cameraMovedFlag = remember { mutableStateOf(false)}
 
     val cameraPositionState = rememberCameraPositionState().apply {
-        if(!cameraMovedFlag.value) {
-            val initialLocation: LatLng = if (searchedLocation.value == null) {
-                currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
-            } else {
-                searchedLocation.value!!
-            }
-            position = CameraPosition.builder()
-                .target(initialLocation)
-                .zoom(15f)
-                .tilt(cameraTilt.value) // Set tilt to the current tilt value
-                .build()
-            cameraMovedFlag.value = true
+        val initialLocation: LatLng = if (searchedLocation.value == null) {
+            currentLocation.value ?: LatLng(0.0, 0.0) // Default to (0,0) if currentLocation is null
+        } else {
+            searchedLocation.value!!
         }
+        position = CameraPosition.builder()
+            .target(initialLocation)
+            .zoom(15f)
+            .tilt(cameraTilt.value) // Set tilt to the current tilt value
+            .build()
     }
 
     val mapsActivity = MapsActivity()
