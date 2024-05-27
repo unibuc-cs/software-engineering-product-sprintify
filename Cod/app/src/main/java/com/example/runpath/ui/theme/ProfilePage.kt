@@ -1,21 +1,35 @@
 import android.content.Intent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Button
-import androidx.compose.material.Text
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.runpath.MainActivity
+import com.example.runpath.R
 import com.example.runpath.database.SessionManager
 import com.example.runpath.database.UserDAO
-import com.example.runpath.ui.theme.BottomNavItem
 
 @Composable
 fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
@@ -27,27 +41,79 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
     val userDAO = UserDAO(context)
     val userId = sessionManager.getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
 
+    val showDialog = remember { mutableStateOf(false) }
+    val newPassword = remember { mutableStateOf("") }
+    val confirmPassword = remember { mutableStateOf("") }
 
-    println("profile accessed")  // debugging
+    val showDialog2 = remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text(text = "Username: $username")
-        Text(text = "Email: $email")
-        Text(text = "Date Created: $dateCreated")
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF6A1B9A), Color(0xFF8A2BE2))
+                )
+            )
+            .padding(16.dp)
+    ) {
+        Spacer(modifier = Modifier.height(40.dp))
+        Text(
+            text = "Profile",
+            fontSize = 24.sp,
+            color = Color.White,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape)
+                .background(Color.White)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                contentDescription = "Profile Picture",
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        ProfileDetailItem(label = "Username", value = username)
+        ProfileDetailItem(label = "Email", value = email)
+        ProfileDetailItem(label = "Date Created", value = dateCreated)
 
-        Button(onClick = {
-            sessionManager.clearSession()
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
-        }) {
-            Text("Logout")
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            onClick = {
+                sessionManager.clearSession()
+                val intent = Intent(context, MainActivity::class.java)
+                context.startActivity(intent)
+            },
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6A1B9A)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
+        ) {
+            Text(text = "Logout", color = Color.White)
         }
 
+        Spacer(modifier = Modifier.height(20.dp))
 
-
-        val showDialog = remember { mutableStateOf(false) }
-        val newPassword = remember { mutableStateOf("") }
-        val confirmPassword = remember { mutableStateOf("") }
+        Button(
+            onClick = { showDialog.value = true },
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6A1B9A)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
+        ) {
+            Text(text = "Change Password", color = Color.White)
+        }
 
         if (showDialog.value) {
             AlertDialog(
@@ -56,29 +122,26 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
                 text = {
                     Column {
                         TextField(
-                            //field for the new password
                             value = newPassword.value,
                             onValueChange = { newPassword.value = it },
-                            label = { Text("New Password") }
+                            label = { Text("New Password") },
+                            visualTransformation = PasswordVisualTransformation()
                         )
                         TextField(
-                            //field for the confirmation of the new password
                             value = confirmPassword.value,
                             onValueChange = { confirmPassword.value = it },
-                            label = { Text("Confirm Password") }
+                            label = { Text("Confirm Password") },
+                            visualTransformation = PasswordVisualTransformation()
                         )
                     }
                 },
                 confirmButton = {
                     TextButton(onClick = {
                         if (newPassword.value == confirmPassword.value) {
-                            // update password in database
                             userDAO.setPassword(userId, newPassword.value)
                             showDialog.value = false
                         } else {
-                            // we will add a red text that will say that the passwords do not match
-
-
+                            // Add a red text to indicate password mismatch
                         }
                     }) {
                         Text("Confirm")
@@ -92,25 +155,27 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
             )
         }
 
+        Spacer(modifier = Modifier.height(20.dp))
+
         Button(
-            onClick = { showDialog.value = true }
+            onClick = { showDialog2.value = true },
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6A1B9A)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
         ) {
-            Text("Change Password")
+            Text(text = "Delete Account", color = Color.White)
         }
 
-        //delete account section
-        val showDialog2 = remember { mutableStateOf(false) }
-        if(showDialog2.value){
-            //add a pop up that will have a confirmation text
+        if (showDialog2.value) {
             AlertDialog(
                 onDismissRequest = { showDialog2.value = false },
                 title = { Text(text = "Delete Account") },
-                text = {
-                    Text("Are you sure you want to delete your account?")
-                },
+                text = { Text("Are you sure you want to delete your account?") },
                 confirmButton = {
                     TextButton(onClick = {
-                        //if accepted delete the account and clear the session like in the logout
                         userDAO.deleteUser(userId)
                         sessionManager.clearSession()
                         val intent = Intent(context, MainActivity::class.java)
@@ -126,15 +191,32 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
                 }
             )
         }
-        //buttton for showing the dialogue
-        Button(
-            onClick = {
-                showDialog2.value = true
-            }
-        )
-        {
-            Text("Delete Account")
-        }
+    }
+}
 
+@Composable
+fun ProfileDetailItem(label: String, value: String?) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Icon(
+            imageVector = when(label) {
+                "Username" -> Icons.Default.Person
+                "Email" -> Icons.Default.Email
+                "Date Created" -> Icons.Default.DateRange
+                else -> Icons.Default.Info
+            },
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(text = label, color = Color.White, fontWeight = FontWeight.Bold)
+            Text(text = value ?: "N/A", color = Color.White)
+        }
     }
 }
