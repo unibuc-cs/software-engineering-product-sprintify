@@ -34,7 +34,7 @@ fun CircuitMap(circuit: Circuit): String {
     val zoom = "16"
     val path = circuit.route?.joinToString("|") { "${it.lat},${it.lng}" }
     val style = "feature:all|element:labels|visibility:off"
-    val color = "0xFFA500" // portocaliu
+    val color = "0xFF0000" // portocaliu
 
     return "$baseUrl?size=$size&zoom=$zoom&path=color:$color|$path&style=$style&key=$apiKey"
 }
