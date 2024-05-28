@@ -383,15 +383,15 @@ fun GMap(
         }
     }
 
-    LaunchedEffect(key1 = currentLocation.value) {
-        currentLocation.value?.let {
-            cameraPositionState.position = CameraPosition.builder()
-                .target(it)
-                .zoom(15f)
-                .tilt(cameraTilt.value)
-                .build()
-        }
-    }
+//    LaunchedEffect(key1 = currentLocation.value) {
+//        currentLocation.value?.let {
+//            cameraPositionState.position = CameraPosition.builder()
+//                .target(it)
+//                .zoom(15f)
+//                .tilt(cameraTilt.value)
+//                .build()
+//        }
+//    }
 
     LaunchedEffect(cameraPosition.value) {
         cameraPosition.value?.let {
