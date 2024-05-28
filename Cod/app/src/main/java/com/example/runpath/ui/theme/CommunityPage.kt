@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.sp
 import com.example.runpath.database.PostDAO
 import com.example.runpath.database.SessionManager
 import com.example.runpath.models.Post
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun CommunityPage(navController: NavController, sessionManager: SessionManager) {
@@ -76,7 +78,18 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
                         .padding(16.dp), // padding in interiorul chenarului
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "${post.author}: ${post.content} at ${post.timestamp}")
+                    Column {
+                        Text(
+                            text = post.author,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = formatDate2(post.timestamp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                        Text(text = "\n${post.content}")
+                    }
 
                     if (post.author == username) {
                         // Butonul pentru stergere post
@@ -147,5 +160,15 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
                 }
             }
         }
+    }
+}
+
+fun formatDate2(timestamp: String): String {
+    return try {
+        val sdf = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
+        val date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(timestamp)
+        sdf.format(date)
+    } catch (e: Exception) {
+        "Invalid Date"
     }
 }
