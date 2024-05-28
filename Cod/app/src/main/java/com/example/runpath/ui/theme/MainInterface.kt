@@ -1,6 +1,10 @@
 package com.example.runpath.ui.theme
 
+import CircuitScreen
 import CircuitsPage
+import FreemodeScreen
+import PreviousRunScreen
+import RunPage
 import com.example.runpath.ui.theme.ProfilePage
 
 import android.annotation.SuppressLint
@@ -667,27 +671,47 @@ fun MapScreen(
         }
     }
 }
-
 @Composable
 fun NavigationHost(navController: NavHostController) {
     val context = LocalContext.current
-    var sessionManager = SessionManager(context)
+    val sessionManager = SessionManager(context)
     val currentLocation = remember { mutableStateOf<LatLng?>(null) }
     val searchedLocation = remember { mutableStateOf<LatLng?>(null) }
 
-    //val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    // navhost pentru navigare
     NavHost(navController, startDestination = BottomNavItem.Map.route) {
         composable(BottomNavItem.Map.route) {
             MapScreen(currentLocation, searchedLocation)
         }
-        composable(BottomNavItem.Community.route) { CommunityPage(navController, sessionManager) }
-        composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
-        composable(BottomNavItem.Circuit.route) { CircuitsPage(navController,sessionManager) }
-        composable(BottomNavItem.Profile.route) { ProfilePage(navController, sessionManager) }
+        composable(BottomNavItem.Community.route) {
+            CommunityPage(navController, sessionManager)
+        }
+        composable(BottomNavItem.Run.route) {
+            RunPage { option ->
+                when(option) {
+                    "From a Circuit" -> navController.navigate("circuitScreen")
+                    "From a Previous Run" -> navController.navigate("previousRunScreen")
+                    "Freemode" -> navController.navigate("freemodeScreen")
+                }
+            }
+        }
+        composable(BottomNavItem.Circuit.route) {
+            CircuitsPage(navController, sessionManager)
+        }
+        composable(BottomNavItem.Profile.route) {
+            ProfilePage(navController, sessionManager)
+        }
+        composable("circuitScreen") {
+            CircuitScreen()
+        }
+        composable("previousRunScreen") {
+            PreviousRunScreen()
+        }
+        composable("freemodeScreen") {
+            FreemodeScreen()
+        }
     }
 }
-// functie pentru a interpola punctele
+
 fun interpolatePoints(start: LatLng, end: LatLng, steps: Int): List<LatLng> {
     val latStep = (end.latitude - start.latitude) / steps
     val lngStep = (end.longitude - start.longitude) / steps
