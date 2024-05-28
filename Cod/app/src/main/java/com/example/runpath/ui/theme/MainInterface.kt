@@ -259,7 +259,7 @@ fun RunControlButton(
             }
             val currentColor = if (isRunActive.value) Color.Red else Color.Blue
 
-            if (segments.isNotEmpty()) {
+            if (segments.isNotEmpty() && isRunActive.value) {
                 val lastSegment = segments.last()
                 if (lastSegment.color != currentColor) {
                     segments.add(Segment(lastSegment.endIndex,locationPoints.size - 1, currentColor))
@@ -289,8 +289,7 @@ fun getCurrentLocationAndTrack(
     segments: SnapshotStateList<Segment>,
     isRunActive: MutableState<Boolean>,
     startedRunningFlag: MutableState<Boolean>,
-    currentLocation: MutableState<LatLng?>,
-    steps: Int = 5
+    currentLocation: MutableState<LatLng?>
 ) {
     val locationRequest = LocationRequest.create().apply {
         // seteaza intervalul pentru a obtine locatia curenta a utilizatorului
@@ -302,33 +301,24 @@ fun getCurrentLocationAndTrack(
     val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val locationList = locationResult.locations
-            if (locationList.isNotEmpty()) {
+            if (locationList.isNotEmpty() && startedRunningFlag.value) {
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 currentLocation.value = newLatLng
-                val interpolatedPoints = if(locationPoints.isNotEmpty()) {
-                    val lastPoint = locationPoints.last()
-                    interpolatePoints(lastPoint, newLatLng, steps)
-                } else {
-                    emptyList()
-                }
-                locationPoints.addAll(interpolatedPoints)
                 locationPoints.add(newLatLng)
 
-                if(startedRunningFlag.value) {
-                    if(segments.isNotEmpty()) {
-                        val lastSegment = segments.last()
-                        if(isRunActive.value && lastSegment.color == Color.Blue) {
-                            segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Red))
-                        } else if(!isRunActive.value && lastSegment.color == Color.Red) {
-                            segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Blue))
-                        } else {
-                            segments[segments.lastIndex] = lastSegment.copy(endIndex = locationPoints.size - 1)
-                        }
+                if(segments.isNotEmpty()) {
+                    val lastSegment = segments.last()
+                    if(isRunActive.value && lastSegment.color == Color.Blue) {
+                        segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Red))
+                    } else if(!isRunActive.value && lastSegment.color == Color.Red) {
+                        segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Blue))
                     } else {
-                        val initialColor = if(isRunActive.value) Color.Red else Color.Blue
-                        segments.add(Segment(0, locationPoints.size - 1, initialColor))
+                        segments[segments.lastIndex] = lastSegment.copy(endIndex = locationPoints.size - 1)
                     }
+                } else {
+                    val initialColor = if(isRunActive.value) Color.Red else Color.Blue
+                    segments.add(Segment(0, locationPoints.size - 1, initialColor))
                 }
             }
         }
@@ -432,13 +422,19 @@ fun GMap(
             placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
         }
 
-        if(startedRunningFlag.value) {
-            segments.forEach {segment ->
-                Polyline(
-                    points = locationPoints.subList(segment.startIndex, segment.endIndex + 1),
-                    color = segment.color,
-                    width = 5f
-                )
+        if (startedRunningFlag.value) {
+            segments.forEach { segment ->
+                // Ensure indices are within bounds
+                val startIndex = segment.startIndex.coerceAtLeast(0).coerceAtMost(locationPoints.size)
+                val endIndex = (segment.endIndex + 1).coerceAtLeast(startIndex).coerceAtMost(locationPoints.size)
+
+                if (startIndex < endIndex) { // Check to avoid empty sublist
+                    Polyline(
+                        points = locationPoints.subList(startIndex, endIndex),
+                        color = segment.color,
+                        width = 5f
+                    )
+                }
             }
         }
 
@@ -534,6 +530,7 @@ fun LocationSearchBar(
         }
     }
 }
+
 // buton pentru a merge la locatia curenta
 @Composable
 fun CurrentLocationButton(
