@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.runpath.database.UserDAO
 import com.example.runpath.models.User
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun UserProfilePage(navController: NavController, username: String) {
@@ -80,7 +83,8 @@ fun UserProfilePage(navController: NavController, username: String) {
                 Spacer(modifier = Modifier.height(20.dp))
                 ProfileDetailItem2(label = "Username", value = it.username)
                 ProfileDetailItem2(label = "Email", value = it.email)
-                ProfileDetailItem2(label = "Date Created", value = it.dateCreated)
+                val dateCreated = formatDate3(it.dateCreated)
+                ProfileDetailItem2(label = "Date Created", value = dateCreated)
             }
         } ?: run {
             Text(text = "Loading...", color = Color.White)
@@ -112,5 +116,14 @@ fun ProfileDetailItem2(label: String, value: String?) {
             Text(text = label, color = Color.White, fontWeight = FontWeight.Bold)
             Text(text = value ?: "N/A", color = Color.White)
         }
+    }
+}
+fun formatDate3(timestamp: String): String {
+    return try {
+        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val date = Date(timestamp.toLong())
+        sdf.format(date)
+    } catch (e: Exception) {
+        "Invalid Date"
     }
 }

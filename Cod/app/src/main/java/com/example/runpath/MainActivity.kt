@@ -47,10 +47,7 @@ class MainActivity : AppCompatActivity() {
                     composable("community") {
                         CommunityPage(navController, sessionManager)
                     }
-                    composable("userProfile/{username}") { backStackEntry ->
-                        val username = backStackEntry.arguments?.getString("username") ?: ""
-                        UserProfilePage(navController, username)
-                    }
+
                 }
             }
         }

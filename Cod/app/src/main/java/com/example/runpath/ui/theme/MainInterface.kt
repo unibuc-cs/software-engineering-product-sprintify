@@ -701,13 +701,17 @@ fun NavigationHost(navController: NavHostController) {
             ProfilePage(navController, sessionManager)
         }
         composable("circuitScreen") {
-            CircuitScreen()
+            CircuitsPage(navController, sessionManager, true)
         }
         composable("previousRunScreen") {
             PreviousRunScreen()
         }
         composable("freemodeScreen") {
             FreemodeScreen()
+        }
+        composable("userProfile/{username}") { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            UserProfilePage(navController, username)
         }
     }
 }

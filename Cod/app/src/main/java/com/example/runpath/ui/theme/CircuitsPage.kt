@@ -47,7 +47,7 @@ fun CircuitMap(circuit: Circuit): String {
 }
 
 @Composable
-fun CircuitsPage(navController: NavController, sessionManager: SessionManager) {
+fun CircuitsPage(navController: NavController, sessionManager: SessionManager,runSelected : Boolean = false) {
     // variabile pentru circuit
     val circuitDao = CircuitDAO()
     var circuits by remember { mutableStateOf(listOf<Circuit>()) }
@@ -69,7 +69,8 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager) {
     ) {
         Text(
             text = "Circuits",
-            modifier = Modifier.padding(16.dp).align(Alignment.TopCenter)
+            modifier = Modifier.padding(16.dp).align(Alignment.TopCenter),
+            fontWeight = FontWeight.Bold,
         )
 
         LazyColumn(
@@ -81,7 +82,13 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager) {
                     Text(
                         text = circuit.name
                     )
-
+                    if(runSelected){
+                        Button(onClick = {
+                            //implementeaza logica de run
+                        }) {
+                            Text("Select")
+                        }
+                    }
                     Button(onClick = {
                         currentCircuit = circuit
                         showDialog = true
