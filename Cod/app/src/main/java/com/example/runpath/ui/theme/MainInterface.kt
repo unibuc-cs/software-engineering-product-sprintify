@@ -238,6 +238,7 @@ fun placeMarker(location: LatLng, title: String) {
 @Composable
 fun RunControlButton(
     isRunActive: MutableState<Boolean>,
+    startedRunningFlag: MutableState<Boolean>,
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
     onButtonClick: () -> Unit
@@ -246,6 +247,9 @@ fun RunControlButton(
 
     Button(
         onClick = {
+            if(!startedRunningFlag.value) {
+                startedRunningFlag.value = true
+            }
             val currentColor = if (isRunActive.value) Color.Red else Color.Blue
 
             if (segments.isNotEmpty()) {
@@ -276,6 +280,7 @@ fun getCurrentLocationAndTrack(
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
     isRunActive: MutableState<Boolean>,
+    startedRunningFlag: MutableState<Boolean>,
     currentLocation: MutableState<LatLng?>,
     steps: Int = 5
 ) {
@@ -304,18 +309,20 @@ fun getCurrentLocationAndTrack(
                 locationPoints.addAll(interpolatedPoints)
                 locationPoints.add(newLatLng)
 
-                if(segments.isNotEmpty()) {
-                    val lastSegment = segments.last()
-                    if(isRunActive.value && lastSegment.color == Color.Blue) {
-                        segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Red))
-                    } else if(!isRunActive.value && lastSegment.color == Color.Red) {
-                        segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Blue))
+                if(startedRunningFlag.value) {
+                    if(segments.isNotEmpty()) {
+                        val lastSegment = segments.last()
+                        if(isRunActive.value && lastSegment.color == Color.Blue) {
+                            segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Red))
+                        } else if(!isRunActive.value && lastSegment.color == Color.Red) {
+                            segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Blue))
+                        } else {
+                            segments[segments.lastIndex] = lastSegment.copy(endIndex = locationPoints.size - 1)
+                        }
                     } else {
-                        segments[segments.lastIndex] = lastSegment.copy(endIndex = locationPoints.size - 1)
+                        val initialColor = if(isRunActive.value) Color.Red else Color.Blue
+                        segments.add(Segment(0, locationPoints.size - 1, initialColor))
                     }
-                } else {
-                    val initialColor = if(isRunActive.value) Color.Red else Color.Blue
-                    segments.add(Segment(0, locationPoints.size - 1, initialColor))
                 }
             }
         }
@@ -345,7 +352,7 @@ fun GMap(
     cameraPosition: MutableState<LatLng?>,
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
-    isRunActive: Boolean,
+    startedRunningFlag: MutableState<Boolean>,
     cameraTilt: MutableState<Float>
 ) {
     val cameraPositionState = rememberCameraPositionState().apply {
@@ -421,12 +428,14 @@ fun GMap(
             placeMarkerOnMap(location = searchedLocation.value!!, title = "Searched Location")
         }
 
-        segments.forEach {segment ->
-            Polyline(
-                points = locationPoints.subList(segment.startIndex, segment.endIndex + 1),
-                color = segment.color,
-                width = 5f
-            )
+        if(startedRunningFlag.value) {
+            segments.forEach {segment ->
+                Polyline(
+                    points = locationPoints.subList(segment.startIndex, segment.endIndex + 1),
+                    color = segment.color,
+                    width = 5f
+                )
+            }
         }
 
         if (routePoints.value.isNotEmpty()) {
@@ -579,7 +588,7 @@ fun MapScreen(
     //tilt
     val cameraTilt = remember { mutableStateOf(0f) } // Initial tilt is 0
 
-
+    val startedRunningFlag = remember {mutableStateOf(false)}
 
     RequestLocationPermission(
         onPermissionGranted = {
@@ -595,6 +604,7 @@ fun MapScreen(
                     locationPoints,
                     segments,
                     isRunActive,
+                    startedRunningFlag,
                     currentLocation
                 )
             }
@@ -624,7 +634,7 @@ fun MapScreen(
                 cameraPosition = cameraPosition,
                 locationPoints = locationPoints,
                 segments = segments,
-                isRunActive = isRunActive.value,
+                startedRunningFlag = startedRunningFlag,
                 cameraTilt = cameraTilt
             )
 
@@ -632,6 +642,7 @@ fun MapScreen(
             // Start/Pause Button
             RunControlButton(
                 isRunActive = isRunActive,
+                startedRunningFlag = startedRunningFlag,
                 locationPoints = locationPoints,
                 segments = segments,
                 onButtonClick = {}
