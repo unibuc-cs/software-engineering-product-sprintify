@@ -5,6 +5,11 @@ import ProfilePage
 import android.annotation.SuppressLint
 import android.app.UiModeManager
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -14,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,9 +50,14 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -61,6 +72,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -282,6 +294,14 @@ fun getCurrentLocationAndTrack(
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 currentLocation.value = newLatLng
+                val interpolatedPoints = if(locationPoints.isNotEmpty()) {
+                    val lastPoint = locationPoints.last()
+                    interpolatePoints(lastPoint, newLatLng, steps)
+                } else {
+                    emptyList()
+                }
+                locationPoints.addAll(interpolatedPoints)
+                locationPoints.add(newLatLng)
 
                 if(segments.isNotEmpty()) {
                     val lastSegment = segments.last()
@@ -340,14 +360,29 @@ fun GMap(
             .build()
     }
 
+    val mapsActivity = MapsActivity()
+    val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
+
+    LaunchedEffect(key1 = currentLocation.value, key2 = searchedLocation.value) {
+        if (currentLocation.value != null && searchedLocation.value != null) {
+            routePoints.value =
+                mapsActivity.getRoutePoints(currentLocation.value!!, searchedLocation.value!!)
+        }
+    }
+
+    LaunchedEffect(cameraPosition.value) {
+        cameraPosition.value?.let {
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
+        }
+    }
+
     val context = LocalContext.current
     val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     val isNightMode = when (uiModeManager.nightMode) {
         UiModeManager.MODE_NIGHT_YES -> true
         else -> false
     }
-
-    val mapProperties: MapProperties;
+    val mapProperties: MapProperties
     val mapStyle = if (isNightMode) {
         mapProperties = remember {
             MapProperties(
@@ -362,56 +397,23 @@ fun GMap(
         }
     }
 
-
-    val mapsActivity = MapsActivity()
-    val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
-
-    LaunchedEffect(key1 = currentLocation.value, key2 = searchedLocation.value) {
-        if (currentLocation.value != null && searchedLocation.value != null) {
-            routePoints.value =
-                mapsActivity.getRoutePoints(currentLocation.value!!, searchedLocation.value!!)
-        }
-    }
-
-//    LaunchedEffect(key1 = currentLocation.value) {
-//        currentLocation.value?.let {
-//            cameraPositionState.position = CameraPosition.builder()
-//                .target(it)
-//                .zoom(15f)
-//                .tilt(cameraTilt.value)
-//                .build()
-//        }
-//    }
-
-//    LaunchedEffect(cameraPosition.value) {
-//        cameraPosition.value?.let {
-//            cameraPositionState.position = CameraPosition.builder()
-//                .target(it)
-//                .zoom(15f)
-//                .tilt(cameraTilt.value)
-//                .build()
-//        }
-//    }
-
     GoogleMap(
         modifier = Modifier
             .fillMaxSize()
             .padding(bottom = 56.dp),
         cameraPositionState = cameraPositionState,
         properties = mapProperties,
-                onMapLongClick = { latLng ->
+        onMapLongClick = { latLng ->
             searchedLocation.value = latLng
         }
     ) {
         // Marker for current location
         currentLocation.value?.let {
             placeMarker(
-                location = currentLocation.value!!,
+                location = it,
                 title = "Current Location"
             )
         }
-
-
 
         // Marker for searched location
         searchedLocation.value?.let {
@@ -576,6 +578,8 @@ fun MapScreen(
     //tilt
     val cameraTilt = remember { mutableStateOf(0f) } // Initial tilt is 0
 
+
+
     RequestLocationPermission(
         onPermissionGranted = {
             getCurrentLocation(fusedLocationClient) { location ->
@@ -590,7 +594,7 @@ fun MapScreen(
                     locationPoints,
                     segments,
                     isRunActive,
-                    currentLocation,
+                    currentLocation
                 )
             }
         },
@@ -669,6 +673,15 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
         composable(BottomNavItem.Circuit.route) { CircuitsPage(navController,sessionManager) }
         composable(BottomNavItem.Profile.route) { ProfilePage(navController, sessionManager) }
+    }
+}
+
+fun interpolatePoints(start: LatLng, end: LatLng, steps: Int): List<LatLng> {
+    val latStep = (end.latitude - start.latitude) / steps
+    val lngStep = (end.longitude - start.longitude) / steps
+
+    return(1 until steps).map {
+        LatLng(start.latitude + it * latStep, start.longitude + it * lngStep)
     }
 }
 
