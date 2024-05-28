@@ -3,7 +3,8 @@
 package com.example.runpath
 import HomePage
 import LoginPage
-import ProfilePage
+import com.example.runpath.ui.theme.ProfilePage
+
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -34,7 +35,7 @@ class MainActivity : AppCompatActivity() {
                     composable("loginPage") {
                         LoginPage(navController)
                     }
-                    composable("registerPage") { RegisterPage(navController) }
+                    composable("registerPage") { RegisterPage(navController, sessionManager) }
                     composable("mainInterface") { MainInterface() }
                     composable("profilePage") { ProfilePage(navController, sessionManager) }
                 }

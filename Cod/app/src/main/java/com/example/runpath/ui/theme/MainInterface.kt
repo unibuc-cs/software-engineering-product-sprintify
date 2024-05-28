@@ -1,7 +1,8 @@
 package com.example.runpath.ui.theme
 
 import CircuitsPage
-import ProfilePage
+import com.example.runpath.ui.theme.ProfilePage
+
 import android.annotation.SuppressLint
 import android.app.UiModeManager
 import android.content.Context

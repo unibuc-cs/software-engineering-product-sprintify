@@ -1,3 +1,5 @@
+package com.example.runpath.ui.theme
+
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,6 +32,9 @@ import com.example.runpath.MainActivity
 import com.example.runpath.R
 import com.example.runpath.database.SessionManager
 import com.example.runpath.database.UserDAO
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
@@ -81,7 +86,7 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
         Spacer(modifier = Modifier.height(20.dp))
         ProfileDetailItem(label = "Username", value = username)
         ProfileDetailItem(label = "Email", value = email)
-        ProfileDetailItem(label = "Date Created", value = dateCreated)
+        ProfileDetailItem(label = "Date Created", value = formatDate(dateCreated ?: "N/A"))
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -218,5 +223,15 @@ fun ProfileDetailItem(label: String, value: String?) {
             Text(text = label, color = Color.White, fontWeight = FontWeight.Bold)
             Text(text = value ?: "N/A", color = Color.White)
         }
+    }
+}
+
+fun formatDate(timestamp: String): String {
+    return try {
+        val sdf = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
+        val date = Date(timestamp.toLong())
+        sdf.format(date)
+    } catch (e: Exception) {
+        "Invalid Date"
     }
 }

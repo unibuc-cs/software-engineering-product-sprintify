@@ -1,26 +1,28 @@
 package com.example.runpath.ui.theme
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import java.time.LocalDateTime
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.ui.unit.sp
 import com.example.runpath.database.PostDAO
 import com.example.runpath.database.SessionManager
 import com.example.runpath.models.Post
-
 
 @Composable
 fun CommunityPage(navController: NavController, sessionManager: SessionManager) {
@@ -46,12 +48,16 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
     }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF8A2BE2))
     ) {
         Text(
             text = text,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
+            color = Color.White,
             modifier = Modifier.padding(16.dp)
         )
 
@@ -64,31 +70,36 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp),
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.White) // fundal alb pentru post
+                        .padding(16.dp), // padding in interiorul chenarului
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = "${post.author}: ${post.content} at ${post.timestamp}")
 
-
-
                     if (post.author == username) {
-                        //update post button
-
-                        //delete post button
-                        IconButton(onClick = {
-                            post.postId?.let { postDAO.deletePost(it) }
-                        }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Delete Post")
+                        // Butonul pentru stergere post
+                        IconButton(
+                            onClick = {
+                                post.postId?.let { postDAO.deletePost(it) }
+                            },
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(Color(0xFF8A2BE2), shape = RoundedCornerShape(12.dp))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Delete Post",
+                                tint = Color.White
+                            )
                         }
-
                     }
-
-
                 }
             }
         }
 
-        // Button to create a new post
+        // Buton pentru a crea un nou post
         Button(
             onClick = { showDialog = true },
             modifier = Modifier
@@ -98,7 +109,7 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
             Text("Create Post")
         }
 
-        // Dialog to create a new post
+        // Dialog pentru a crea un nou post
         if (showDialog) {
             Dialog(onDismissRequest = { showDialog = false }) {
                 Column(
