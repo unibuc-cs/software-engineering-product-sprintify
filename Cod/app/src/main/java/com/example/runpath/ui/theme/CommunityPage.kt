@@ -66,7 +66,7 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
         // Posts feed
         LazyColumn(
             modifier = Modifier
-                .padding(top = 58.dp)
+                .padding(top = 58.dp, bottom = 58.dp)
         ) {
             itemsIndexed(posts) { index, post ->
                 Row(
@@ -92,7 +92,7 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
                     }
 
                     if (post.author == username) {
-                        // Butonul pentru stergere post
+                        // Butonul pentru ștergere post
                         IconButton(
                             onClick = {
                                 post.postId?.let { postDAO.deletePost(it) }
