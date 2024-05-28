@@ -264,7 +264,6 @@ fun getCurrentLocationAndTrack(
     segments: SnapshotStateList<Segment>,
     isRunActive: MutableState<Boolean>,
     currentLocation: MutableState<LatLng?>,
-    cameraPosition: MutableState<LatLng?>,
     steps: Int = 5
 ) {
     val locationRequest = LocationRequest.create().apply {
@@ -283,15 +282,6 @@ fun getCurrentLocationAndTrack(
                 val newLocation = locationList.last()
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 currentLocation.value = newLatLng
-                //cameraPosition.value = newLatLng
-                val interpolatedPoints = if(locationPoints.isNotEmpty()) {
-                    val lastPoint = locationPoints.last()
-                    interpolatePoints(lastPoint, newLatLng, steps)
-                } else {
-                    emptyList()
-                }
-                locationPoints.addAll(interpolatedPoints)
-                locationPoints.add(newLatLng)
 
                 if(segments.isNotEmpty()) {
                     val lastSegment = segments.last()
@@ -393,15 +383,15 @@ fun GMap(
 //        }
 //    }
 
-    LaunchedEffect(cameraPosition.value) {
-        cameraPosition.value?.let {
-            cameraPositionState.position = CameraPosition.builder()
-                .target(it)
-                .zoom(15f)
-                .tilt(cameraTilt.value)
-                .build()
-        }
-    }
+//    LaunchedEffect(cameraPosition.value) {
+//        cameraPosition.value?.let {
+//            cameraPositionState.position = CameraPosition.builder()
+//                .target(it)
+//                .zoom(15f)
+//                .tilt(cameraTilt.value)
+//                .build()
+//        }
+//    }
 
     GoogleMap(
         modifier = Modifier
@@ -586,8 +576,6 @@ fun MapScreen(
     //tilt
     val cameraTilt = remember { mutableStateOf(0f) } // Initial tilt is 0
 
-
-
     RequestLocationPermission(
         onPermissionGranted = {
             getCurrentLocation(fusedLocationClient) { location ->
@@ -603,7 +591,6 @@ fun MapScreen(
                     segments,
                     isRunActive,
                     currentLocation,
-                    cameraPosition
                 )
             }
         },
@@ -682,15 +669,6 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Run.route) { /* Run Screen UI */ }
         composable(BottomNavItem.Circuit.route) { CircuitsPage(navController,sessionManager) }
         composable(BottomNavItem.Profile.route) { ProfilePage(navController, sessionManager) }
-    }
-}
-
-fun interpolatePoints(start: LatLng, end: LatLng, steps: Int): List<LatLng> {
-    val latStep = (end.latitude - start.latitude) / steps
-    val lngStep = (end.longitude - start.longitude) / steps
-
-    return(1 until steps).map {
-        LatLng(start.latitude + it * latStep, start.longitude + it * lngStep)
     }
 }
 
