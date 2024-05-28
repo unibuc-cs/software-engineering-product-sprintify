@@ -1,9 +1,14 @@
 package com.example.runpath.ui.theme
 
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,17 +18,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import java.time.LocalDateTime
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.unit.sp
 import com.example.runpath.database.PostDAO
 import com.example.runpath.database.SessionManager
 import com.example.runpath.models.Post
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.Locale
 
 @Composable
@@ -38,7 +40,7 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
 
     val postDAO = PostDAO()
 
-    // Set up real-time listener for posts
+    // Listener for posts
     DisposableEffect(Unit) {
         val listenerRegistration = postDAO.listenForPosts { updatedPosts ->
             posts = updatedPosts
@@ -63,7 +65,6 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
             modifier = Modifier.padding(16.dp)
         )
 
-        // Posts feed
         LazyColumn(
             modifier = Modifier
                 .padding(top = 58.dp, bottom = 58.dp)
@@ -74,14 +75,20 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
                         .fillMaxWidth()
                         .padding(8.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White) // fundal alb pentru post
-                        .padding(16.dp), // padding in interiorul chenarului
+                        .background(Color.White)
+                        .padding(16.dp)
+                        .clickable { Log.d("Navigation", "Navigating to userProfile/${post.author}")
+                            navController.navigate("userProfile/${post.author}")
+                        },
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
                         Text(
                             text = post.author,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable { Log.d("Navigation", "Navigating to userProfile/${post.author}")
+                                navController.navigate("userProfile/${post.author}")
+                            }
                         )
                         Text(
                             text = formatDate2(post.timestamp),
@@ -92,7 +99,6 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
                     }
 
                     if (post.author == username) {
-                        // Butonul pentru ștergere post
                         IconButton(
                             onClick = {
                                 post.postId?.let { postDAO.deletePost(it) }
@@ -112,7 +118,6 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
             }
         }
 
-        // Buton pentru a crea un nou post
         Button(
             onClick = { showDialog = true },
             modifier = Modifier
@@ -122,7 +127,6 @@ fun CommunityPage(navController: NavController, sessionManager: SessionManager) 
             Text("Create Post")
         }
 
-        // Dialog pentru a crea un nou post
         if (showDialog) {
             Dialog(onDismissRequest = { showDialog = false }) {
                 Column(

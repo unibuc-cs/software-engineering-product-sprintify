@@ -14,16 +14,16 @@ import com.google.maps.model.DirectionsResult
 import com.google.maps.model.TravelMode
 
 class MapsActivity : FragmentActivity(), OnMapReadyCallback {
-
+    // variabile pentru harta, locatia curenta si locatia cautata
     private lateinit var mMap: GoogleMap
     private lateinit var currentLocation: LatLng
     private lateinit var searchedLocation: LatLng
-
+    // functie pentru a crea un path intre 2 puncte
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
 
-        // Get the current location and searched location from the intent extras
+        // ia locatia curenta si locatia cautata
         val currentLocationBundle = intent.getBundleExtra("currentLocation")
         val searchedLocationBundle = intent.getBundleExtra("searchedLocation")
 
@@ -40,12 +40,12 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback {
                 searchedLocationBundle.getDouble("longitude")
             )
         }
-
+        // creez un nou fragment pentru harta
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
-
+    // functie pentru a crea un path intre 2 puncte
     fun getRoutePoints(point1: LatLng, point2: LatLng): List<LatLng> {
         val context = GeoApiContext.Builder()
             .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
@@ -65,10 +65,10 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Draw a polyline between the current location and the searched location
+        // adaug un polyline intre locatia curenta si locatia cautata
         drawPolyline(mMap, currentLocation, searchedLocation)
     }
-
+    // functie pentru a desena un polyline intre 2 puncte
     fun drawPolyline(map: GoogleMap, point1: LatLng, point2: LatLng) {
         val context = GeoApiContext.Builder()
             .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")

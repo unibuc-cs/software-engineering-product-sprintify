@@ -8,8 +8,9 @@ import com.example.runpath.models.Profile
 import com.google.firebase.firestore.FirebaseFirestore
 
 class ProfileDAO(context: Context) {
+    // creez o noua instanta a bazei de date
     private val db = FirebaseFirestore.getInstance()
-
+    // creez un nou profil
     fun insertProfile(
         profile: Profile,
         userId: String,
@@ -27,7 +28,7 @@ class ProfileDAO(context: Context) {
             }
 
     }
-
+    // obtin un profil dupa id
     fun getProfileById(userId: String,onComplete: (Profile) -> Unit){
 
         db.collection("profiles")
@@ -47,7 +48,7 @@ class ProfileDAO(context: Context) {
                 }
             }
     }
-
+    // actualizez un profil
     fun updateProfile(
         userId: String,
         preferredTerrain: Int,
@@ -71,7 +72,7 @@ class ProfileDAO(context: Context) {
 
 
     }
-
+    // sterg un profil
     fun deleteProfile(userId: String){
         db.collection("profiles").document(userId)
             .delete()

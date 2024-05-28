@@ -8,8 +8,9 @@ import com.google.firebase.firestore.toObject
 
 
 class LeaderboardDAO{
+    // creez o noua instanta a bazei de date
     private val db = FirebaseFirestore.getInstance()
-
+    // creez un nou leaderboard
     fun insertLeaderboard(leaderboard: Leaderboard, onComplete: (Leaderboard) -> Unit) {
         val documentReference = db.collection("leaderboards").document()
         val leaderboardId = documentReference.id
@@ -23,7 +24,7 @@ class LeaderboardDAO{
                 println("Error adding document: $e")
             }
     }
-
+    // obtin un leaderboard dupa id
     fun getLeaderboardById(leaderboardId: String) {
         db.collection("leaderboards")
             .document(leaderboardId)
@@ -39,7 +40,7 @@ class LeaderboardDAO{
                 println("Error getting document: $exception")
             }
     }
-
+    // obtin toate leaderboardurile
     fun getLeaderboards(onComplete: (List<Leaderboard>) -> Unit){
         db.collection("leaderboards")
             .get()
@@ -51,7 +52,7 @@ class LeaderboardDAO{
                 println("Error getting documents: $e")
             }
     }
-
+    // creez un listener pentru leaderboarduri
     fun listenForLeaderboards(onLeaderboardsUpdated: (List<Leaderboard>) -> Unit): ListenerRegistration {
         return db.collection("leaderboards")
             .addSnapshotListener { snapshots, e ->
@@ -65,7 +66,7 @@ class LeaderboardDAO{
                 }
             }
     }
-
+    // actualizez un leaderboard
     fun updateLeaderboard(
         leaderboardId : String,
         circuitId: String,
@@ -91,7 +92,7 @@ class LeaderboardDAO{
                 println("Error adding document: $e")
             }
     }
-
+    // sterg un leaderboard
     fun deleteLeaderboard(leaderboardId: String){
         db.collection("leaderboards")
             .document(leaderboardId)

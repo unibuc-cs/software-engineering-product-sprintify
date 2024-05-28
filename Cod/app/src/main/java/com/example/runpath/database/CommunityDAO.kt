@@ -7,8 +7,9 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
 
 class CommunityDAO{
+    // creez o noua instanta a bazei de date
     private val db = FirebaseFirestore.getInstance()
-
+    // creez o noua comunitate
     fun insertCommunity(community: Community, onComplete: (Community) -> Unit) {
         val documentReference = db.collection("communities").document()
         val communityId = documentReference.id
@@ -22,7 +23,7 @@ class CommunityDAO{
                 println("Error adding document: $e")
             }
     }
-
+    // obtin o comunitate dupa id
     fun getCommunityById(communityId: String){
         db.collection("communities")
             .document(communityId)
@@ -38,7 +39,7 @@ class CommunityDAO{
                 println("Error getting document: $exception")
             }
     }
-
+    // obtin toate comunitatile
     fun getCommunities(onComplete: (List<Community>) -> Unit){
         db.collection("communities")
             .get()
@@ -50,7 +51,7 @@ class CommunityDAO{
                 println("Error getting documents: $e")
             }
     }
-
+    // creez un listener pentru comunitati
     fun listenForCommunities(onCommunitiesUpdated: (List<Community>) -> Unit): ListenerRegistration {
         return db.collection("communities")
             .addSnapshotListener { snapshots, e ->
@@ -64,7 +65,7 @@ class CommunityDAO{
                 }
             }
     }
-
+    // actualizez o comunitate
     fun updateCommunity(
         communityId: String,
         name: String,
@@ -86,7 +87,7 @@ class CommunityDAO{
                 println("Error updating document: $e")
             }
     }
-
+    // sterg o comunitate
     fun deleteCommunity(communityId: String){
         db.collection("communities")
             .document(communityId)

@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
+// network image care afiseaza o imagine de la un url
 @Composable
 fun NetworkImage(
     url: String,
@@ -40,7 +41,7 @@ fun NetworkImage(
         contentScale = ContentScale.Crop
     )
 }
-
+// slider pentru imagini
 @Composable
 fun ImageSlider(images: List<String>) {
     var currentImageIndex by remember { mutableStateOf(0) }
@@ -87,7 +88,7 @@ fun ImageSlider(images: List<String>) {
         }
     }
 
-    // Automatic slideshow
+    // slideshow automat
     LaunchedEffect(currentImageIndex) {
         while (true) {
             delay(5000L) // Slide every 5 seconds
@@ -98,7 +99,7 @@ fun ImageSlider(images: List<String>) {
         }
     }
 }
-
+// card pentru titlul aplicatiei
 @Composable
 fun SprintifyTitleCard() {
     Column(
@@ -128,13 +129,13 @@ fun SprintifyTitleCard() {
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun HomePage(navController: NavController) {
-
+    // lista de imagini pentru slider
     val images = listOf(
         "https://media.self.com/photos/64063998753c98598ce42cde/1:1/w_5588,h_5588,c_limit/benfits%20of%20running.jpeg",
         "https://i0.wp.com/post.healthline.com/wp-content/uploads/2021/06/running-runner-1296x728-header.jpg?w=1155&h=1528",
         "https://static.nike.com/a/images/f_auto/dpr_3.0,cs_srgb/w_403,c_limit/37967987-f313-41f8-b8c5-74928012d043/5-coach-approved-tips-to-get-better-at-running-yes-really.jpg"
     )
-
+    // pagina de start
     Column(
         modifier = Modifier
             .fillMaxSize()

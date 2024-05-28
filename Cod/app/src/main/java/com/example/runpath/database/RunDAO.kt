@@ -9,8 +9,9 @@ import java.time.Instant
 import kotlin.time.Duration
 
 class RunDAO{
+    // creez o noua instanta a bazei de date
     private val db = FirebaseFirestore.getInstance()
-
+    // creez un nou run
     fun insertRun(run: Run, onComplete: (Run) -> Unit) {
         val documentReference = db.collection("runs").document()
         val runId = documentReference.id
@@ -24,7 +25,7 @@ class RunDAO{
                 println("Error adding document: $e")
             }
     }
-
+    // obtin un run dupa id
     fun getRunById(runId: String) {
         db.collection("runs")
             .document(runId)
@@ -40,7 +41,7 @@ class RunDAO{
                 println("Error getting document: $exception")
             }
     }
-
+    // obtin toate runurile
     fun getRuns(onComplete: (List<Run>) -> Unit){
         db.collection("runs")
             .get()
@@ -52,7 +53,7 @@ class RunDAO{
                 println("Error getting documents: $e")
             }
     }
-
+    // creez un listener pentru runuri
     fun listenForRuns(onRunsUpdated: (List<Run>) -> Unit): ListenerRegistration {
         return db.collection("runs")
             .addSnapshotListener { snapshots, e ->
@@ -67,7 +68,7 @@ class RunDAO{
                 }
             }
     }
-
+    // actualizez un run
     fun updateRun(
         runId: String,
         userId: String,
@@ -101,7 +102,7 @@ class RunDAO{
                 println("Error updating document: $it")
             }
     }
-
+    // sterg un run
     fun deleteRun(runId: String){
         db.collection("runs")
             .document(runId)

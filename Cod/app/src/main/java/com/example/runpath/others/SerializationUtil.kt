@@ -7,10 +7,11 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
 
 object SerializationUtil {
+    // creez un nou obiect moshi
     private val moshi = Moshi.Builder()
         .add(LatLngAdapter())
         .build()
-
+    // creez un nou adaptor pentru circuit
     private val circuitAdapter = moshi.adapter(Circuit::class.java)
 
     fun serializeCircuit(circuit: Circuit): String {
@@ -21,7 +22,7 @@ object SerializationUtil {
         return circuitAdapter.fromJson(circuitString)
     }
 }
-
+// creez un nou adaptor pentru LatLng
 class LatLngAdapter {
     @ToJson
     fun toJson(latLng: LatLng): Map<String, Double> {

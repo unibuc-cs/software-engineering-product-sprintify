@@ -40,12 +40,13 @@ import com.example.runpath.others.USER_NOT_FOUND
 
 @Composable
 fun LoginPage(navController: NavController) {
+    // campurile pentru username si parola
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val userDAO = UserDAO(context = LocalContext.current)
     var showErrorDialog by remember { mutableStateOf(false) }
 
-
+    // afisarea paginii de login
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -114,11 +115,7 @@ fun LoginPage(navController: NavController) {
                 }
 
             )
-
-
             // buton de login
-
-
             Spacer(modifier = Modifier.height(16.dp))
             val sessionManager = SessionManager(context = LocalContext.current)
 
@@ -138,7 +135,7 @@ fun LoginPage(navController: NavController) {
                                         user.email,
                                         user.dateCreated
                                     )
-                                    // Navigate to the main interface after creating the session
+                                    // navigheaza catre pagina principala
                                     navController.navigate("mainInterface")
                                 } else {
                                     println(USER_NOT_FOUND)

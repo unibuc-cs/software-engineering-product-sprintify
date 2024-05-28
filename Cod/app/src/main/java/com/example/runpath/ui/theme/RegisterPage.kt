@@ -29,6 +29,7 @@ import com.example.runpath.models.User
 
 @Composable
 fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
+    // variabile pentru crearea unui cont
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -44,7 +45,7 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
 
     val context = LocalContext.current
     val userDAO by remember { mutableStateOf(UserDAO(context)) }
-
+    // afisarea paginii de inregistrare
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -70,7 +71,7 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
         ) {
             Text("Username", fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Start)
         }
-
+        // campul pentru username
         TextField(
             value = username,
             onValueChange = { username = it },
@@ -86,7 +87,7 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
         )
 
         Spacer(modifier = Modifier.height(12.dp))
-
+        // campul pentru email
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
@@ -120,7 +121,7 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
         )
 
         Spacer(modifier = Modifier.height(12.dp))
-
+        // campul pentru parola
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
@@ -144,7 +145,7 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
         )
 
         Spacer(modifier = Modifier.height(12.dp))
-
+        // campul pentru confirmarea parolei
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
@@ -181,17 +182,16 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
         )
 
         Spacer(modifier = Modifier.height(40.dp))
-
+        // buton pentru inregistrare
         Button(
             onClick = {
                 if (passwordMatch) {
-                    // Register user logic
+                    // logica pentru inregistrare
                     val dateCreated = System.currentTimeMillis().toString()
                     val user = User(username = username, email = email, password = password, dateCreated = dateCreated)
 
-                    // On successful registration, navigate to login page
+                    // daca inregistrarea este reusita, se salveaza datele in SharedPreferences
                     userDAO.insertUser(user) { newUser ->
-                        // Save dateCreated to SharedPreferences
                         val sharedPreferences = sessionManager.getsharedPreferences()
                         with(sharedPreferences.edit()) {
                             putString("username", newUser.username)
@@ -199,6 +199,7 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
                             putString("dateCreated", newUser.dateCreated)
                             apply()
                         }
+                        // se navigheaza catre pagina de login
                         navController.navigate("loginPage")
                     }
                 }
@@ -210,7 +211,7 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
         }
     }
 }
-
+// functie pentru validarea email-ului
 fun isEmailValid(email: String): Boolean {
     val emailPattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$"
     return emailPattern.toRegex().matches(email)

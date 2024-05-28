@@ -10,8 +10,9 @@ import com.google.maps.model.LatLng
 
 
 class CircuitDAO {
+    // creez o noua instanta a bazei de date
     private val db = FirebaseFirestore.getInstance()
-
+    // creez un nou circuit
     fun insertCircuit(circuit: Circuit, onComplete: (Circuit) -> Unit) {
         val documentReference = db.collection("circuits").document()
         val circuitId = documentReference.id
@@ -25,7 +26,7 @@ class CircuitDAO {
                 println("Error adding document: $e")
             }
     }
-
+    // obtin un circuit dupa id
     fun getCircuitbyId(circuitId: String) {
         db.collection("circuits")
             .document(circuitId)
@@ -41,7 +42,7 @@ class CircuitDAO {
                 println("Error getting document: $exception")
             }
     }
-
+    // obtin toate circuitele
     fun getCircuits(onComplete: (List<Circuit>) -> Unit){
         db.collection("circuits")
             .get()
@@ -67,7 +68,7 @@ class CircuitDAO {
                 }
             }
     }
-
+    // actualizez un circuit
     fun updateCircuit(
         circuitId: String,
         name: String,
@@ -96,7 +97,6 @@ class CircuitDAO {
             difficulty = difficulty,
             route = route
         )
-
         db.collection("circuits")
             .document(circuitId)
             .set(circuit)
@@ -107,7 +107,7 @@ class CircuitDAO {
                 println("Error updating document: $e")
             }
     }
-
+    // sterg un circuit
     fun deleteCircuit(circuitId: String) {
         db.collection("circuits")
             .document(circuitId)

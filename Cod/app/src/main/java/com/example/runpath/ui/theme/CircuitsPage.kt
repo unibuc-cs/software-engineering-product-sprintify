@@ -33,7 +33,8 @@ import com.squareup.picasso.Picasso
 
 
 @Composable
-fun CircuitMap(circuit: Circuit): String {
+fun CircuitMap(circuit: Circuit): String {  
+    // creez un URL pentru harta statica a circuitului
     val apiKey = "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU"
     val baseUrl = "https://maps.googleapis.com/maps/api/staticmap"
     val size = "900x1500"
@@ -47,12 +48,13 @@ fun CircuitMap(circuit: Circuit): String {
 
 @Composable
 fun CircuitsPage(navController: NavController, sessionManager: SessionManager) {
+    // variabile pentru circuit
     val circuitDao = CircuitDAO()
     var circuits by remember { mutableStateOf(listOf<Circuit>()) }
     var showDialog by remember { mutableStateOf(false) }
     var currentCircuit by remember { mutableStateOf<Circuit?>(null) }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(Unit) {// functie pentru a lua toate circuitele
         val listenerRegistration = circuitDao.listenForCircuits { updatedCircuits ->
             circuits = updatedCircuits
         }
@@ -61,8 +63,8 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager) {
             listenerRegistration.remove()
         }
     }
-
-    Box(
+    // afisarea paginii de circuite
+    Box( 
         modifier = Modifier.fillMaxSize(),
     ) {
         Text(

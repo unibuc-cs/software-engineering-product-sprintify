@@ -6,8 +6,9 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
 
 class PostDAO {
+    // creez o noua instanta a bazei de date
     private val db = FirebaseFirestore.getInstance()
-
+    // creez un nou post
     fun insertPost(post: Post, onComplete: (Post) -> Unit) {
         val documentReference = db.collection("posts").document()
         val postId = documentReference.id
@@ -21,7 +22,7 @@ class PostDAO {
                 println("Error adding document: $e")
             }
     }
-
+    // obtin un post dupa id
     fun getPostById(postId: String) {
         db.collection("posts")
             .document(postId)
@@ -37,7 +38,7 @@ class PostDAO {
                 println("Error getting document: $exception")
             }
     }
-
+    // obtin toate posturile
     fun getPosts(onComplete: (List<Post>) -> Unit) {
         db.collection("posts")
             .get()
@@ -49,7 +50,7 @@ class PostDAO {
                 println("Error getting documents: $e")
             }
     }
-
+    // creez un listener pentru posturi
     fun listenForPosts(onPostsUpdated: (List<Post>) -> Unit): ListenerRegistration {
         return db.collection("posts")
             .addSnapshotListener { snapshots, e ->
@@ -64,7 +65,7 @@ class PostDAO {
                 }
             }
     }
-
+    // actualizez un post
     fun updatePost(
         postId: String,
         userId: String,
@@ -86,7 +87,7 @@ class PostDAO {
             .addOnSuccessListener { println("DocumentSnapshot successfully updated!") }
             .addOnFailureListener { e -> println("Error updating document: $e") }
     }
-
+    // sterg un post
     fun deletePost(postId: String) {
         db.collection("posts")
             .document(postId)

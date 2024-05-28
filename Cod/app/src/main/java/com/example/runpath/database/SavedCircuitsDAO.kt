@@ -7,8 +7,9 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
 
 class SavedCircuitsDAO{
+    // creez o noua instanta a bazei de date
     private val db = FirebaseFirestore.getInstance()
-
+    // creez un nou circuit salvat
     fun insertSavedCircuit(savedCircuit: SavedCircuits, onComplete: (SavedCircuits) -> Unit) {
         val documentReference = db.collection("savedCircuits").document()
         val savedCircuitId = documentReference.id
@@ -22,7 +23,7 @@ class SavedCircuitsDAO{
                 println("Error adding document: $e")
             }
     }
-
+    // obtin un circuit salvat dupa id
     fun getSavedCircuitById(savedCircuitId: String) {
         db.collection("savedCircuits")
             .document(savedCircuitId)
@@ -38,7 +39,7 @@ class SavedCircuitsDAO{
                 println("Error getting document: $exception")
             }
     }
-
+    // obtin toate circuitele salvate
     fun getSavedCircuits(onComplete: (List<SavedCircuits>) -> Unit){
         db.collection("savedCircuits")
             .get()
@@ -50,7 +51,7 @@ class SavedCircuitsDAO{
                 println("Error getting documents: $e")
             }
     }
-
+    // creez un listener pentru circuitele salvate
     fun listenForSavedCircuits(onSavedCircuitsUpdated: (List<SavedCircuits>) -> Unit): ListenerRegistration {
         return db.collection("savedCircuits")
             .addSnapshotListener { snapshots, e ->
@@ -60,7 +61,7 @@ class SavedCircuitsDAO{
                 }
             }
     }
-
+    // actualizez un circuit salvat
     fun updateSavedCircuit(
         savedCircuitId: String,
         circuitId: String,
@@ -82,7 +83,7 @@ class SavedCircuitsDAO{
                 println("Error updating document: $e")
             }
     }
-
+    // sterg un circuit salvat
     fun deleteSavedCircuit(savedCircuitId: String){
         db.collection("savedCircuits")
             .document(savedCircuitId)

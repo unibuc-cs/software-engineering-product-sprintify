@@ -8,11 +8,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 
 class UserDAO(context: Context) {
-
-
+    // creez o noua instanta a bazei de date
     private val db = FirebaseFirestore.getInstance()
-
-    //functie pentru a insera un user in baza de date
+    // creez un nou user
     fun insertUser(user: User, onComplete: (User) -> Unit) {
 
         val documentReference = db.collection("users").document()
@@ -29,9 +27,7 @@ class UserDAO(context: Context) {
             }
 
     }
-
-
-    //getter pentru a prelua un user dupa id
+    // obtin un user dupa id
     fun getUserById(userId: String, onComplete: (User?)-> Unit) {
         db.collection("users")
             .document(userId)
@@ -57,8 +53,7 @@ class UserDAO(context: Context) {
                 onComplete(null)
             }
     }
-
-
+    // login pentru user
     fun login(username: String, password: String, onComplete: (String) -> Unit) {
         getUserByUsername(username) { users ->
             println("Entered login with username $username and password $password")
@@ -82,9 +77,7 @@ class UserDAO(context: Context) {
             }
         }
     }
-
-
-
+    // obtin userii dupa username
     fun getUserByUsername(username: String, onComplete: (List<User>) -> Unit) {
         println("Entered getUserByUsername with username $username!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         val users = mutableListOf<User>()
@@ -106,15 +99,14 @@ class UserDAO(context: Context) {
                     println("su")
                     println("${document.id} => ${document.data}")
                 }
-                onComplete(users) // Call the onComplete callback with the users list
+                onComplete(users) // apeleaza onComplete cu lista de useri
             }
             .addOnFailureListener { exception ->
                 println("Error getting documents: $exception")
-                onComplete(emptyList()) // Call the onComplete callback with an empty list in case of failure
+                onComplete(emptyList()) // apeleaza onComplete cu o lista goala
             }
     }
-
-
+    // actualizez un user
     fun updateUser(
         userId: String,
         username: String,
@@ -151,7 +143,7 @@ class UserDAO(context: Context) {
                 println("Error deleting document: $e")
             }
     }
-
+    // setez parola
     fun setPassword(userId: String, password: String){
 
         db.collection("users")

@@ -1,11 +1,8 @@
-//package com.example.runpath
-//
 package com.example.runpath
+
 import HomePage
 import LoginPage
 import com.example.runpath.ui.theme.ProfilePage
-
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import com.example.runpath.ui.theme.RunPathTheme
@@ -15,9 +12,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.runpath.database.SessionManager
+import com.example.runpath.ui.theme.CommunityPage
 import com.example.runpath.ui.theme.MainInterface
 import com.example.runpath.ui.theme.RegisterPage
-
+import com.example.runpath.ui.theme.UserProfilePage
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,19 +25,36 @@ class MainActivity : AppCompatActivity() {
         setContent {
             RunPathTheme {
                 val navController = rememberNavController()
-
-                NavHost(navController, startDestination = if (sessionManager.isLoggedIn()) "mainInterface" else "homePage") {
+                NavHost(
+                    navController = navController,
+                    startDestination = if (sessionManager.isLoggedIn()) "mainInterface" else "homePage"
+                ) {
                     composable("homePage") {
                         HomePage(navController)
                     }
                     composable("loginPage") {
                         LoginPage(navController)
                     }
-                    composable("registerPage") { RegisterPage(navController, sessionManager) }
-                    composable("mainInterface") { MainInterface() }
-                    composable("profilePage") { ProfilePage(navController, sessionManager) }
+                    composable("registerPage") {
+                        RegisterPage(navController, sessionManager)
+                    }
+                    composable("mainInterface") {
+                        MainInterface()
+                    }
+                    composable("profilePage") {
+                        ProfilePage(navController, sessionManager)
+                    }
+                    composable("community") {
+                        CommunityPage(navController, sessionManager)
+                    }
+                    composable("userProfile/{username}") { backStackEntry ->
+                        val username = backStackEntry.arguments?.getString("username") ?: ""
+                        UserProfilePage(navController, username)
+                    }
                 }
             }
         }
     }
 }
+
+
