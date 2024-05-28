@@ -228,7 +228,7 @@ fun ProfileDetailItem(label: String, value: String?) {
 
 fun formatDate(timestamp: String): String {
     return try {
-        val sdf = SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault())
+        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         val date = Date(timestamp.toLong())
         sdf.format(date)
     } catch (e: Exception) {
