@@ -265,7 +265,7 @@ fun RunControlButton(
 
     Button(
         onClick = {
-            if(!startedRunningFlag.value) {
+            if (!startedRunningFlag.value) {
                 startedRunningFlag.value = true
             }
             val currentColor = if (isRunActive.value) Color.Red else Color.Blue
@@ -273,7 +273,13 @@ fun RunControlButton(
             if (segments.isNotEmpty() && isRunActive.value) {
                 val lastSegment = segments.last()
                 if (lastSegment.color != currentColor) {
-                    segments.add(Segment(lastSegment.endIndex,locationPoints.size - 1, currentColor))
+                    segments.add(
+                        Segment(
+                            lastSegment.endIndex,
+                            locationPoints.size - 1,
+                            currentColor
+                        )
+                    )
 
                 }
             } else {
@@ -286,7 +292,7 @@ fun RunControlButton(
         },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 8.dp)
     ) {
         Text(text = buttonText)
     }
@@ -318,17 +324,30 @@ fun getCurrentLocationAndTrack(
                 currentLocation.value = newLatLng
                 locationPoints.add(newLatLng)
 
-                if(segments.isNotEmpty()) {
+                if (segments.isNotEmpty()) {
                     val lastSegment = segments.last()
-                    if(isRunActive.value && lastSegment.color == Color.Blue) {
-                        segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Red))
-                    } else if(!isRunActive.value && lastSegment.color == Color.Red) {
-                        segments.add(Segment(lastSegment.endIndex, locationPoints.size - 1, Color.Blue))
+                    if (isRunActive.value && lastSegment.color == Color.Blue) {
+                        segments.add(
+                            Segment(
+                                lastSegment.endIndex,
+                                locationPoints.size - 1,
+                                Color.Red
+                            )
+                        )
+                    } else if (!isRunActive.value && lastSegment.color == Color.Red) {
+                        segments.add(
+                            Segment(
+                                lastSegment.endIndex,
+                                locationPoints.size - 1,
+                                Color.Blue
+                            )
+                        )
                     } else {
-                        segments[segments.lastIndex] = lastSegment.copy(endIndex = locationPoints.size - 1)
+                        segments[segments.lastIndex] =
+                            lastSegment.copy(endIndex = locationPoints.size - 1)
                     }
                 } else {
-                    val initialColor = if(isRunActive.value) Color.Red else Color.Blue
+                    val initialColor = if (isRunActive.value) Color.Red else Color.Blue
                     segments.add(Segment(0, locationPoints.size - 1, initialColor))
                 }
             }
@@ -350,6 +369,7 @@ fun placeMarkerOnMap(location: LatLng, title: String) {
         snippet = "Marker at $title"
     )
 }
+
 // functie pentru a afisa harta
 @Composable
 fun GMap(
@@ -361,9 +381,12 @@ fun GMap(
     startedRunningFlag: MutableState<Boolean>,
     cameraTilt: MutableState<Float>
 ) {
-    val cameraPositionState = rememberCameraPositionState().apply {
+    /*val cameraPositionState = rememberCameraPositionState().apply {
         val initialLocation: LatLng = if (searchedLocation.value == null) {
-            currentLocation.value ?: LatLng(0.0, 0.0) // default este 0,0 pentru latitudine si longitudine
+            currentLocation.value ?: LatLng(
+                0.0,
+                0.0
+            ) // default este 0,0 pentru latitudine si longitudine
         } else {
             searchedLocation.value!!
         }
@@ -372,8 +395,9 @@ fun GMap(
             .zoom(15f)
             .tilt(cameraTilt.value) // setez inclinatia camerei
             .build()
-    }
-    
+    }*/
+    val cameraPositionState = rememberCameraPositionState()
+
     // creez un nou obiect MapsActivity
     val mapsActivity = MapsActivity()
     val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
@@ -384,19 +408,23 @@ fun GMap(
         val previousLocation = cameraPosition.value
         val newLocation = currentLocation.value
 
-        if(previousLocation != null && newLocation != null) {
-            if(calculateDistance(previousLocation, newLocation) > thresholdDistance) {
+        if (previousLocation != null && newLocation != null) {
+            if (calculateDistance(previousLocation, newLocation) > thresholdDistance) {
                 cameraPositionState.position = CameraPosition.fromLatLngZoom(newLocation, 15f)
                 cameraPosition.value = newLocation
             }
-        } else if(newLocation != null) {
+        } else if (newLocation != null) {
             cameraPositionState.position = CameraPosition.fromLatLngZoom(newLocation, 15f)
             cameraPosition.value = newLocation
         }
     }
 
-    LaunchedEffect(key1 = currentLocation.value, key2 = searchedLocation.value) {
-        if (currentLocation.value != null && searchedLocation.value != null) {
+    LaunchedEffect(
+        key1 = currentLocation.value,
+        key2 = searchedLocation.value,
+        key3 = startedRunningFlag.value
+    ) {
+        if (currentLocation.value != null && searchedLocation.value != null && !startedRunningFlag.value) {
             routePoints.value =
                 mapsActivity.getRoutePoints(currentLocation.value!!, searchedLocation.value!!)
         }
@@ -423,7 +451,10 @@ fun GMap(
     } else {
         mapProperties = remember {
             MapProperties(
-                mapStyleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.light_mode_map)
+                mapStyleOptions = MapStyleOptions.loadRawResourceStyle(
+                    context,
+                    R.raw.light_mode_map
+                )
             )
         }
     }
@@ -435,7 +466,9 @@ fun GMap(
         cameraPositionState = cameraPositionState,
         properties = mapProperties,
         onMapLongClick = { latLng ->
-            searchedLocation.value = latLng
+            if (!startedRunningFlag.value) {
+                searchedLocation.value = latLng
+            }
         }
     ) {
         // marker pentru locatia curenta
@@ -454,8 +487,10 @@ fun GMap(
         if (startedRunningFlag.value) {
             segments.forEach { segment ->
                 // Ensure indices are within bounds
-                val startIndex = segment.startIndex.coerceAtLeast(0).coerceAtMost(locationPoints.size)
-                val endIndex = (segment.endIndex + 1).coerceAtLeast(startIndex).coerceAtMost(locationPoints.size)
+                val startIndex =
+                    segment.startIndex.coerceAtLeast(0).coerceAtMost(locationPoints.size)
+                val endIndex = (segment.endIndex + 1).coerceAtLeast(startIndex)
+                    .coerceAtMost(locationPoints.size)
 
                 if (startIndex < endIndex) { // Check to avoid empty sublist
                     Polyline(
@@ -592,6 +627,7 @@ fun TiltButton(cameraTilt: MutableState<Float>) {
     }
 
 }
+
 // ecranul pentru harta
 @Composable
 fun MapScreen(
@@ -618,16 +654,16 @@ fun MapScreen(
     //tilt
     val cameraTilt = remember { mutableStateOf(0f) } // inclinarea initila este 0
 
-    val startedRunningFlag = remember {mutableStateOf(false)}
+    val startedRunningFlag = remember { mutableStateOf(false) }
 
     RequestLocationPermission(
         onPermissionGranted = {
             getCurrentLocation(fusedLocationClient) { location ->
                 val latLng = LatLng(location.latitude, location.longitude)
                 currentLocation.value = latLng
-                if (searchedLocation.value == null) {
-                    searchedLocation.value = latLng // seteaza locatia curenta ca locatie cautata
-                }
+                /* if (searchedLocation.value == null) {
+                     searchedLocation.value = latLng // seteaza locatia curenta ca locatie cautata
+                 }*/
 
                 getCurrentLocationAndTrack(
                     fusedLocationClient,
@@ -649,10 +685,13 @@ fun MapScreen(
             .fillMaxSize()
     ) {
         // search bar pentru locatii
-        LocationSearchBar(
-            placesClient = placesClient,
-            searchedLocation = searchedLocation
-        )
+
+        if (startedRunningFlag.value == false) {
+            LocationSearchBar(
+                placesClient = placesClient,
+                searchedLocation = searchedLocation
+            )
+        }
 
         Box(
             modifier = Modifier.weight(1f)
@@ -670,15 +709,39 @@ fun MapScreen(
 
 
             // start/pause button
-            RunControlButton(
-                isRunActive = isRunActive,
-                startedRunningFlag = startedRunningFlag,
-                locationPoints = locationPoints,
-                segments = segments,
-                onButtonClick = {}
-            )
+            Column {
+                RunControlButton(
+                    isRunActive = isRunActive,
+                    startedRunningFlag = startedRunningFlag,
+                    locationPoints = locationPoints,
+                    segments = segments,
+                    onButtonClick = {}
+                )
+                // buton pentru a opri tracking-ul
+                if (startedRunningFlag.value) {
+                    Column {
+                        Button(
+                            onClick =
+                            {
+                                segments.clear()
+                                locationPoints.clear()
+                                startedRunningFlag.value = false
+                                isRunActive.value = false
+                            }, modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 15.dp)
 
-            // butoanelepentru locatia curenta si inclinatia camerei
+
+                        ) {
+                            Text("Stop Run")
+                        }
+
+                    }
+
+                }
+            }
+
+
 
 
             Column(
@@ -697,6 +760,7 @@ fun MapScreen(
         }
     }
 }
+
 @Composable
 fun NavigationHost(navController: NavHostController) {
     val context = LocalContext.current
@@ -713,7 +777,7 @@ fun NavigationHost(navController: NavHostController) {
         }
         composable(BottomNavItem.Run.route) {
             RunPage { option ->
-                when(option) {
+                when (option) {
                     "From a Circuit" -> navController.navigate("circuitScreen")
                     "From a Previous Run" -> navController.navigate("previousRunScreen")
                     "Freemode" -> navController.navigate("freemodeScreen")
@@ -746,7 +810,7 @@ fun interpolatePoints(start: LatLng, end: LatLng, steps: Int): List<LatLng> {
     val latStep = (end.latitude - start.latitude) / steps
     val lngStep = (end.longitude - start.longitude) / steps
 
-    return(1 until steps).map {
+    return (1 until steps).map {
         LatLng(start.latitude + it * latStep, start.longitude + it * lngStep)
     }
 }
