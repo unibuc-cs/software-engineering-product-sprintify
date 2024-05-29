@@ -189,6 +189,7 @@ fun RequestLocationPermission(
         }
     }
 }
+
 // functie pentru a obtine locatia curenta
 @SuppressLint("MissingPermission")
 fun getCurrentLocation(
@@ -226,6 +227,16 @@ fun getCurrentLocation(
 
 
 // codul pentru live tracking
+fun calculateDistance(point1: LatLng, point2: LatLng): Double {
+    val earthRadius = 6371.0 // Radius of the Earth in kilometers
+    val latDiff = Math.toRadians(point2.latitude - point1.latitude)
+    val lngDiff = Math.toRadians(point2.longitude - point1.longitude)
+    val a = Math.sin(latDiff / 2) * Math.sin(latDiff / 2) +
+            Math.cos(Math.toRadians(point1.latitude)) * Math.cos(Math.toRadians(point2.latitude)) *
+            Math.sin(lngDiff / 2) * Math.sin(lngDiff / 2)
+    val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return earthRadius * c
+}
 
 // data class pentru segment
 data class Segment(val startIndex: Int, val endIndex: Int, val color: Color)
@@ -362,10 +373,28 @@ fun GMap(
             .tilt(cameraTilt.value) // setez inclinatia camerei
             .build()
     }
+    
     // creez un nou obiect MapsActivity
     val mapsActivity = MapsActivity()
     val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
+    val thresholdDistance = 0.025
     // efect pentru a actualiza cameraPosition
+
+    LaunchedEffect(currentLocation.value) {
+        val previousLocation = cameraPosition.value
+        val newLocation = currentLocation.value
+
+        if(previousLocation != null && newLocation != null) {
+            if(calculateDistance(previousLocation, newLocation) > thresholdDistance) {
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(newLocation, 15f)
+                cameraPosition.value = newLocation
+            }
+        } else if(newLocation != null) {
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(newLocation, 15f)
+            cameraPosition.value = newLocation
+        }
+    }
+
     LaunchedEffect(key1 = currentLocation.value, key2 = searchedLocation.value) {
         if (currentLocation.value != null && searchedLocation.value != null) {
             routePoints.value =
