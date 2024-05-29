@@ -434,7 +434,7 @@ fun GMap(
             .build()
     }*/
     val cameraPositionState = rememberCameraPositionState()
-    
+
     // creez un nou obiect MapsActivity
     val mapsActivity = MapsActivity()
     val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
@@ -466,6 +466,15 @@ fun GMap(
                 mapsActivity.getRoutePoints(currentLocation.value!!, searchedLocation.value!!)
         }
     }
+
+    LaunchedEffect(key1 = cameraTilt.value) {
+        if(cameraTilt.value != cameraPositionState.position.tilt) {
+            CameraPosition.builder()
+                .tilt(cameraTilt.value) // setez inclinatia camerei
+                .build()
+        }
+    }
+
     LaunchedEffect(cameraPosition.value) {
         cameraPosition.value?.let {
             cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
