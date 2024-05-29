@@ -433,12 +433,8 @@ fun GMap(
             .tilt(cameraTilt.value) // setez inclinatia camerei
             .build()
     }*/
-    val cameraPositionState = rememberCameraPositionState().apply {
-        CameraPosition.builder()
-            .tilt(cameraTilt.value)
-            .build()
-    }
-
+    val cameraPositionState = rememberCameraPositionState()
+    
     // creez un nou obiect MapsActivity
     val mapsActivity = MapsActivity()
     val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
