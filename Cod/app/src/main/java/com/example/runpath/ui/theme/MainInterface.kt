@@ -433,7 +433,11 @@ fun GMap(
             .tilt(cameraTilt.value) // setez inclinatia camerei
             .build()
     }*/
-    val cameraPositionState = rememberCameraPositionState()
+    val cameraPositionState = rememberCameraPositionState().apply {
+        CameraPosition.builder()
+            .tilt(cameraTilt.value)
+            .build()
+    }
 
     // creez un nou obiect MapsActivity
     val mapsActivity = MapsActivity()
@@ -650,7 +654,6 @@ fun CurrentLocationButton(
     }) {
         Text("Go to Current Location")
     }
-
 }
 
 @Composable
