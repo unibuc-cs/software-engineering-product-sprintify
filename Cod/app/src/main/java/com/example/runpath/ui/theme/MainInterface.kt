@@ -470,7 +470,9 @@ fun GMap(
     LaunchedEffect(key1 = cameraTilt.value) {
         if(cameraTilt.value != cameraPositionState.position.tilt && currentLocation.value != null) {
             cameraPositionState.position = CameraPosition.builder()
-                .tilt(cameraTilt.value) // setez inclinatia camerei
+                .target(currentLocation.value!!)
+                .zoom(15f)
+                .tilt(cameraTilt.value)
                 .build()
         }
     }
