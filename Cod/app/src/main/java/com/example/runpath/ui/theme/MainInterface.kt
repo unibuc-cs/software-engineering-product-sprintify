@@ -323,6 +323,32 @@ fun RunControlButton(
     } else {
         isRunning = false
     }
+
+    // buton pentru a opri tracking-ul
+    if (startedRunningFlag.value) {
+        Column {
+            Button(
+                onClick =
+                {
+                    segments.clear()
+                    locationPoints.clear()
+                    startedRunningFlag.value = false
+                    isRunActive.value = false
+                    totalPausedTime = 0
+                    time = 0
+                    startTime = 0
+                }, modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp)
+
+
+            ) {
+                Text("Stop Run")
+            }
+
+        }
+
+    }
 }
 
 @Composable
@@ -764,28 +790,7 @@ fun MapScreen(
                     segments = segments,
                     onButtonClick = {}
                 )
-                // buton pentru a opri tracking-ul
-                if (startedRunningFlag.value) {
-                    Column {
-                        Button(
-                            onClick =
-                            {
-                                segments.clear()
-                                locationPoints.clear()
-                                startedRunningFlag.value = false
-                                isRunActive.value = false
-                            }, modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 15.dp)
 
-
-                        ) {
-                            Text("Stop Run")
-                        }
-
-                    }
-
-                }
             }
 
 
