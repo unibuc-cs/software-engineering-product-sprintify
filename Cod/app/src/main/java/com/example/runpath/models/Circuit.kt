@@ -1,7 +1,8 @@
 package com.example.runpath.models
 
 
-import com.google.maps.model.LatLng
+import com.example.runpath.others.MyLatLng
+import com.google.android.gms.maps.model.LatLng
 
 data class Circuit (
     val circuitId: String? = null,
@@ -15,5 +16,5 @@ data class Circuit (
     val lightLevel: Int = 0,
     val rating: Double = 0.0,
     val difficulty: Int = 0,
-    val route: List<LatLng> = listOf()
+    val route: List<MyLatLng> = listOf()
 )

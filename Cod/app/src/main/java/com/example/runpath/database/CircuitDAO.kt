@@ -2,6 +2,7 @@ package com.example.runpath.database
 
 import androidx.compose.animation.core.snap
 import com.example.runpath.models.Circuit
+import com.example.runpath.others.MyLatLng
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -95,7 +96,7 @@ class CircuitDAO {
             lightLevel = lightLevel,
             rating = rating,
             difficulty = difficulty,
-            route = route
+            route = route.map { toMyLatLng(it) }
         )
         db.collection("circuits")
             .document(circuitId)
@@ -118,5 +119,8 @@ class CircuitDAO {
             .addOnFailureListener { e ->
                 println("Error deleting document: $e")
             }
+    }
+    fun toMyLatLng(latLng: LatLng): MyLatLng{
+        return MyLatLng(latLng.lat, latLng.lng)
     }
 }

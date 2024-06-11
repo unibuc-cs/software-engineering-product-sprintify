@@ -71,6 +71,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.gms.maps.model.Polyline
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.Place
@@ -442,7 +443,8 @@ fun GMap(
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
     startedRunningFlag: MutableState<Boolean>,
-    cameraTilt: MutableState<Float>
+    cameraTilt: MutableState<Float>,
+    route: List<LatLng>?
 ) {
     /*val cameraPositionState = rememberCameraPositionState().apply {
         val initialLocation: LatLng = if (searchedLocation.value == null) {
@@ -576,6 +578,14 @@ fun GMap(
             }
         }
 
+        if(route != null){
+            Polyline(
+                points = route,
+                color = Color.Red,
+                width = 10f
+            )
+        }
+
         if (routePoints.value.isNotEmpty()) { // afiseaza ruta pe harta sub forma unui polyline
             Polyline(
                 points = routePoints.value,
@@ -705,15 +715,15 @@ fun TiltButton(cameraTilt: MutableState<Float>) {
 @Composable
 fun MapScreen(
     currentLocation: MutableState<LatLng?>,
-    searchedLocation: MutableState<LatLng?>
+    searchedLocation: MutableState<LatLng?>,
+    placesClient: PlacesClient,
+    route: List<LatLng>? = null
 ) {
     val context = LocalContext.current
     val contextMap = GeoApiContext.Builder()
         .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
         .build()
-    val apiKey = "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU"
-    Places.initialize(context, apiKey)
-    val placesClient = Places.createClient(context)
+
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
     val locationPoints = remember { mutableStateListOf<LatLng>() }
@@ -777,7 +787,8 @@ fun MapScreen(
                 locationPoints = locationPoints,
                 segments = segments,
                 startedRunningFlag = startedRunningFlag,
-                cameraTilt = cameraTilt
+                cameraTilt = cameraTilt,
+                route = route
             )
 
 
@@ -819,10 +830,14 @@ fun NavigationHost(navController: NavHostController) {
     val sessionManager = SessionManager(context)
     val currentLocation = remember { mutableStateOf<LatLng?>(null) }
     val searchedLocation = remember { mutableStateOf<LatLng?>(null) }
+    if (!Places.isInitialized()) {
+        Places.initialize(context, "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
+    }
+    val placesClient = Places.createClient(context)
 
     NavHost(navController, startDestination = BottomNavItem.Map.route) {
         composable(BottomNavItem.Map.route) {
-            MapScreen(currentLocation, searchedLocation)
+            MapScreen(currentLocation, searchedLocation, placesClient)
         }
         composable(BottomNavItem.Community.route) {
             CommunityPage(navController, sessionManager)
@@ -838,6 +853,14 @@ fun NavigationHost(navController: NavHostController) {
         }
         composable(BottomNavItem.Circuit.route) {
             CircuitsPage(navController, sessionManager)
+        }
+        composable("mapPage/route={route}") { backStackEntry ->
+            val routeString = backStackEntry.arguments?.getString("route")
+            val route = routeString?.split("|")?.map {
+                val latLng = it.split(",")
+                LatLng(latLng[0].toDouble(), latLng[1].toDouble())
+            }
+            MapScreen(currentLocation, searchedLocation, placesClient,route)
         }
         composable(BottomNavItem.Profile.route) {
             ProfilePage(navController, sessionManager)
@@ -871,6 +894,11 @@ fun interpolatePoints(start: LatLng, end: LatLng, steps: Int): List<LatLng> {
 @Composable
 fun MainInterface() {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    if (!Places.isInitialized()) {
+        Places.initialize(context, "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU") // Replace "YOUR_API_KEY" with your actual Places API key
+    }
+    val placesClient = Places.createClient(context)
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }

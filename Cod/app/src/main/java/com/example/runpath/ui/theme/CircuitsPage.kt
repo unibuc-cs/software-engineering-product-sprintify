@@ -28,7 +28,9 @@ import com.example.runpath.database.CircuitDAO
 import com.example.runpath.database.SessionManager
 import com.example.runpath.models.Circuit
 import androidx.compose.ui.viewinterop.AndroidView
-import com.google.maps.model.LatLng
+import androidx.core.os.bundleOf
+import com.google.android.gms.maps.model.LatLng
+
 import com.squareup.picasso.Picasso
 
 
@@ -39,7 +41,7 @@ fun CircuitMap(circuit: Circuit): String {
     val baseUrl = "https://maps.googleapis.com/maps/api/staticmap"
     val size = "900x1500"
     val zoom = "16"
-    val path = circuit.route?.joinToString("|") { "${it.lat},${it.lng}" }
+    val path = circuit.route?.joinToString("|") { "${it.latitude},${it.longitude}" }
     val style = "feature:all|element:labels|visibility:off"
     val color = "0xFF0000" // portocaliu
 
@@ -84,7 +86,10 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
                     )
                     if(runSelected){
                         Button(onClick = {
-                            //implementeaza logica de run
+                            // Convert the circuit's route to a string
+                            val route = circuit.route?.joinToString("|") { "${it.latitude},${it.longitude}" }
+                            // Navigate to the MapScreen and pass the route as a parameter in the route string
+                            navController.navigate("mapPage/route=$route")
                         }) {
                             Text("Select")
                         }
