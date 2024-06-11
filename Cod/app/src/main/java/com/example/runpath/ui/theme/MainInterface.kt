@@ -580,10 +580,24 @@ fun GMap(
 
         if(route != null){
             Polyline(
+
                 points = route,
                 color = Color.Red,
                 width = 10f
             )
+            val minLat = route.minOf { it.latitude }
+            val maxLat = route.maxOf { it.latitude }
+            val minLng = route.minOf { it.longitude }
+            val maxLng = route.maxOf { it.longitude }
+
+            val midLat = (minLat + maxLat) / 2
+            val midLng = (minLng + maxLng) / 2
+
+            val midPoint = LatLng(midLat, midLng)
+
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(midPoint, 15f)
+
+
         }
 
         if (routePoints.value.isNotEmpty()) { // afiseaza ruta pe harta sub forma unui polyline
