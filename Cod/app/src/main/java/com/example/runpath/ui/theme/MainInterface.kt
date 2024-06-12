@@ -267,7 +267,7 @@ fun RunControlButton(
             }
             val currentColor = if (isRunActive.value) Color.Red else Color.Blue
 
-            if (segments.isNotEmpty() && isRunActive.value) {
+            if (segments.isNotEmpty()) {
                 val lastSegment = segments.last()
                 if (lastSegment.color != currentColor) {
                     segments.add(
