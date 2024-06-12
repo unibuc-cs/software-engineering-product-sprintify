@@ -71,7 +71,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.Polyline
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.Place
@@ -250,7 +249,8 @@ fun RunControlButton(
     startedRunningFlag: MutableState<Boolean>,
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
-    onButtonClick: () -> Unit
+    onButtonClick: () -> Unit,
+    totalDistance: MutableState<Double>
 ) {
     val buttonText = if (isRunActive.value) "Pause Run" else "Start Run"
     var time by remember { mutableStateOf(0L) }
@@ -312,6 +312,13 @@ fun RunControlButton(
                 .border(2.dp, Color.Black) // Add border
                 .padding(4.dp) // Add padding for better visual effect
         )
+        Text(
+            text = "Distance: ${"%.3f".format(totalDistance.value)} km",
+            modifier = Modifier
+                .background(Color.LightGray) // Add background
+                .border(2.dp, Color.Black) // Add border
+                .padding(4.dp) // Add padding for better visual effect
+        )
     }
 
 
@@ -338,6 +345,7 @@ fun RunControlButton(
                     totalPausedTime = 0
                     time = 0
                     startTime = 0
+                    totalDistance.value = 0.0
                 }, modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 15.dp)
@@ -370,7 +378,8 @@ fun getCurrentLocationAndTrack(
     segments: SnapshotStateList<Segment>,
     isRunActive: MutableState<Boolean>,
     startedRunningFlag: MutableState<Boolean>,
-    currentLocation: MutableState<LatLng?>
+    currentLocation: MutableState<LatLng?>,
+    totalDistance: MutableState<Double>
 ) {
     val locationRequest = LocationRequest.create().apply {
         // seteaza intervalul pentru a obtine locatia curenta a utilizatorului
@@ -387,6 +396,12 @@ fun getCurrentLocationAndTrack(
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 currentLocation.value = newLatLng
                 locationPoints.add(newLatLng)
+
+                if (locationPoints.size >= 2 && isRunActive.value) {
+                    val lastPoint = locationPoints[locationPoints.size - 2]
+                    val distance = calculateDistance(lastPoint, newLatLng)
+                    totalDistance.value += distance
+                }
 
                 if (segments.isNotEmpty()) {
                     val lastSegment = segments.last()
@@ -753,6 +768,7 @@ fun MapScreen(
 
     val startedRunningFlag = remember { mutableStateOf(false) }
 
+    val totalDistance = remember { mutableStateOf(0.0) }
     RequestLocationPermission(
         onPermissionGranted = {
             getCurrentLocation(fusedLocationClient) { location ->
@@ -768,7 +784,8 @@ fun MapScreen(
                     segments,
                     isRunActive,
                     startedRunningFlag,
-                    currentLocation
+                    currentLocation,
+                    totalDistance= totalDistance
                 )
             }
         },
@@ -813,6 +830,7 @@ fun MapScreen(
                     startedRunningFlag = startedRunningFlag,
                     locationPoints = locationPoints,
                     segments = segments,
+                    totalDistance =  totalDistance,
                     onButtonClick = {}
                 )
 
@@ -913,7 +931,7 @@ fun MainInterface() {
         Places.initialize(context, "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU") // Replace "YOUR_API_KEY" with your actual Places API key
     }
     val placesClient = Places.createClient(context)
-
+    val totalDistance = remember { mutableStateOf(0.0) }
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
     ) { paddingValues ->
