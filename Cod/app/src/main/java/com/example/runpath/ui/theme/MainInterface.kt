@@ -19,8 +19,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,6 +39,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -257,7 +261,8 @@ fun RunControlButton(
     var isRunning by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf(0L) }
     var totalPausedTime by remember { mutableStateOf(0L) }
-
+    var showDialog by remember { mutableStateOf(false) }
+    var selectedRating by remember { mutableStateOf(0) }
     val context = LocalContext.current
 
     Button(
@@ -346,6 +351,8 @@ fun RunControlButton(
                     time = 0
                     startTime = 0
                     totalDistance.value = 0.0
+                    showDialog = true
+                    selectedRating = 0
                 }, modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 15.dp)
@@ -357,6 +364,45 @@ fun RunControlButton(
 
         }
 
+    }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Add to Circuits") },
+            text = {
+                Column {
+                    Text("Would you like to add this run to your circuits?")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row {
+                        for (i in 1..5) {
+                            Button(
+                                onClick = { selectedRating = i },
+                                modifier = Modifier.padding(2.dp)
+                            ) {
+                                Text(i.toString())
+                            }
+                        }
+                    }
+                    if (selectedRating != 0) {
+                        Text("Selected Rating: $selectedRating")
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    // Perform your database operation here
+                    println("Selected Rating: $selectedRating")
+                    showDialog = false
+                }) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text("No")
+                }
+            }
+        )
     }
 }
 
