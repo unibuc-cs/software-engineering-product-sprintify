@@ -90,6 +90,9 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 // bara de navigare de jos
@@ -262,6 +265,7 @@ fun RunControlButton(
     var time by remember { mutableStateOf(0L) }
     var isRunning by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf(0L) }
+    var startTimeDb by remember { mutableStateOf(0L) }
     var totalPausedTime by remember { mutableStateOf(0L) }
     var showDialog by remember { mutableStateOf(false) }
     var selectedRating by remember { mutableStateOf(0) }
@@ -283,6 +287,7 @@ fun RunControlButton(
 
             if (!startedRunningFlag.value) {
                 startedRunningFlag.value = true
+                startTimeDb = System.currentTimeMillis()
             }
             val currentColor = if (isRunActive.value) Color.Red else Color.Blue
 
@@ -362,8 +367,8 @@ fun RunControlButton(
                     val run = Run(
                         userId = userId,
                         circuitId = circuitId,
-                        startTime = FormatTime(startTime),
-                        endTime = FormatTime(System.currentTimeMillis()),
+                        startTime = FormatTime2(startTimeDb),
+                        endTime = FormatTime2(System.currentTimeMillis()),
                         pauseTime = FormatTime(totalPausedTime),
                         timeTracker = FormatTime(time),
                         paceTracker = paceTrackerDb,
@@ -409,6 +414,10 @@ fun FormatTime(time: Long): String {
     val minutes = TimeUnit.MILLISECONDS.toMinutes(time) % 60
 
     return String.format("%02d:%02d:%03d", minutes, seconds, miliseconds)
+}
+fun FormatTime2(time: Long): String {
+    val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+    return sdf.format(Date(time))
 }
 
 
