@@ -264,9 +264,20 @@ fun RunControlButton(
     var showDialog by remember { mutableStateOf(false) }
     var selectedRating by remember { mutableStateOf(0) }
     val context = LocalContext.current
+    //add here the code for run saving
+    val userId = SessionManager(context).getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
+    //logic for running on a circuit
+    val circuitId = "N/A"
+    val startTimeDb = System.currentTimeMillis().toString()
+    val endTime = "N/A"
 
     Button(
         onClick = {
+
+
+
+
+
             if (!startedRunningFlag.value) {
                 startedRunningFlag.value = true
             }
@@ -351,8 +362,10 @@ fun RunControlButton(
                     time = 0
                     startTime = 0
                     totalDistance.value = 0.0
-                    showDialog = true
                     selectedRating = 0
+                    //we will save the run in the previous runs database
+
+
                 }, modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 15.dp)
@@ -365,45 +378,7 @@ fun RunControlButton(
         }
 
     }
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Add to Circuits") },
-            text = {
-                Column {
-                    Text("Would you like to add this run to your circuits?")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row {
-                        for (i in 1..5) {
-                            Button(
-                                onClick = { selectedRating = i },
-                                modifier = Modifier.padding(2.dp)
-                            ) {
-                                Text(i.toString())
-                            }
-                        }
-                    }
-                    if (selectedRating != 0) {
-                        Text("Selected Rating: $selectedRating")
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    // Perform your database operation here
-                    println("Selected Rating: $selectedRating")
-                    showDialog = false
-                }) {
-                    Text("Yes")
-                }
-            },
-            dismissButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text("No")
-                }
-            }
-        )
-    }
+
 }
 
 @Composable

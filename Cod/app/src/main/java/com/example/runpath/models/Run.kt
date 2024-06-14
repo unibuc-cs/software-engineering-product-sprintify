@@ -7,10 +7,10 @@ data class Run (
     val runId: String? = null,
     val userId: String? = null,
     val circuitId: String? = null,
-    val startTime: Instant,
-    val endTime: Instant,
-    val pauseTime: Duration,
-    val timeTracker: Duration,
-    val paceTracker: Double,
-    val distanceTracker: Double
+    val startTime: String = "",
+    val endTime: String = "",
+    val pauseTime: String = "",
+    val timeTracker: String = "",
+    val paceTracker: Double = 0.0,
+    val distanceTracker: Double = 0.0
     )
