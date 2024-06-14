@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.runpath.database.SessionManager
 import com.example.runpath.ui.theme.CommunityPage
 import com.example.runpath.ui.theme.MainInterface
+import com.example.runpath.ui.theme.Previous_runs
 import com.example.runpath.ui.theme.RegisterPage
 import com.example.runpath.ui.theme.UserProfilePage
 
@@ -44,6 +45,7 @@ class MainActivity : AppCompatActivity() {
                     composable("profilePage") {
                         ProfilePage(navController, sessionManager)
                     }
+
                     composable("community") {
                         CommunityPage(navController, sessionManager)
                     }

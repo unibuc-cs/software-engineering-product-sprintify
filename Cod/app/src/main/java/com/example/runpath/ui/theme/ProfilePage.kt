@@ -28,6 +28,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import com.example.runpath.MainActivity
 import com.example.runpath.R
 import com.example.runpath.database.SessionManager
@@ -91,6 +94,20 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
         ProfileDetailItem(label = "Date Created", value = formatDate(dateCreated ?: "N/A"))
 
         Spacer(modifier = Modifier.height(20.dp))
+        //buton pentru previous runs
+        Button(
+            onClick = {
+                navController.navigate("previous_runs")
+            },
+            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6A1B9A)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
+        ) {
+            Text(text = "Previous Runs", color = Color.White)
+        }
         // buton pentru logout
         Button(
             onClick = {
@@ -236,4 +253,5 @@ fun formatDate(timestamp: String): String {
     } catch (e: Exception) {
         "Invalid Date"
     }
+
 }

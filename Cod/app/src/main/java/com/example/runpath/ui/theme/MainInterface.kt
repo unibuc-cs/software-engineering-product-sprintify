@@ -2,7 +2,6 @@ package com.example.runpath.ui.theme
 
 import CircuitsPage
 import FreemodeScreen
-import PreviousRunScreen
 import RunPage
 import android.annotation.SuppressLint
 import android.app.UiModeManager
@@ -65,7 +64,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.runpath.R
+import com.example.runpath.database.RunDAO
 import com.example.runpath.database.SessionManager
+import com.example.runpath.models.Run
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -268,14 +269,15 @@ fun RunControlButton(
     val userId = SessionManager(context).getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
     //logic for running on a circuit
     val circuitId = "N/A"
-    val startTimeDb = System.currentTimeMillis().toString()
-    val endTime = "N/A"
+    var endTime by remember { mutableStateOf("N/A") }
+    var timeTrackerDb by remember { mutableStateOf("N/A") }
+    var paceTrackerDb by remember { mutableStateOf(0.0) }
+    var distanceTrackerDb by remember { mutableStateOf(0.0) }
+    val runDAO = RunDAO()
+
 
     Button(
         onClick = {
-
-
-
 
 
             if (!startedRunningFlag.value) {
@@ -352,8 +354,25 @@ fun RunControlButton(
     if (startedRunningFlag.value) {
         Column {
             Button(
+
                 onClick =
                 {
+                    //save the run in the database
+                    val run = Run(
+                        userId = userId,
+                        circuitId = circuitId,
+                        startTime = FormatTime(startTime),
+                        endTime = FormatTime(System.currentTimeMillis()),
+                        pauseTime = FormatTime(totalPausedTime),
+                        timeTracker = FormatTime(time),
+                        paceTracker = paceTrackerDb,
+                        distanceTracker = distanceTrackerDb
+                    )
+                    runDAO.insertRun(run) { newRun ->
+                        println("Run added to database with ID: ${newRun.runId}")
+                    }
+
+
                     segments.clear()
                     locationPoints.clear()
                     startedRunningFlag.value = false
@@ -381,7 +400,7 @@ fun RunControlButton(
 
 }
 
-@Composable
+
 fun FormatTime(time: Long): String {
     val miliseconds = time % 1000
     val seconds = TimeUnit.MILLISECONDS.toSeconds(time) % 60
@@ -918,12 +937,13 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Profile.route) {
             ProfilePage(navController, sessionManager)
         }
+        composable("previous_runs") {
+            Previous_runs(navController, sessionManager)
+        }
         composable("circuitScreen") {
             CircuitsPage(navController, sessionManager, true)
         }
-        composable("previousRunScreen") {
-            PreviousRunScreen()
-        }
+
         composable("freemodeScreen") {
             FreemodeScreen()
         }

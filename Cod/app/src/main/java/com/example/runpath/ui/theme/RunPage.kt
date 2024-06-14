@@ -77,13 +77,6 @@ fun CircuitScreen() {
     }
 }
 
-@Composable
-fun PreviousRunScreen() {
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Previous Run Screen", fontSize = 24.sp)
-    }
-}
 
 @Composable
 fun FreemodeScreen() {

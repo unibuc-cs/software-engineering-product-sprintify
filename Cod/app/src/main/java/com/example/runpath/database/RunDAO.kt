@@ -54,8 +54,9 @@ class RunDAO{
             }
     }
     // creez un listener pentru runuri
-    fun listenForRuns(onRunsUpdated: (List<Run>) -> Unit): ListenerRegistration {
+    fun listenForRuns(userId: String, onRunsUpdated: (List<Run>) -> Unit): ListenerRegistration {
         return db.collection("runs")
+            .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshots, e ->
                 if (e != null) {
                     println("Listen failed: $e")
@@ -68,15 +69,27 @@ class RunDAO{
                 }
             }
     }
+    fun getRunsByUserId(userId: String, onComplete: (List<Run>) -> Unit){
+        db.collection("runs")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { documents ->
+                val runs = documents.map { it.toObject<Run>().copy(runId = it.id) }
+                onComplete(runs)
+            }
+            .addOnFailureListener { e ->
+                println("Error getting documents: $e")
+            }
+    }
     // actualizez un run
     fun updateRun(
         runId: String,
         userId: String,
         circuitId: String,
-        startTime: Instant,
-        endTime: Instant,
-        pauseTime: Duration,
-        timeTracker: Duration,
+        startTime: String,
+        endTime: String,
+        pauseTime: String,
+        timeTracker: String,
         paceTracker: Double,
         distanceTracker: Double
     ){
