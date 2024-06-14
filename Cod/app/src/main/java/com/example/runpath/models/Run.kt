@@ -1,5 +1,6 @@
 package com.example.runpath.models
 
+import com.example.runpath.others.MyLatLng
 import java.time.Instant
 import kotlin.time.Duration
 
@@ -12,5 +13,6 @@ data class Run (
     val pauseTime: String = "",
     val timeTracker: String = "",
     val paceTracker: Double = 0.0,
-    val distanceTracker: Double = 0.0
+    val distanceTracker: Double = 0.0,
+    val coordinate : List<MyLatLng> = listOf()
     )

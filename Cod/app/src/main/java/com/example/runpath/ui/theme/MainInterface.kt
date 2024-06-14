@@ -67,6 +67,7 @@ import com.example.runpath.R
 import com.example.runpath.database.RunDAO
 import com.example.runpath.database.SessionManager
 import com.example.runpath.models.Run
+import com.example.runpath.others.MyLatLng
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -366,7 +367,8 @@ fun RunControlButton(
                         pauseTime = FormatTime(totalPausedTime),
                         timeTracker = FormatTime(time),
                         paceTracker = paceTrackerDb,
-                        distanceTracker = distanceTrackerDb
+                        distanceTracker = distanceTrackerDb,
+                        coordinate = locationPoints.map { MyLatLng(it.latitude, it.longitude) }
                     )
                     runDAO.insertRun(run) { newRun ->
                         println("Run added to database with ID: ${newRun.runId}")
