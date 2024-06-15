@@ -88,7 +88,14 @@ fun RunMap(run: Run): String {
     val baseUrl = "https://maps.googleapis.com/maps/api/staticmap"
     val size = "900x1500"
     val distance = run.distanceTracker
-    val zoom = if (distance < 1) "16" else if (distance < 5) "14" else "12"
+    val zoom = when {
+        distance < 1 -> "16"
+        distance < 5 -> "14"
+        distance < 10 -> "13"
+        distance < 20 -> "12"
+        distance < 40 -> "11"
+        else -> "10"
+    }
     val path = run.coordinate?.joinToString("|") { "${it.latitude},${it.longitude}" }
     val style = "feature:all|element:labels|visibility:off"
     val color = "0xFF0000" // portocaliu
