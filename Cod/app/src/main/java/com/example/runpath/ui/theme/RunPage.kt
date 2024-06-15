@@ -31,11 +31,10 @@ fun RunPage(onOptionSelected: (String) -> Unit) {
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        val choices = listOf("From a Circuit", "From a Previous Run", "Freemode")
+        val choices = listOf("From a Circuit", "From a Previous Run")
         val images = listOf(
             painterResource(id = R.drawable.circuit),
             painterResource(id = R.drawable.previous_run),
-            painterResource(id = R.drawable.freemode)
         )
 
         choices.forEachIndexed { index, choice ->
@@ -69,20 +68,5 @@ fun RunChoiceItem(choice: String, image: Painter, onClick: () -> Unit) {
 }
 
 
-@Composable
-fun CircuitScreen() {
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Circuit Screen", fontSize = 24.sp)
-    }
-}
-
-
-@Composable
-fun FreemodeScreen() {
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Freemode Screen", fontSize = 24.sp)
-    }
-}
 
