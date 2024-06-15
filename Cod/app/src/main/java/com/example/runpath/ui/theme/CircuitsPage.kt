@@ -102,7 +102,7 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
 
         Text(
             text = "Current filter: $selectedFilter",
-            modifier = Modifier.padding(16.dp).align(Alignment.TopCenter),
+            modifier = Modifier.padding(top = 50.dp).align(Alignment.TopEnd),
             fontWeight = FontWeight.Bold,
         )
 
