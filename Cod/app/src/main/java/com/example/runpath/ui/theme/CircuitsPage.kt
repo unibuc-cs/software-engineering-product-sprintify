@@ -1,3 +1,5 @@
+
+
 import android.widget.ImageView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,8 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -23,14 +27,11 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.example.runpath.database.CircuitDAO
 import com.example.runpath.database.SessionManager
 import com.example.runpath.models.Circuit
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.os.bundleOf
-import com.google.android.gms.maps.model.LatLng
-
 import com.squareup.picasso.Picasso
 
 
@@ -55,6 +56,10 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
     var circuits by remember { mutableStateOf(listOf<Circuit>()) }
     var showDialog by remember { mutableStateOf(false) }
     var currentCircuit by remember { mutableStateOf<Circuit?>(null) }
+    var selectedFilter by remember { mutableStateOf("") }
+    var isDropdownExpanded by remember { mutableStateOf(false) }
+
+    val filters = listOf("Distance", "Intensity", "Rating", "Difficulty")
 
     DisposableEffect(Unit) {// functie pentru a lua toate circuitele
         val listenerRegistration = circuitDao.listenForCircuits { updatedCircuits ->
@@ -69,6 +74,40 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
     Box( 
         modifier = Modifier.fillMaxSize(),
     ) {
+        Button(onClick = {isDropdownExpanded = true}) {
+            Text("Filters")
+        }
+
+        DropdownMenu(
+            expanded = isDropdownExpanded,
+            onDismissRequest = { isDropdownExpanded = false }
+        ) {
+            filters.forEach { filter ->
+                DropdownMenuItem(onClick = {
+                    selectedFilter = filter
+                    isDropdownExpanded = false
+                }) {
+                    Text(filter)
+                }
+            }
+        }
+
+        // Sort the circuits based on the selected filter
+        when (selectedFilter) {
+            "Distance" -> circuits = circuits.sortedBy { it.distance }
+            "Intensity" -> circuits = circuits.sortedBy { it.intensity }
+            "Rating" -> circuits = circuits.sortedBy { it.rating }
+            "Difficulty" -> circuits = circuits.sortedBy { it.difficulty }
+        }
+
+        Text(
+            text = "Current filter: $selectedFilter",
+            modifier = Modifier.padding(16.dp).align(Alignment.TopCenter),
+            fontWeight = FontWeight.Bold,
+        )
+
+
+
         Text(
             text = "Circuits",
             modifier = Modifier.padding(16.dp).align(Alignment.TopCenter),
@@ -109,6 +148,9 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
                                 ImageView(context).apply {
                                     Picasso.get().load(imageUrl).into(this)
                                 }
+                            },
+                            update = { view ->
+                                Picasso.get().load(imageUrl).into(view)
                             },
                             modifier = Modifier.width(1500.dp).height(500.dp)
                         )
