@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -23,7 +24,7 @@ import com.example.runpath.models.Run
 import com.squareup.picasso.Picasso
 
 @Composable
-fun Previous_runs(navController: NavController, sessionManager: SessionManager) {
+fun Previous_runs(navController: NavController, sessionManager: SessionManager,runSelected : Boolean = false) {
     // Get the user id
     val runDAO = RunDAO()
     val userId = sessionManager.getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
@@ -49,7 +50,16 @@ fun Previous_runs(navController: NavController, sessionManager: SessionManager) 
             // You can customize this part to display the run data as you want
 
             Text(text = "Run " + (index + 1) + ": " + run.startTime + " - " + run.endTime + " - " + run.distanceTracker + " km")
+            if (runSelected){
+                Button(onClick = {
 
+                    val route = run.coordinate.joinToString("|") { "${it.latitude},${it.longitude}" }
+                    navController.navigate("previous_run/route=$route")
+
+                }) {
+                    Text("Select")
+                }
+            }
             if (run.coordinate.isNotEmpty()) {
                 println("we have coordinates")
                 val image = RunMap(run = run)
@@ -59,7 +69,9 @@ fun Previous_runs(navController: NavController, sessionManager: SessionManager) 
                             Picasso.get().load(image).into(this)
                         }
                     },
-                    modifier = Modifier.width(1000.dp).height(500.dp)
+                    modifier = Modifier
+                        .width(1000.dp)
+                        .height(500.dp)
                 )
             } else {
                 Text("No coordinates for this run")

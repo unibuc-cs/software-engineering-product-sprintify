@@ -97,7 +97,7 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
         //buton pentru previous runs
         Button(
             onClick = {
-                navController.navigate("previous_runs")
+                navController.navigate("previous_runsHistory")
             },
             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6A1B9A)),
             modifier = Modifier
@@ -108,6 +108,7 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
         ) {
             Text(text = "Previous Runs", color = Color.White)
         }
+        Spacer(modifier = Modifier.height(20.dp))
         // buton pentru logout
         Button(
             onClick = {

@@ -274,10 +274,7 @@ fun RunControlButton(
     val userId = SessionManager(context).getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
     //logic for running on a circuit
     val circuitId = "N/A"
-    var endTime by remember { mutableStateOf("N/A") }
-    var timeTrackerDb by remember { mutableStateOf("N/A") }
     var paceTrackerDb by remember { mutableStateOf(0.0) }
-    var distanceTrackerDb by remember { mutableStateOf(0.0) }
     val runDAO = RunDAO()
 
 
@@ -359,6 +356,7 @@ fun RunControlButton(
     // buton pentru a opri tracking-ul
     if (startedRunningFlag.value) {
         Column {
+            val formattedDistance = String.format("%.2f", totalDistance.value)
             Button(
 
                 onClick =
@@ -372,7 +370,7 @@ fun RunControlButton(
                         pauseTime = FormatTime(totalPausedTime),
                         timeTracker = FormatTime(time),
                         paceTracker = paceTrackerDb,
-                        distanceTracker = distanceTrackerDb,
+                        distanceTracker = formattedDistance.toDouble(),
                         coordinate = locationPoints.map { MyLatLng(it.latitude, it.longitude) }
                     )
                     runDAO.insertRun(run) { newRun ->
@@ -929,7 +927,7 @@ fun NavigationHost(navController: NavHostController) {
             RunPage { option ->
                 when (option) {
                     "From a Circuit" -> navController.navigate("circuitScreen")
-                    "From a Previous Run" -> navController.navigate("previousRunScreen")
+                    "From a Previous Run" -> navController.navigate("previous_runs")
                     "Freemode" -> navController.navigate("freemodeScreen")
                 }
             }
@@ -937,7 +935,17 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Circuit.route) {
             CircuitsPage(navController, sessionManager)
         }
+        //redurect to map screen with the route drawn from a circuit
         composable("mapPage/route={route}") { backStackEntry ->
+            val routeString = backStackEntry.arguments?.getString("route")
+            val route = routeString?.split("|")?.map {
+                val latLng = it.split(",")
+                LatLng(latLng[0].toDouble(), latLng[1].toDouble())
+            }
+            MapScreen(currentLocation, searchedLocation, placesClient,route)
+        }
+        //redirect to map screen with the poluline drawn from the previous run
+        composable("previous_run/route={route}") { backStackEntry ->
             val routeString = backStackEntry.arguments?.getString("route")
             val route = routeString?.split("|")?.map {
                 val latLng = it.split(",")
@@ -948,8 +956,13 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Profile.route) {
             ProfilePage(navController, sessionManager)
         }
+        //this one will show the previsous runs with the select button
         composable("previous_runs") {
-            Previous_runs(navController, sessionManager)
+            Previous_runs(navController, sessionManager,true)
+        }
+        //history will send a false value to the previous_runs composable to not show the select button
+        composable("previous_runsHistory") {
+            Previous_runs(navController, sessionManager,false)
         }
         composable("circuitScreen") {
             CircuitsPage(navController, sessionManager, true)
