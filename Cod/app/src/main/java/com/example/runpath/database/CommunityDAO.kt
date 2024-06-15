@@ -1,10 +1,11 @@
 package com.example.runpath.database
 
-import androidx.compose.animation.core.snap
 import com.example.runpath.models.Community
+import com.example.runpath.models.Community_Users
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
+import java.time.LocalDateTime
 
 class CommunityDAO{
     // creez o noua instanta a bazei de date
@@ -97,6 +98,23 @@ class CommunityDAO{
             }
             .addOnFailureListener { e ->
                 println("Error deleting document: $e")
+            }
+    }
+
+    fun joinCommunity(communityId: String, userId: String) {
+        val community_users = Community_Users(
+            communityId = communityId,
+            userId = userId,
+            dateJoined = LocalDateTime.now().toString()
+        )
+
+        db.collection("community_users")
+            .add(community_users)
+            .addOnSuccessListener {
+                println("DocumentSnapshot successfully added!")
+            }
+            .addOnFailureListener { e ->
+                println("Error adding community: $e")
             }
     }
 }

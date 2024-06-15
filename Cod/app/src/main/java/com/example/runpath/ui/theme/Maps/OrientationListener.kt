@@ -1,4 +1,4 @@
-package com.example.runpath.ui.theme
+package com.example.runpath.ui.theme.Maps
 
 import android.content.Context
 import android.hardware.Sensor

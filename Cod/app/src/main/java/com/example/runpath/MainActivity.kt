@@ -2,21 +2,18 @@ package com.example.runpath
 
 import HomePage
 import LoginPage
-import com.example.runpath.ui.theme.ProfilePage
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import com.example.runpath.ui.theme.RunPathTheme
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.runpath.database.SessionManager
-import com.example.runpath.ui.theme.CommunityPage
-import com.example.runpath.ui.theme.MainInterface
-import com.example.runpath.ui.theme.Previous_runs
-import com.example.runpath.ui.theme.RegisterPage
-import com.example.runpath.ui.theme.UserProfilePage
+import com.example.runpath.ui.theme.Maps.MainInterface
+import com.example.runpath.ui.theme.Maps.RunPathTheme
+import com.example.runpath.ui.theme.ProfileAndCommunity.CommunityPage
+import com.example.runpath.ui.theme.ProfileAndCommunity.ProfilePage
+import com.example.runpath.ui.theme.RegisterLogin.RegisterPage
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

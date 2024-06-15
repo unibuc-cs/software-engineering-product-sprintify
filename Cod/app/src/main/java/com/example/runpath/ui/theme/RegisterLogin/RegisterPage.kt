@@ -1,4 +1,4 @@
-package com.example.runpath.ui.theme
+package com.example.runpath.ui.theme.RegisterLogin
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState

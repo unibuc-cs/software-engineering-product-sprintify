@@ -1,4 +1,4 @@
-package com.example.runpath.ui.theme
+package com.example.runpath.ui.theme.CircuitAndRun
 
 import android.widget.ImageView
 import androidx.compose.foundation.layout.height
@@ -19,7 +19,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.example.runpath.database.RunDAO
 import com.example.runpath.database.SessionManager
-import com.example.runpath.models.Circuit
 import com.example.runpath.models.Run
 import com.squareup.picasso.Picasso
 

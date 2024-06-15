@@ -1,4 +1,4 @@
-package com.example.runpath.ui.theme
+package com.example.runpath.ui.theme.GeneralCustomization
 
 import androidx.compose.ui.graphics.Color
 

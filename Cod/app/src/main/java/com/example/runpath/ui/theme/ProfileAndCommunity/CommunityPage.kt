@@ -1,4 +1,4 @@
-package com.example.runpath.ui.theme
+package com.example.runpath.ui.theme.ProfileAndCommunity
 
 import android.util.Log
 import androidx.compose.foundation.background

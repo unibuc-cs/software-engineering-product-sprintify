@@ -1,4 +1,4 @@
-package com.example.runpath.ui.theme
+package com.example.runpath.ui.theme.Maps
 
 import CircuitsPage
 import RunPage
@@ -63,6 +63,10 @@ import com.example.runpath.database.RunDAO
 import com.example.runpath.database.SessionManager
 import com.example.runpath.models.Run
 import com.example.runpath.others.MyLatLng
+import com.example.runpath.ui.theme.ProfileAndCommunity.CommunityPage
+import com.example.runpath.ui.theme.CircuitAndRun.Previous_runs
+import com.example.runpath.ui.theme.ProfileAndCommunity.ProfilePage
+import com.example.runpath.ui.theme.ProfileAndCommunity.UserProfilePage
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest

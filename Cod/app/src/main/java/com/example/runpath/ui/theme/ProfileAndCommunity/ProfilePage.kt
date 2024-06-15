@@ -1,4 +1,4 @@
-package com.example.runpath.ui.theme
+package com.example.runpath.ui.theme.ProfileAndCommunity
 
 import android.content.Intent
 import androidx.compose.foundation.Image
@@ -28,9 +28,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import com.example.runpath.MainActivity
 import com.example.runpath.R
 import com.example.runpath.database.SessionManager

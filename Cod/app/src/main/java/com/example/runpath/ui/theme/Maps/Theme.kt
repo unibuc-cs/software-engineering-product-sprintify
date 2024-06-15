@@ -1,4 +1,4 @@
-package com.example.runpath.ui.theme
+package com.example.runpath.ui.theme.Maps
 
 import android.app.Activity
 import android.os.Build
@@ -14,6 +14,13 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.example.runpath.ui.theme.GeneralCustomization.Pink40
+import com.example.runpath.ui.theme.GeneralCustomization.Pink80
+import com.example.runpath.ui.theme.GeneralCustomization.Purple40
+import com.example.runpath.ui.theme.GeneralCustomization.Purple80
+import com.example.runpath.ui.theme.GeneralCustomization.PurpleGrey40
+import com.example.runpath.ui.theme.GeneralCustomization.PurpleGrey80
+import com.example.runpath.ui.theme.GeneralCustomization.Typography
 
 // culorile temei aplicatiei pentru dark mode
 private val DarkColorScheme = darkColorScheme(
