@@ -11,7 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.runpath.database.SessionManager
 import com.example.runpath.ui.theme.Maps.MainInterface
 import com.example.runpath.ui.theme.Maps.RunPathTheme
-import com.example.runpath.ui.theme.ProfileAndCommunity.CommunityPage
+import CommunityPage
 import com.example.runpath.ui.theme.ProfileAndCommunity.ProfilePage
 import com.example.runpath.ui.theme.RegisterLogin.RegisterPage
 

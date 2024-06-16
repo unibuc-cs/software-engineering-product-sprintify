@@ -66,6 +66,40 @@ class CommunityDAO{
                 }
             }
     }
+
+    fun listenForJoinedCommunities(userId: String, onJoinedCommunitiesUpdated: (List<Community>) -> Unit): ListenerRegistration {
+        return db.collection("community_users")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Listen failed: $e")
+                    return@addSnapshotListener
+                }
+                if(snapshots != null){
+                    val joinedCommunities = snapshots.map { it.toObject<Community_Users>().communityId }
+                    val communities = mutableListOf<Community>()
+                    joinedCommunities.forEach { communityId ->
+                        if (communityId != null) {
+                            db.collection("communities")
+                                .document(communityId)
+                                .get()
+                                .addOnSuccessListener { document ->
+                                    if (document != null) {
+                                        val community = document.toObject<Community>()
+                                        communities.add(community!!)
+                                        onJoinedCommunitiesUpdated(communities)
+                                    } else {
+                                        println("No such document")
+                                    }
+                                }
+                                .addOnFailureListener { exception ->
+                                    println("Error getting document: $exception")
+                                }
+                        }
+                    }
+                }
+            }
+    }
     // actualizez o comunitate
     fun updateCommunity(
         communityId: String,
@@ -100,7 +134,7 @@ class CommunityDAO{
                 println("Error deleting document: $e")
             }
     }
-
+// adaug un user intr-o comunitate
     fun joinCommunity(communityId: String, userId: String) {
         val community_users = Community_Users(
             communityId = communityId,
@@ -116,5 +150,62 @@ class CommunityDAO{
             .addOnFailureListener { e ->
                 println("Error adding community: $e")
             }
+    }
+// verific daca un user este membru al unei comunitati
+    fun isUserMemberOfCommunity(communityId: String, userId: String, onComplete: (Boolean) -> Unit) {
+        db.collection("community_users")
+            .whereEqualTo("communityId", communityId)
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { documents ->
+                onComplete(documents.size() > 0)
+            }
+            .addOnFailureListener { e ->
+                println("Error checking membership: $e")
+            }
+    }
+// sterg un user dintr-o comunitate
+    fun leaveCommunity(communityId: String, userId: String) {
+        db.collection("community_users")
+            .whereEqualTo("communityId", communityId)
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { documents ->
+                documents.forEach {
+                    db.collection("community_users")
+                        .document(it.id)
+                        .delete()
+                        .addOnSuccessListener {
+                            println("DocumentSnapshot successfully deleted!")
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error deleting document: $e")
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                println("Error checking membership: $e")
+            }
+    }
+// iau numele unei comunitati bazat pe id
+    fun getCommunityName(communityId: String, onComplete: (String) -> Unit) {
+        if (communityId.isNotBlank()) {
+            db.collection("communities")
+                .document(communityId)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document != null) {
+                        val community = document.toObject<Community>()
+                        onComplete(community?.name ?: "")
+                    } else {
+                        println("No such document")
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    println("Error getting document: $exception")
+                }
+        } else {
+            println("Invalid communityId")
+        }
     }
 }
