@@ -6,19 +6,25 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 
-class OrientationListener(context: Context) : SensorEventListener {
-    private val sensorManager: SensorManager =
-        context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    private val magnetometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+// OrientationListener is a singleton class
+
+object OrientationListener : SensorEventListener {
+    private lateinit var sensorManager: SensorManager
+    private var accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    private var magnetometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
     private var gravity = FloatArray(3)
     private var geomagnetic = FloatArray(3)
     private val orientation = FloatArray(3)
     private val rotationMatrix = FloatArray(9)
 
-    var azimuth: Float = 0f
-        private set
+    private var azimuth: Float = 0f
+
+    fun initialize(context: Context) {
+        sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+    }
 
     fun startListening() {
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
@@ -37,7 +43,7 @@ class OrientationListener(context: Context) : SensorEventListener {
         if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
             geomagnetic = event.values
         }
-        if (gravity != null && geomagnetic != null) {
+        if (gravity.isNotEmpty() && geomagnetic.isNotEmpty()) {
             val R = FloatArray(9)
             val I = FloatArray(9)
             val success = SensorManager.getRotationMatrix(R, I, gravity, geomagnetic)
@@ -51,6 +57,10 @@ class OrientationListener(context: Context) : SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    fun getAzimuth(): Float {
+        return azimuth
+    }
 
     fun lerp(start: Float, end: Float, fraction: Float): Float {
         return (1 - fraction) * start + fraction * end

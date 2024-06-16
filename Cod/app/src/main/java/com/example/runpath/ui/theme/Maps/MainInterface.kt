@@ -813,7 +813,9 @@ fun MapScreen(
 
     val totalDistance = remember { mutableStateOf(0.0) }
 
-    val orientationListener = remember {OrientationListener(context)}
+    // Initialize the singleton class OrientationListener
+    OrientationListener.initialize(context)
+
     val cameraPositionState = rememberCameraPositionState()
 
     // Variable for the current bearing of the camera
@@ -837,10 +839,10 @@ fun MapScreen(
             val fraction = animation.animatedValue as Float
 
             val interpolatedLatLng = LatLng(
-                orientationListener.lerp(startLatLng.latitude.toFloat(), targetLatLng.latitude.toFloat(), fraction).toDouble(),
-                orientationListener.lerp(startLatLng.longitude.toFloat(), targetLatLng.longitude.toFloat(), fraction).toDouble()
+                OrientationListener.lerp(startLatLng.latitude.toFloat(), targetLatLng.latitude.toFloat(), fraction).toDouble(),
+                OrientationListener.lerp(startLatLng.longitude.toFloat(), targetLatLng.longitude.toFloat(), fraction).toDouble()
             )
-            val interpolatedBearing = orientationListener.adjustAngle(startBearing, targetBearing, fraction)
+            val interpolatedBearing = OrientationListener.adjustAngle(startBearing, targetBearing, fraction)
 
             val cameraPosition = CameraPosition.Builder()
                 .target(interpolatedLatLng)
@@ -880,11 +882,11 @@ fun MapScreen(
     )
 
     // Camera update logic
-    LaunchedEffect(currentLocation.value, orientationListener.azimuth, cameraTilt.value) {
+    LaunchedEffect(currentLocation.value, OrientationListener.getAzimuth(), cameraTilt.value) {
         val location = currentLocation.value
         location?.let {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                val bearing = location?.bearing ?: orientationListener.azimuth
+                val bearing = location?.bearing ?: OrientationListener.getAzimuth()
 //                val smoothedBearing = orientationListener.lowPassFilter(bearing, currentBearing, 0.75f)
 //                currentBearing = smoothedBearing
 
