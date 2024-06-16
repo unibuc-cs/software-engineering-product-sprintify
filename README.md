@@ -1,9 +1,9 @@
-# RunPath
+# Sprintify
 
 ## Descriere generală
-- RunPath este o aplicație mobilă inovatoare destinată comunității de alergători, oferind servicii avansate de geolocalizare direct de pe telefonul utilizatorului.
-- Prin utilizarea tehnologiei GPS, RunPath permite alergătorilor de toate nivelurile să urmărească în timp real distanța parcursă, ritmul și timpul de alergare. Mai mult decât atât, aplicația se distinge prin posibilitatea de personalizare a circuitelor, permițând utilizatorilor să creeze sau să selecteze trasee adaptate preferințelor. 
-- RunPath promovează interacțiunea socială prin competiții, contribuind la creșterea motivării și la întărirea comunității de alergători. În plus, securitatea utilizatorilor este o prioritate, oferind trasee sigure pentru alergările nocturne. Cu o interfață de utilizare modernă, bazată pe Jetpack Compose, și integrând tehnologii precum Firebase și Google Maps API, RunPath este concepută pentru a fi o platformă scalabilă, gata să satisfacă nevoile în continuă expansiune ale alergătorilor.
+- Sprintify este o aplicație mobilă inovatoare destinată comunității de alergători, oferind servicii avansate de geolocalizare direct de pe telefonul utilizatorului.
+- Prin utilizarea tehnologiei GPS, Sprintify permite alergătorilor de toate nivelurile să urmărească în timp real distanța parcursă, ritmul și timpul de alergare. Mai mult decât atât, aplicația se distinge prin posibilitatea de personalizare a circuitelor, permițând utilizatorilor să creeze sau să selecteze trasee adaptate preferințelor. 
+- Sprintify promovează interacțiunea socială prin competiții, contribuind la creșterea motivării și la întărirea comunității de alergători. În plus, securitatea utilizatorilor este o prioritate, oferind trasee sigure pentru alergările nocturne. Cu o interfață de utilizare modernă, bazată pe Jetpack Compose, și integrând tehnologii precum Firebase și Google Maps API, Sprintify este concepută pentru a fi o platformă scalabilă, gata să satisfacă nevoile în continuă expansiune ale alergătorilor.
 
 
 ## Obiective Generale
@@ -33,4 +33,4 @@
 
 ## Dezvoltare și Scalabilitate
 
-Proiectul "RunPath" va fi dezvoltat în iterații, începând cu funcționalitățile de bază și adăugând treptat caracteristici avansate. Conceput să fie scalabil, permite extinderea ușoară a funcționalităților pentru a satisface nevoile unei comunități în creștere.
+Proiectul "Sprintify" va fi dezvoltat în iterații, începând cu funcționalitățile de bază și adăugând treptat caracteristici avansate. Conceput să fie scalabil, permite extinderea ușoară a funcționalităților pentru a satisface nevoile unei comunități în creștere.
