@@ -72,6 +72,8 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdate
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -83,12 +85,14 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.GeoApiContext
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -502,50 +506,16 @@ fun placeMarkerOnMap(location: LatLng, title: String) {
 fun GMap(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>,
-    cameraPosition: MutableState<LatLng?>,
+    cameraPositionState: CameraPositionState,
     locationPoints: SnapshotStateList<LatLng>,
     segments: SnapshotStateList<Segment>,
     startedRunningFlag: MutableState<Boolean>,
-    cameraTilt: MutableState<Float>,
     route: List<LatLng>?
 ) {
-    /*val cameraPositionState = rememberCameraPositionState().apply {
-        val initialLocation: LatLng = if (searchedLocation.value == null) {
-            currentLocation.value ?: LatLng(
-                0.0,
-                0.0
-            ) // default este 0,0 pentru latitudine si longitudine
-        } else {
-            searchedLocation.value!!
-        }
-        position = CameraPosition.builder()
-            .target(initialLocation)
-            .zoom(15f)
-            .tilt(cameraTilt.value) // setez inclinatia camerei
-            .build()
-    }*/
-    val cameraPositionState = rememberCameraPositionState()
-
     // creez un nou obiect MapsActivity
     val mapsActivity = MapsActivity()
     val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
     val thresholdDistance = 0.025
-    // efect pentru a actualiza cameraPosition
-
-    LaunchedEffect(currentLocation.value) {
-        val previousLocation = cameraPosition.value
-        val newLocation = currentLocation.value
-
-        if (previousLocation != null && newLocation != null) {
-            if (calculateDistance(previousLocation, newLocation) > thresholdDistance) {
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(newLocation, 15f)
-                cameraPosition.value = newLocation
-            }
-        } else if (newLocation != null) {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(newLocation, 15f)
-            cameraPosition.value = newLocation
-        }
-    }
 
     LaunchedEffect(
         key1 = currentLocation.value,
@@ -558,21 +528,38 @@ fun GMap(
         }
     }
 
-    LaunchedEffect(key1 = cameraTilt.value) {
-        if(cameraTilt.value != cameraPositionState.position.tilt && currentLocation.value != null) {
-            cameraPositionState.position = CameraPosition.builder()
-                .target(currentLocation.value!!)
-                .zoom(15f)
-                .tilt(cameraTilt.value)
-                .build()
-        }
-    }
-
-    LaunchedEffect(cameraPosition.value) {
-        cameraPosition.value?.let {
-            cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
-        }
-    }
+//    val cameraPositionState = rememberCameraPositionState()
+//    LaunchedEffect(currentLocation.value) {
+//        val previousLocation = cameraPosition.value
+//        val newLocation = currentLocation.value
+//
+//        if (previousLocation != null && newLocation != null) {
+//            if (calculateDistance(previousLocation, newLocation) > thresholdDistance) {
+//                cameraPositionState.position = CameraPosition.fromLatLngZoom(newLocation, 15f)
+//                cameraPosition.value = newLocation
+//            }
+//        } else if (newLocation != null) {
+//            cameraPositionState.position = CameraPosition.fromLatLngZoom(newLocation, 15f)
+//            cameraPosition.value = newLocation
+//        }
+//    }
+//
+//
+//    LaunchedEffect(key1 = cameraTilt.value) {
+//        if(cameraTilt.value != cameraPositionState.position.tilt && currentLocation.value != null) {
+//            cameraPositionState.position = CameraPosition.builder()
+//                .target(currentLocation.value!!)
+//                .zoom(15f)
+//                .tilt(cameraTilt.value)
+//                .build()
+//        }
+//    }
+//
+//    LaunchedEffect(cameraPosition.value) {
+//        cameraPosition.value?.let {
+//            cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
+//        }
+//    }
 
     val context = LocalContext.current
     val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
@@ -789,6 +776,7 @@ fun TiltButton(cameraTilt: MutableState<Float>) {
 }
 
 // ecranul pentru harta
+@SuppressLint("MissingPermission")
 @Composable
 fun MapScreen(
     currentLocation: MutableState<LatLng?>,
@@ -801,22 +789,34 @@ fun MapScreen(
         .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
         .build()
 
+    // Location tracker
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
+    // Lists for the location points and the segments that
+    // make up the polyline
     val locationPoints = remember { mutableStateListOf<LatLng>() }
     val segments = remember { mutableStateListOf<Segment>() }
+
+    // Flag for run activation
     val isRunActive = remember { mutableStateOf(false) }
 
-    //camera position
-    val currentSegmentId = remember { mutableIntStateOf(0) }
+    // Camera position
     val cameraPosition = remember { mutableStateOf<LatLng?>(null) }
 
-    //tilt
+    // Camera tilt
     val cameraTilt = remember { mutableStateOf(0f) } // inclinarea initila este 0
 
+    // Flag for when the run is started (distinguishes between run started / run paused)
     val startedRunningFlag = remember { mutableStateOf(false) }
 
     val totalDistance = remember { mutableStateOf(0.0) }
+
+    val orientationListener = remember {OrientationListener(context)}
+    val cameraPositionState = rememberCameraPositionState()
+
+    // Variable for the current bearing of the camera
+    var currentBearing by remember {mutableStateOf(0f)}
+
     RequestLocationPermission(
         onPermissionGranted = {
             getCurrentLocation(fusedLocationClient) { location ->
@@ -842,6 +842,28 @@ fun MapScreen(
         }
     )
 
+    // Camera update logic
+    LaunchedEffect(currentLocation.value, orientationListener.azimuth, cameraTilt.value) {
+        val location = currentLocation.value
+        location?.let {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                val bearing = location?.bearing ?: orientationListener.azimuth
+                //val smoothedBearing = orientationListener.lowPassFilter(rawBearing, currentBearing, 0.75f)
+                //currentBearing = smoothedBearing
+                val cameraUpdate = CameraPosition.Builder()
+                    .target(LatLng(location.latitude, location.longitude))
+                    .bearing(bearing)
+                    .tilt(cameraTilt.value)
+                    .zoom(15f)
+                    .build()
+                cameraPositionState.position = cameraUpdate
+//                launch{
+//                    cameraPositionState.animate(CameraUpdateFactory.newCameraPosition(cameraUpdate))
+//                }
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -862,11 +884,10 @@ fun MapScreen(
             GMap(
                 currentLocation = currentLocation,
                 searchedLocation = searchedLocation,
-                cameraPosition = cameraPosition,
+                cameraPositionState = cameraPositionState,
                 locationPoints = locationPoints,
                 segments = segments,
                 startedRunningFlag = startedRunningFlag,
-                cameraTilt = cameraTilt,
                 route = route
             )
 
