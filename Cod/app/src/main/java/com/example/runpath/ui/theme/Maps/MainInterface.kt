@@ -885,15 +885,15 @@ fun MapScreen(
         location?.let {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 val bearing = location?.bearing ?: orientationListener.azimuth
-                val smoothedBearing = orientationListener.lowPassFilter(bearing, currentBearing, 0.75f)
-                currentBearing = smoothedBearing
+//                val smoothedBearing = orientationListener.lowPassFilter(bearing, currentBearing, 0.75f)
+//                currentBearing = smoothedBearing
 
                 val targetLatLng = LatLng(location.latitude, location.longitude)
                 animateCameraPosition(
                     currentLatLng = LatLng(cameraPositionState.position.target.latitude, cameraPositionState.position.target.longitude),
                     currentBearing = cameraPositionState.position.bearing,
                     targetLatLng = targetLatLng,
-                    targetBearing = smoothedBearing,
+                    targetBearing = bearing,
                     tilt = cameraTilt.value,
                     zoom = 15f
                 )
