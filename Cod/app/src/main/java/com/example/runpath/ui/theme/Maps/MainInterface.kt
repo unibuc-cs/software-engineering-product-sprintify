@@ -344,6 +344,13 @@ fun RunControlButton(
                 .border(2.dp, Color.Black) // Add border
                 .padding(4.dp) // Add padding for better visual effect
         )
+        Text(
+            text = "Pace: " + calculatePace(time, totalDistance.value),
+            modifier = Modifier
+                .background(Color.LightGray)
+                .border(2.dp, Color.Black)
+                .padding(4.dp)
+        )
     }
 
 
@@ -409,7 +416,16 @@ fun RunControlButton(
 
 }
 
+// Function for printing the pace of the run
+fun calculatePace(timeMillis: Long, distanceKm: Double): String {
+    val timeSeconds = TimeUnit.MILLISECONDS.toSeconds(timeMillis)
+    val paceInSecondsPerKm = timeSeconds / distanceKm
+    val minutes = (paceInSecondsPerKm / 60).toInt()
+    val seconds = (paceInSecondsPerKm % 60).toInt()
+    return String.format("%d'%02d''", minutes, seconds)
+}
 
+// Function for formatting the time (minutes : seconds : milliseconds)
 fun FormatTime(time: Long): String {
     val miliseconds = time % 1000
     val seconds = TimeUnit.MILLISECONDS.toSeconds(time) % 60
@@ -417,6 +433,7 @@ fun FormatTime(time: Long): String {
 
     return String.format("%02d:%02d:%03d", minutes, seconds, miliseconds)
 }
+
 fun FormatTime2(time: Long): String {
     val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     return sdf.format(Date(time))

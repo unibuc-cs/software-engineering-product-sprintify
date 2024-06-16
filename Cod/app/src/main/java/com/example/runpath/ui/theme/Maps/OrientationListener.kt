@@ -10,8 +10,8 @@ import android.hardware.SensorManager
 
 object OrientationListener : SensorEventListener {
     private lateinit var sensorManager: SensorManager
-    private var accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    private var magnetometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+    private var accelerometer: Sensor? = null
+    private var magnetometer: Sensor? = null
 
     private var gravity = FloatArray(3)
     private var geomagnetic = FloatArray(3)
