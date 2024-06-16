@@ -2,6 +2,7 @@ package com.example.runpath.ui.theme.Maps
 
 import CircuitsPage
 import RunPage
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.UiModeManager
 import android.content.Context
@@ -784,6 +785,7 @@ fun MapScreen(
     placesClient: PlacesClient,
     route: List<LatLng>? = null
 ) {
+
     val context = LocalContext.current
     val contextMap = GeoApiContext.Builder()
         .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
@@ -817,6 +819,41 @@ fun MapScreen(
     // Variable for the current bearing of the camera
     var currentBearing by remember {mutableStateOf(0f)}
 
+    fun animateCameraPosition(
+        currentLatLng: LatLng,
+        currentBearing: Float,
+        targetLatLng: LatLng,
+        targetBearing: Float,
+        tilt: Float,
+        zoom: Float,
+        duration: Long = 1000 // Animation duration in milliseconds
+    ) {
+        val startLatLng = currentLatLng
+        val startBearing = currentBearing
+
+        val animator = ValueAnimator.ofFloat(0f, 1f)
+        animator.duration = duration
+        animator.addUpdateListener { animation ->
+            val fraction = animation.animatedValue as Float
+
+            val interpolatedLatLng = LatLng(
+                orientationListener.lerp(startLatLng.latitude.toFloat(), targetLatLng.latitude.toFloat(), fraction).toDouble(),
+                orientationListener.lerp(startLatLng.longitude.toFloat(), targetLatLng.longitude.toFloat(), fraction).toDouble()
+            )
+            val interpolatedBearing = orientationListener.lerp(startBearing, targetBearing, fraction)
+
+            val cameraPosition = CameraPosition.Builder()
+                .target(interpolatedLatLng)
+                .bearing(interpolatedBearing)
+                .tilt(tilt)
+                .zoom(zoom)
+                .build()
+
+            cameraPositionState.position = cameraPosition
+        }
+        animator.start()
+    }
+
     RequestLocationPermission(
         onPermissionGranted = {
             getCurrentLocation(fusedLocationClient) { location ->
@@ -848,18 +885,18 @@ fun MapScreen(
         location?.let {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 val bearing = location?.bearing ?: orientationListener.azimuth
-                //val smoothedBearing = orientationListener.lowPassFilter(rawBearing, currentBearing, 0.75f)
-                //currentBearing = smoothedBearing
-                val cameraUpdate = CameraPosition.Builder()
-                    .target(LatLng(location.latitude, location.longitude))
-                    .bearing(bearing)
-                    .tilt(cameraTilt.value)
-                    .zoom(15f)
-                    .build()
-                cameraPositionState.position = cameraUpdate
-//                launch{
-//                    cameraPositionState.animate(CameraUpdateFactory.newCameraPosition(cameraUpdate))
-//                }
+//                val smoothedBearing = orientationListener.lowPassFilter(rawBearing, currentBearing, 0.75f)
+//                currentBearing = smoothedBearing
+
+                val targetLatLng = LatLng(location.latitude, location.longitude)
+                animateCameraPosition(
+                    currentLatLng = LatLng(cameraPositionState.position.target.latitude, cameraPositionState.position.target.longitude),
+                    currentBearing = cameraPositionState.position.bearing,
+                    targetLatLng = targetLatLng,
+                    targetBearing = bearing,
+                    tilt = cameraTilt.value,
+                    zoom = 15f
+                )
             }
         }
     }

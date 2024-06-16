@@ -52,6 +52,10 @@ class OrientationListener(context: Context) : SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
+    fun lerp(start: Float, end: Float, fraction: Float): Float {
+        return (1 - fraction) * start + fraction * end
+    }
+
     fun lowPassFilter(input: Float, output: Float, alpha: Float = 0.1f): Float {
         return output + alpha * (input - output)
     }
