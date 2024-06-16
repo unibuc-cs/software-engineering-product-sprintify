@@ -840,7 +840,7 @@ fun MapScreen(
                 orientationListener.lerp(startLatLng.latitude.toFloat(), targetLatLng.latitude.toFloat(), fraction).toDouble(),
                 orientationListener.lerp(startLatLng.longitude.toFloat(), targetLatLng.longitude.toFloat(), fraction).toDouble()
             )
-            val interpolatedBearing = orientationListener.lerp(startBearing, targetBearing, fraction)
+            val interpolatedBearing = orientationListener.adjustAngle(startBearing, targetBearing, fraction)
 
             val cameraPosition = CameraPosition.Builder()
                 .target(interpolatedLatLng)

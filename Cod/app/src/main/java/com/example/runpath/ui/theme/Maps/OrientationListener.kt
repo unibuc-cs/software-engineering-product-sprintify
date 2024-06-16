@@ -56,6 +56,14 @@ class OrientationListener(context: Context) : SensorEventListener {
         return (1 - fraction) * start + fraction * end
     }
 
+    fun adjustAngle(start: Float, end: Float, fraction: Float): Float {
+        var delta = (end - start + 360) % 360
+        if(delta > 180) {
+            delta -= 360
+        }
+        return (start + fraction * delta + 360) % 360
+    }
+
     fun lowPassFilter(input: Float, output: Float, alpha: Float = 0.1f): Float {
         return output + alpha * (input - output)
     }
