@@ -1,68 +1,107 @@
 package com.example.runpath.database
 
-import FeedReaderDbHelper
-import android.content.ContentValues
-import android.content.Context
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
-import kotlin.time.Duration
+import androidx.compose.animation.core.snap
+import com.example.runpath.models.Leaderboard
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.toObject
 
-class LeaderboardDAO(context: Context, dbHelper: FeedReaderDbHelper) {
 
-    private val db: SQLiteDatabase = dbHelper.writableDatabase
+class LeaderboardDAO{
+    // creez o noua instanta a bazei de date
+    private val db = FirebaseFirestore.getInstance()
+    // creez un nou leaderboard
+    fun insertLeaderboard(leaderboard: Leaderboard, onComplete: (Leaderboard) -> Unit) {
+        val documentReference = db.collection("leaderboards").document()
+        val leaderboardId = documentReference.id
+        val newLeaderboard = leaderboard.copy(leaderboardId = leaderboardId)
 
-    fun insertLeaderboard(
-        leaderboardId: Int,
-        circuitId: Int,
-        userId: Int,
-        rank: Int,
-        time: String
-    ): Long {
-        val values = ContentValues().apply {
-            put(DataBase.LeaderboardEntry.COLUMN_LEADERBOARD_ID, leaderboardId)
-            put(DataBase.LeaderboardEntry.COLUMN_CIRCUIT_ID, circuitId)
-            put(DataBase.LeaderboardEntry.COLUMN_USER_ID, userId)
-            put(DataBase.LeaderboardEntry.COLUMN_RANK, rank)
-            put(DataBase.LeaderboardEntry.COLUMN_TIME, time)
-        }
-        return db.insert(DataBase.LeaderboardEntry.TABLE_NAME, null, values)
+        documentReference.set(newLeaderboard)
+            .addOnSuccessListener {
+                onComplete(newLeaderboard)
+            }
+            .addOnFailureListener { e ->
+                println("Error adding document: $e")
+            }
     }
-
-    fun getLeaderboardById(leaderboardId: Int): Cursor {
-        return db.rawQuery(
-            "SELECT * FROM ${DataBase.LeaderboardEntry.TABLE_NAME} WHERE ${DataBase.LeaderboardEntry.COLUMN_LEADERBOARD_ID} = ?",
-            arrayOf(leaderboardId.toString())
-        )
+    // obtin un leaderboard dupa id
+    fun getLeaderboardById(leaderboardId: String) {
+        db.collection("leaderboards")
+            .document(leaderboardId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    println("${document.id} => ${document.data}")
+                } else {
+                    println("No such document")
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting document: $exception")
+            }
     }
-
+    // obtin toate leaderboardurile
+    fun getLeaderboards(onComplete: (List<Leaderboard>) -> Unit){
+        db.collection("leaderboards")
+            .get()
+            .addOnSuccessListener { documents ->
+                val leaderboards = documents.map { it.toObject<Leaderboard>().copy(leaderboardId = it.id) }
+                onComplete(leaderboards)
+            }
+            .addOnFailureListener { e ->
+                println("Error getting documents: $e")
+            }
+    }
+    // creez un listener pentru leaderboarduri
+    fun listenForLeaderboards(onLeaderboardsUpdated: (List<Leaderboard>) -> Unit): ListenerRegistration {
+        return db.collection("leaderboards")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Listen failed: $e")
+                    return@addSnapshotListener
+                }
+                if(snapshots != null){
+                    val leaderboards = snapshots.map { it.toObject<Leaderboard>().copy(leaderboardId = it.id) }
+                    onLeaderboardsUpdated(leaderboards)
+                }
+            }
+    }
+    // actualizez un leaderboard
     fun updateLeaderboard(
-        leaderboardId: Int,
-        circuitId: Int,
-        userId: Int,
+        leaderboardId : String,
+        circuitId: String,
+        userID: String,
         rank: Int,
         time: String
-    ): Int {
-        val values = ContentValues().apply {
-            circuitId?.let {put(DataBase.LeaderboardEntry.COLUMN_CIRCUIT_ID, it)}
-            userId?. let {put(DataBase.LeaderboardEntry.COLUMN_USER_ID, it)}
-            rank?. let {put(DataBase.LeaderboardEntry.COLUMN_RANK, it)}
-            time?. let {put(DataBase.LeaderboardEntry.COLUMN_TIME, it.toString())}
-        }
-        return db.update(
-            DataBase.LeaderboardEntry.TABLE_NAME,
-            values,
-            "${DataBase.LeaderboardEntry.COLUMN_LEADERBOARD_ID} = ?",
-            arrayOf(leaderboardId.toString())
+    ){
+        val leaderboard = Leaderboard(
+            leaderboardId = leaderboardId,
+            circuitId = circuitId,
+            userID = userID,
+            rank = rank,
+            time = time
         )
-    }
 
-    fun deleteLeaderboard(leaderboardId: Int): Int {
-        return db.delete(
-            DataBase.LeaderboardEntry.TABLE_NAME,
-            "${DataBase.LeaderboardEntry.COLUMN_LEADERBOARD_ID} = ?",
-            arrayOf(leaderboardId.toString())
-        )
+        db.collection("leaderboards")
+            .document(leaderboardId)
+            .set(leaderboard)
+            .addOnSuccessListener {
+                println("DocumentSnapshot successfully written!")
+            }
+            .addOnFailureListener { e ->
+                println("Error adding document: $e")
+            }
     }
-
+    // sterg un leaderboard
+    fun deleteLeaderboard(leaderboardId: String){
+        db.collection("leaderboards")
+            .document(leaderboardId)
+            .delete()
+            .addOnSuccessListener {
+                println("DocumentSnapshot successfully deleted!")
+            }
+            .addOnFailureListener { e ->
+                println("Error deleting document: $e")
+            }
+    }
 }

@@ -1,85 +1,130 @@
 package com.example.runpath.database
 
-import FeedReaderDbHelper
-import android.content.ContentValues
-import android.content.Context
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
+import androidx.compose.animation.core.snap
+import com.example.runpath.models.Run
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.toObject
 import java.time.Instant
 import kotlin.time.Duration
 
-class RunDAO(context: Context, dbHelper: FeedReaderDbHelper) {
+class RunDAO{
+    // creez o noua instanta a bazei de date
+    private val db = FirebaseFirestore.getInstance()
+    // creez un nou run
+    fun insertRun(run: Run, onComplete: (Run) -> Unit) {
+        val documentReference = db.collection("runs").document()
+        val runId = documentReference.id
+        val newRun = run.copy(runId = runId)
 
-    private val db: SQLiteDatabase = dbHelper.writableDatabase
-
-    fun insertRun(
-        runId: Int,
-        userId: Int,
-        circuitId: Int,
-        startTime: Instant,
-        endTime: Instant,
-        pauseTime: Duration,
-        timeTracker: Duration,
-        paceTracker: Double,
-        distanceTracker: Double
-        ): Long {
-        val values = ContentValues().apply {
-            put(DataBase.RunEntry.COLUMN_RUN_ID, runId)
-            put(DataBase.RunEntry.COLUMN_USER_ID, userId)
-            put(DataBase.RunEntry.COLUMN_CIRCUIT_ID, circuitId)
-            put(DataBase.RunEntry.COLUMN_START_TIME, startTime.toString())
-            put(DataBase.RunEntry.COLUMN_END_TIME, endTime.toString())
-            put(DataBase.RunEntry.COLUMN_PAUSE_TIME, pauseTime.toString())
-            put(DataBase.RunEntry.COLUMN_TIME_TRACKER, timeTracker.toString())
-            put(DataBase.RunEntry.COLUMN_PACE_TRACKER, paceTracker)
-            put(DataBase.RunEntry.COLUMN_DISTANCE_TRACKER, distanceTracker)
-        }
-        return db.insert(DataBase.RunEntry.TABLE_NAME, null, values)
+        documentReference.set(newRun)
+            .addOnSuccessListener {
+                onComplete(newRun)
+            }
+            .addOnFailureListener { e ->
+                println("Error adding document: $e")
+            }
     }
-
-    fun getRunById(runId: Int): Cursor {
-        return db.rawQuery(
-            "SELECT * FROM ${DataBase.RunEntry.TABLE_NAME} WHERE ${DataBase.RunEntry.COLUMN_RUN_ID} = ?",
-            arrayOf(runId.toString())
-        )
+    // obtin un run dupa id
+    fun getRunById(runId: String) {
+        db.collection("runs")
+            .document(runId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    println("${document.id} => ${document.data}")
+                } else {
+                    println("No such document")
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting document: $exception")
+            }
     }
+    // obtin toate runurile
+    fun getRuns(onComplete: (List<Run>) -> Unit){
+        db.collection("runs")
+            .get()
+            .addOnSuccessListener { documents ->
+                val runs = documents.map { it.toObject<Run>().copy(runId = it.id) }
+                onComplete(runs)
+            }
+            .addOnFailureListener { e ->
+                println("Error getting documents: $e")
+            }
+    }
+    // creez un listener pentru runuri
+    fun listenForRuns(userId: String, onRunsUpdated: (List<Run>) -> Unit): ListenerRegistration {
+        return db.collection("runs")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Listen failed: $e")
+                    return@addSnapshotListener
+                }
 
+                if(snapshots != null){
+                    val runs = snapshots.map { it.toObject<Run>().copy(runId = it.id) }
+                    onRunsUpdated(runs)
+                }
+            }
+    }
+    fun getRunsByUserId(userId: String, onComplete: (List<Run>) -> Unit){
+        db.collection("runs")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { documents ->
+                val runs = documents.map { it.toObject<Run>().copy(runId = it.id) }
+                onComplete(runs)
+            }
+            .addOnFailureListener { e ->
+                println("Error getting documents: $e")
+            }
+    }
+    // actualizez un run
     fun updateRun(
-        runId: Int,
-        userId: Int,
-        circuitId: Int,
-        startTime: Instant,
-        endTime: Instant,
-        pauseTime: Duration,
-        timeTracker: Duration,
+        runId: String,
+        userId: String,
+        circuitId: String,
+        startTime: String,
+        endTime: String,
+        pauseTime: String,
+        timeTracker: String,
         paceTracker: Double,
         distanceTracker: Double
-    ): Int {
-        val values = ContentValues().apply {
-            userId?. let {put(DataBase.RunEntry.COLUMN_USER_ID, it)}
-            circuitId?. let {put(DataBase.RunEntry.COLUMN_CIRCUIT_ID, it)}
-            startTime?. let {put(DataBase.RunEntry.COLUMN_START_TIME, it.toString())}
-            endTime?. let {put(DataBase.RunEntry.COLUMN_PAUSE_TIME, it.toString())}
-            pauseTime?. let {put(DataBase.RunEntry.COLUMN_PAUSE_TIME, it.toString())}
-            timeTracker?. let {put(DataBase.RunEntry.COLUMN_TIME_TRACKER, it.toString())}
-            paceTracker?. let {put(DataBase.RunEntry.COLUMN_PACE_TRACKER, it)}
-            distanceTracker?. let {put(DataBase.RunEntry.COLUMN_DISTANCE_TRACKER, it)}
-        }
-        return db.update(
-            DataBase.RunEntry.TABLE_NAME,
-            values,
-            "${DataBase.RunEntry.COLUMN_RUN_ID} = ?",
-            arrayOf(runId.toString())
+    ){
+        val run = Run(
+            runId = runId,
+            userId = userId,
+            circuitId = circuitId,
+            startTime = startTime,
+            endTime = endTime,
+            pauseTime = pauseTime,
+            timeTracker = timeTracker,
+            paceTracker = paceTracker,
+            distanceTracker = distanceTracker
         )
-    }
 
-    fun deleteRun(runId: Int): Int {
-        return db.delete(
-            DataBase.RunEntry.TABLE_NAME,
-            "${DataBase.RunEntry.COLUMN_RUN_ID} = ?",
-            arrayOf(runId.toString())
-        )
+        db.collection("runs")
+            .document(runId)
+            .set(run)
+            .addOnSuccessListener {
+                println("DocumentSnapshot successfully written!")
+            }
+            .addOnFailureListener{
+                println("Error updating document: $it")
+            }
     }
-    
+    // sterg un run
+    fun deleteRun(runId: String){
+        db.collection("runs")
+            .document(runId)
+            .delete()
+            .addOnSuccessListener {
+                println("DocumentSnapshot successfully deleted!")
+            }
+            .addOnFailureListener { e ->
+                println("Error deleting document: $e")
+            }
+    }
 }

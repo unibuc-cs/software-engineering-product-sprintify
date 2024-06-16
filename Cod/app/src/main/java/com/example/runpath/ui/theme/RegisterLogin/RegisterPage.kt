@@ -1,28 +1,14 @@
-package com.example.runpath.ui.theme
+package com.example.runpath.ui.theme.RegisterLogin
 
-import FeedReaderDbHelper
-import androidx.compose.foundation.interaction.DragInteraction
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -33,22 +19,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.runpath.database.SessionManager
 import com.example.runpath.database.UserDAO
+import com.example.runpath.models.User
 
 @Composable
-fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
+fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
+    // variabile pentru crearea unui cont
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordConfirmation by remember { mutableStateOf("") }
 
-    var validEmail by remember { mutableStateOf(true)}
+    var validEmail by remember { mutableStateOf(true) }
     var passwordConfirmationTouched by remember { mutableStateOf(false) }
     val passwordMatch = password == passwordConfirmation
     val focusManager = LocalFocusManager.current
@@ -56,10 +43,9 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
             passwordConfirmation.isNotEmpty() && passwordMatch
     val scrollState = rememberScrollState()
 
-    // For user registration logic
     val context = LocalContext.current
-    val userDAO by remember { mutableStateOf(UserDAO(context, dbHelper)) }
-
+    val userDAO by remember { mutableStateOf(UserDAO(context)) }
+    // afisarea paginii de inregistrare
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -69,9 +55,8 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Row (
-            modifier = Modifier
-                .fillMaxWidth(),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -80,30 +65,30 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
 
         Spacer(modifier = Modifier.height(80.dp))
 
-        Row (
+        Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
         ) {
             Text("Username", fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Start)
         }
-
+        // campul pentru username
         TextField(
             value = username,
             onValueChange = { username = it },
             label = { Text("Username") },
-            keyboardOptions = KeyboardOptions (
+            keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Text
             ),
-            keyboardActions = KeyboardActions (
-                onNext = {focusManager.moveFocus(FocusDirection.Down)}
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             ),
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(12.dp))
-
-        Row (
+        // campul pentru email
+        Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
         ) {
@@ -123,21 +108,21 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
             onValueChange = {
                 email = it
                 validEmail = isEmailValid(email)
-                            },
+            },
             label = { Text("Email") },
-            keyboardOptions = KeyboardOptions (
+            keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
-            keyboardActions = KeyboardActions (
-                onNext = {focusManager.moveFocus(FocusDirection.Down)}
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             ),
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(12.dp))
-
-        Row (
+        // campul pentru parola
+        Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
         ) {
@@ -148,20 +133,20 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
-            keyboardOptions = KeyboardOptions (
+            keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
             ),
-            keyboardActions = KeyboardActions (
-                onNext = {focusManager.moveFocus(FocusDirection.Down)}
+            keyboardActions = KeyboardActions(
+                onNext = { focusManager.moveFocus(FocusDirection.Down) }
             ),
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(12.dp))
-
-        Row (
+        // campul pentru confirmarea parolei
+        Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
         ) {
@@ -190,20 +175,33 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
             visualTransformation = PasswordVisualTransformation(),
             keyboardActions = KeyboardActions(
                 onDone = {
-                focusManager.clearFocus() // Field loses focus when done
-            }),
+                    focusManager.clearFocus() // Field loses focus when done
+                }
+            ),
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(40.dp))
-
+        // buton pentru inregistrare
         Button(
             onClick = {
                 if (passwordMatch) {
-                    // Register user logic
-                    userDAO.insertUser(username, email, password)
+                    // logica pentru inregistrare
+                    val dateCreated = System.currentTimeMillis().toString()
+                    val user = User(username = username, email = email, password = password, dateCreated = dateCreated)
 
-                    navcontroller.navigate("loginPage")
+                    // daca inregistrarea este reusita, se salveaza datele in SharedPreferences
+                    userDAO.insertUser(user) { newUser ->
+                        val sharedPreferences = sessionManager.getsharedPreferences()
+                        with(sharedPreferences.edit()) {
+                            putString("username", newUser.username)
+                            putString("email", newUser.email)
+                            putString("dateCreated", newUser.dateCreated)
+                            apply()
+                        }
+                        // se navigheaza catre pagina de login
+                        navController.navigate("loginPage")
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -213,16 +211,8 @@ fun RegisterPage(navcontroller : NavController, dbHelper: FeedReaderDbHelper) {
         }
     }
 }
-
-
+// functie pentru validarea email-ului
 fun isEmailValid(email: String): Boolean {
     val emailPattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$"
     return emailPattern.toRegex().matches(email)
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewRegisterPage() {
-//    RegisterPage()
-//}

@@ -31,18 +31,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.runpath.database.SessionManager
+
 import com.example.runpath.database.UserDAO
+import com.example.runpath.others.USER_NOT_FOUND
 
 
 @Composable
-fun LoginPage(navController: NavController, dbHelper: FeedReaderDbHelper) {
+fun LoginPage(navController: NavController) {
+    // campurile pentru username si parola
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val dbHelper = FeedReaderDbHelper(context = LocalContext.current)
-    val userDAO = UserDAO(context = LocalContext.current, dbHelper = dbHelper)
+    val userDAO = UserDAO(context = LocalContext.current)
     var showErrorDialog by remember { mutableStateOf(false) }
 
-
+    // afisarea paginii de login
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -111,25 +113,39 @@ fun LoginPage(navController: NavController, dbHelper: FeedReaderDbHelper) {
                 }
 
             )
-
-
             // buton de login
-
-
             Spacer(modifier = Modifier.height(16.dp))
             val sessionManager = SessionManager(context = LocalContext.current)
 
             Button(
                 onClick = {
-                    val userId = userDAO.login(username, password)
-                    if (userId != -1) {
-                        //daca loginul este reusit, se creeaza o sesiune
-                        sessionManager.createSession(userId)
-                        navController.navigate("mainInterface")
-                    } else {
-                        showErrorDialog = true
+                    println("username and password: $username $password")
+                    userDAO.login(username, password) { userId ->
+                        println("userId: $userId")
+                        if (userId != USER_NOT_FOUND) {
+                            // If login is successful, create a session
+                            println("Login successful")
+                            userDAO.getUserById(userId) { user ->
+                                if (user?.userId != null) {
+                                    sessionManager.createSession(
+                                        user.userId,
+                                        user.username,
+                                        user.email,
+                                        user.dateCreated
+                                    )
+                                    // navigheaza catre pagina principala
+                                    navController.navigate("mainInterface")
+                                } else {
+                                    println(USER_NOT_FOUND)
+                                    showErrorDialog = true
+                                }
+                            }
+                        } else {
+                            showErrorDialog = true
+                        }
                     }
-                },
+                }
+                ,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = username.isNotEmpty() && password.isNotEmpty()
             ) {

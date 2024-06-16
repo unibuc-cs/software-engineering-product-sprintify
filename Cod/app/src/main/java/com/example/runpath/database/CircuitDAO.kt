@@ -1,96 +1,126 @@
 package com.example.runpath.database
 
-import FeedReaderDbHelper
-import android.content.ContentValues
-import android.content.Context
-import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
+import androidx.compose.animation.core.snap
+import com.example.runpath.models.Circuit
+import com.example.runpath.others.MyLatLng
+
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.toObject
+import com.google.maps.model.LatLng
 
 
-/*
-* Given that your project uses FeedReaderDbHelper to create and manage the database, it's fine to reference it directly.
-* However, if you value flexibility, testability, or anticipate changes in the database structure, it's better to stick with SQLiteOpenHelper.
-* */
-class CircuitDAO(context: Context, dbHelper: FeedReaderDbHelper) {
-    private val db: SQLiteDatabase = dbHelper.writableDatabase
+class CircuitDAO {
+    // creez o noua instanta a bazei de date
+    private val db = FirebaseFirestore.getInstance()
+    // creez un nou circuit
+    fun insertCircuit(circuit: Circuit, onComplete: (Circuit) -> Unit) {
+        val documentReference = db.collection("circuits").document()
+        val circuitId = documentReference.id
+        val newCircuit = circuit.copy(circuitId = circuitId)
 
+        documentReference.set(newCircuit)
+            .addOnSuccessListener {
+                onComplete(newCircuit)
+            }
+            .addOnFailureListener { e ->
+                println("Error adding document: $e")
+            }
+    }
+    // obtin un circuit dupa id
+    fun getCircuitbyId(circuitId: String) {
+        db.collection("circuits")
+            .document(circuitId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null) {
+                    println("${document.id} => ${document.data}")
+                } else {
+                    println("No such document")
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting document: $exception")
+            }
+    }
+    // obtin toate circuitele
+    fun getCircuits(onComplete: (List<Circuit>) -> Unit){
+        db.collection("circuits")
+            .get()
+            .addOnSuccessListener { documents ->
+                val circuits = documents.map { it.toObject<Circuit>().copy(circuitId = it.id) }
+                onComplete(circuits)
+            }
+            .addOnFailureListener { e ->
+                println("Error getting documents: $e")
+            }
+    }
 
-    fun insertCircuit(
+    fun listenForCircuits(onCircuitsUpdated: (List<Circuit>) -> Unit): ListenerRegistration {
+        return db.collection("circuits")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    println("Listen failed: $e")
+                    return@addSnapshotListener
+                }
+                if(snapshots != null){
+                    val circuits = snapshots.map { it.toObject<Circuit>().copy(circuitId = it.id) }
+                    onCircuitsUpdated(circuits)
+                }
+            }
+    }
+    // actualizez un circuit
+    fun updateCircuit(
+        circuitId: String,
         name: String,
         description: String,
-        distance: Float,
-        estimatedTime: Long,
-        intensity: String,
+        distance: Double,
+        estimatedTime: String,
+        intensity: Int,
         terrain: String,
         petFriendly: Boolean,
         lightLevel: Int,
-        rating: Float,
-        difficulty: String
-    ): Long {
-        val values = ContentValues().apply {
-            put(DataBase.CircuitEntry.COLUMN_NAME, name)
-            put(DataBase.CircuitEntry.COLUMN_DESCRIPTION, description)
-            put(DataBase.CircuitEntry.COLUMN_DISTANCE, distance)
-            put(DataBase.CircuitEntry.COLUMN_ESTIMATED_TIME, estimatedTime)
-            put(DataBase.CircuitEntry.COLUMN_INTENSITY, intensity)
-            put(DataBase.CircuitEntry.COLUMN_TERRAIN, terrain)
-            put(DataBase.CircuitEntry.COLUMN_PET_FRIENDLY, if (petFriendly) 1 else 0)
-            put(DataBase.CircuitEntry.COLUMN_LIGHT_LEVEL, lightLevel)
-            put(DataBase.CircuitEntry.COLUMN_RATING, rating)
-            put(DataBase.CircuitEntry.COLUMN_DIFFICULTY, difficulty)
-        }
-        return db.insert(DataBase.CircuitEntry.TABLE_NAME, null, values)
-    }
-
-
-    fun getCircuitById(circuitId: Int): Cursor {
-        return db.rawQuery(
-            "SELECT * FROM ${DataBase.CircuitEntry.TABLE_NAME} WHERE ${DataBase.CircuitEntry.COLUMN_CIRCUIT_ID} = ?",
-            arrayOf(circuitId.toString())
+        rating: Double,
+        difficulty: Int,
+        route : List<LatLng>
+    ) {
+        val circuit = Circuit(
+            circuitId = circuitId,
+            name = name,
+            description = description,
+            distance = distance,
+            estimatedTime = estimatedTime,
+            intensity = intensity,
+            terrain = terrain,
+            petFriendly = petFriendly,
+            lightLevel = lightLevel,
+            rating = rating,
+            difficulty = difficulty,
+            route = route.map { toMyLatLng(it) }
         )
+        db.collection("circuits")
+            .document(circuitId)
+            .set(circuit)
+            .addOnSuccessListener {
+                println("DocumentSnapshot successfully updated!")
+            }
+            .addOnFailureListener { e ->
+                println("Error updating document: $e")
+            }
     }
-
-
-    fun updateCircuit(
-        circuitId: Int,
-        name: String?,
-        description: String?,
-        distance: Float?,
-        estimatedTime: Long?,
-        intensity: String?,
-        terrain: String?,
-        petFriendly: Boolean?,
-        lightLevel: Int?,
-        rating: Float?,
-        difficulty: String?
-    ): Int {
-        val values = ContentValues().apply {
-            name?.let { put(DataBase.CircuitEntry.COLUMN_NAME, it) }
-            description?.let { put(DataBase.CircuitEntry.COLUMN_DESCRIPTION, it) }
-            distance?.let { put(DataBase.CircuitEntry.COLUMN_DISTANCE, it) }
-            estimatedTime?.let { put(DataBase.CircuitEntry.COLUMN_ESTIMATED_TIME, it) }
-            intensity?.let { put(DataBase.CircuitEntry.COLUMN_INTENSITY, it) }
-            terrain?.let { put(DataBase.CircuitEntry.COLUMN_TERRAIN, it) }
-            petFriendly?.let { put(DataBase.CircuitEntry.COLUMN_PET_FRIENDLY, if (it) 1 else 0) }
-            lightLevel?.let { put(DataBase.CircuitEntry.COLUMN_LIGHT_LEVEL, it) }
-            rating?.let { put(DataBase.CircuitEntry.COLUMN_RATING, it) }
-            difficulty?.let { put(DataBase.CircuitEntry.COLUMN_DIFFICULTY, it) }
-        }
-        return db.update(
-            DataBase.CircuitEntry.TABLE_NAME,
-            values,
-            "${DataBase.CircuitEntry.COLUMN_CIRCUIT_ID} = ?",
-            arrayOf(circuitId.toString())
-        )
+    // sterg un circuit
+    fun deleteCircuit(circuitId: String) {
+        db.collection("circuits")
+            .document(circuitId)
+            .delete()
+            .addOnSuccessListener {
+                println("DocumentSnapshot successfully deleted!")
+            }
+            .addOnFailureListener { e ->
+                println("Error deleting document: $e")
+            }
     }
-
-
-    fun deleteCircuit(circuitId: Int): Int {
-        return db.delete(
-            DataBase.CircuitEntry.TABLE_NAME,
-            "${DataBase.CircuitEntry.COLUMN_CIRCUIT_ID} = ?",
-            arrayOf(circuitId.toString())
-        )
+    fun toMyLatLng(latLng: LatLng): MyLatLng{
+        return MyLatLng(latLng.lat, latLng.lng)
     }
 }
