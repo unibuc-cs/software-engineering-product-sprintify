@@ -2,6 +2,7 @@ package com.example.runpath.ui.theme.Maps
 
 import CircuitsPage
 import RunPage
+import RunsMap
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.UiModeManager
@@ -60,8 +61,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.runpath.R
+import com.example.runpath.database.CircuitDAO
 import com.example.runpath.database.RunDAO
 import com.example.runpath.database.SessionManager
+import com.example.runpath.models.Circuit
 import com.example.runpath.models.Run
 import com.example.runpath.others.MyLatLng
 import com.example.runpath.ui.theme.ProfileAndCommunity.CommunityPage
@@ -521,7 +524,7 @@ fun placeMarkerOnMap(location: LatLng, title: String) {
 
 // functie pentru a afisa harta
 @Composable
-fun GMap(
+fun  GMap(
     currentLocation: MutableState<LatLng?>,
     searchedLocation: MutableState<LatLng?>,
     cameraPositionState: CameraPositionState,
@@ -872,7 +875,7 @@ fun MapScreen(
         }
         animator.start()
     }
-
+   
     RequestLocationPermission(
         onPermissionGranted = {
             getCurrentLocation(fusedLocationClient) { location ->
@@ -1018,7 +1021,20 @@ fun NavigationHost(navController: NavHostController) {
                 val latLng = it.split(",")
                 LatLng(latLng[0].toDouble(), latLng[1].toDouble())
             }
-            MapScreen(currentLocation, searchedLocation, placesClient,route)
+            if (route != null) {
+                RunsMap(
+                    initialRoute = route,
+                    onRouteCompleted = {
+                        // Define what should happen when the route is completed
+                        // For example, navigate back or show a message
+                    }
+                )
+            }
+            else{
+                MapScreen(currentLocation, searchedLocation, placesClient)
+                println("ERROR: Route is null")
+
+            }
         }
         //redirect to map screen with the poluline drawn from the previous run
         composable("previous_run/route={route}") { backStackEntry ->
@@ -1027,7 +1043,20 @@ fun NavigationHost(navController: NavHostController) {
                 val latLng = it.split(",")
                 LatLng(latLng[0].toDouble(), latLng[1].toDouble())
             }
-            MapScreen(currentLocation, searchedLocation, placesClient,route)
+            if (route != null) {
+                RunsMap(
+                    initialRoute = route,
+                    onRouteCompleted = {
+                        // Define what should happen when the route is completed
+                        // For example, navigate back or show a message
+                    }
+                )
+            }
+            else{
+                MapScreen(currentLocation, searchedLocation, placesClient)
+                println("ERROR: Route is null")
+
+            }
         }
         composable(BottomNavItem.Profile.route) {
             ProfilePage(navController, sessionManager)
