@@ -98,13 +98,12 @@ fun RunsMap(
             currentLocation.value = LatLng(location.latitude, location.longitude)
         }
     }
-
+    //request location updates every 3 seconds
     val locationRequest = LocationRequest.create().apply {
         interval = 3000
         fastestInterval = 1000
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
-
     val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val locationList = locationResult.locations
@@ -112,18 +111,18 @@ fun RunsMap(
                 val newLocation = locationList.last()
                 currentLocation.value = LatLng(newLocation.latitude, newLocation.longitude)
 
-                // Redefine the condition to remove points
+                //if the remaining route is not empty
                 if (remainingRoute.isNotEmpty()) {
                     val nearestIndex = remainingRoute.indexOfFirst { point ->
                         val distance = calculateDistance(currentLocation.value!!, point) * 1000
-                        distance < 5  // Adjust distance threshold as needed
+                        distance < 5  // delete points that are within 5 meters
                     }
                     if (nearestIndex != -1) {
-                        // Remove all points up to and including the nearest index
+                        // remove all points up to and including the nearest index
                         remainingRoute.removeAll(remainingRoute.take(nearestIndex + 1))
                     }
                 }
-
+                //successfully completed the route
                 if (remainingRoute.isEmpty()) {
                     onRouteCompleted()
                 }
@@ -131,14 +130,14 @@ fun RunsMap(
         }
     }
 
-
+    //request location updates
     fusedLocationClient.requestLocationUpdates(
         locationRequest,
         locationCallback,
         Looper.getMainLooper()
     )
 
-
+    //generate the google map
     GoogleMap(
         modifier = Modifier
             .fillMaxSize()
@@ -155,7 +154,7 @@ fun RunsMap(
     }
 }
 
-
+//place a marker on the map
 @Composable
 fun placeMarker(location: LatLng, title: String) {
     Marker(

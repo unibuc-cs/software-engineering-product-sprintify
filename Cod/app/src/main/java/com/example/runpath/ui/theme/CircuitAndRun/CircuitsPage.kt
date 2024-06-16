@@ -35,8 +35,9 @@ import com.example.runpath.models.Circuit
 import com.squareup.picasso.Picasso
 
 
+//function to craete a snapshot of the circuit map
 @Composable
-fun CircuitMap(circuit: Circuit): String {  
+fun CircuitMap(circuit: Circuit): String {
     // creez un URL pentru harta statica a circuitului
     val apiKey = "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU"
     val baseUrl = "https://maps.googleapis.com/maps/api/staticmap"
@@ -51,7 +52,7 @@ fun CircuitMap(circuit: Circuit): String {
 
 @Composable
 fun CircuitsPage(navController: NavController, sessionManager: SessionManager,runSelected : Boolean = false) {
-    // variabile pentru circuit
+    // variables for the circuits page
     val circuitDao = CircuitDAO()
     var circuits by remember { mutableStateOf(listOf<Circuit>()) }
     var showDialog by remember { mutableStateOf(false) }
@@ -61,7 +62,7 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
 
     val filters = listOf("Distance", "Intensity", "Rating", "Difficulty")
 
-    DisposableEffect(Unit) {// functie pentru a lua toate circuitele
+    DisposableEffect(Unit) {// active listener for circuits
         val listenerRegistration = circuitDao.listenForCircuits { updatedCircuits ->
             circuits = updatedCircuits
         }
@@ -70,8 +71,8 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
             listenerRegistration.remove()
         }
     }
-    // afisarea paginii de circuite
-    Box( 
+    // display the circuits page
+    Box(
         modifier = Modifier.fillMaxSize(),
     ) {
         Button(onClick = {isDropdownExpanded = true}) {
@@ -92,14 +93,14 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
             }
         }
 
-        // Sort the circuits based on the selected filter
+        // sort the circuits based on the selected filter
         when (selectedFilter) {
             "Distance" -> circuits = circuits.sortedBy { it.distance }
             "Intensity" -> circuits = circuits.sortedBy { it.intensity }
             "Rating" -> circuits = circuits.sortedBy { it.rating }
             "Difficulty" -> circuits = circuits.sortedBy { it.difficulty }
         }
-
+        //text for the selected filter
         Text(
             text = "Current filter: $selectedFilter",
             modifier = Modifier.padding(top = 50.dp).align(Alignment.TopEnd),
@@ -107,7 +108,7 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
         )
 
 
-
+        // display the circuits
         Text(
             text = "Circuits",
             modifier = Modifier.padding(16.dp).align(Alignment.TopCenter),
@@ -118,6 +119,7 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
             modifier = Modifier
                 .padding(top = 40.dp)
         ) {
+            //iterate through the circuits
             itemsIndexed(circuits) { index, circuit ->
                 Column {
                     Text(
@@ -125,9 +127,9 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
                     )
                     if(runSelected){
                         Button(onClick = {
-                            // Convert the circuit's route to a string
+                            // convert the circuit's route to a string
                             val route = circuit.route?.joinToString("|") { "${it.latitude},${it.longitude}" }
-                            // Navigate to the MapScreen and pass the route as a parameter in the route string
+                            // navigate to the MapScreen and pass the route as a parameter in the route string
                             navController.navigate("mapPage/route=$route")
                         }) {
                             Text("Select")
@@ -141,6 +143,7 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
                     }
 
                     val route = circuit.route
+                    // display the circuit map
                     if (route != null) {
                         val imageUrl = CircuitMap(circuit = circuit)
                         AndroidView(
@@ -149,6 +152,7 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
                                     Picasso.get().load(imageUrl).into(this)
                                 }
                             },
+                            //we use picasso to load the image
                             update = { view ->
                                 Picasso.get().load(imageUrl).into(view)
                             },
@@ -159,9 +163,10 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
             }
         }
 
-        //cand apasam butonul se deschide popup-ul cu detaliile circuitului
+        // when the user clicks on the "See Details" button, a dialog will pop up with the circuit's details
         if (showDialog) {
             AlertDialog(
+                //pop up for the circuit details
                 onDismissRequest = { showDialog = false },
                 title = { Text(text = currentCircuit?.name ?: "") },
                 text = {

@@ -2,7 +2,7 @@ package com.example.runpath.models
 
 
 import com.example.runpath.others.MyLatLng
-import com.google.android.gms.maps.model.LatLng
+
 
 data class Circuit (
     val circuitId: String? = null,
