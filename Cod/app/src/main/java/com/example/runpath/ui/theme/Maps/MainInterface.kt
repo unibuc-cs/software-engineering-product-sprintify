@@ -277,7 +277,8 @@ fun RunControlButton(
     var showDialog by remember { mutableStateOf(false) }
     var selectedRating by remember { mutableStateOf(0) }
     val context = LocalContext.current
-    //add here the code for run saving
+    // add max distance so we can fix the bug where distance is not calculated correctly
+    var maxdistance by remember { mutableStateOf(0.0) }
     val userId = SessionManager(context).getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
     //logic for running on a circuit
     val circuitId = "N/A"
@@ -294,7 +295,10 @@ fun RunControlButton(
                 startTimeDb = System.currentTimeMillis()
             }
             val currentColor = if (isRunActive.value) Color.Red else Color.Blue
-
+            //calculate the max distance
+            if (totalDistance.value > maxdistance) {
+                maxdistance = totalDistance.value
+            }
             if (segments.isNotEmpty()) {
                 val lastSegment = segments.last()
                 if (lastSegment.color != currentColor) {
@@ -320,7 +324,7 @@ fun RunControlButton(
                 totalPausedTime += System.currentTimeMillis() - startTime
             }
 
-            },
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 8.dp)
@@ -347,13 +351,6 @@ fun RunControlButton(
                 .border(2.dp, Color.Black) // Add border
                 .padding(4.dp) // Add padding for better visual effect
         )
-        Text(
-            text = "Pace: " + calculatePace(time, totalDistance.value),
-            modifier = Modifier
-                .background(Color.LightGray)
-                .border(2.dp, Color.Black)
-                .padding(4.dp)
-        )
     }
 
 
@@ -370,7 +367,7 @@ fun RunControlButton(
     // buton pentru a opri tracking-ul
     if (startedRunningFlag.value) {
         Column {
-            val formattedDistance = String.format("%.2f", totalDistance.value)
+            val formattedDistance = String.format("%.2f",maxdistance)
             Button(
 
                 onClick =
@@ -418,6 +415,7 @@ fun RunControlButton(
     }
 
 }
+
 
 // Function for printing the pace of the run
 fun calculatePace(timeMillis: Long, distanceKm: Double): String {
