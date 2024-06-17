@@ -130,6 +130,7 @@ fun RunsMap(
                 //successfully completed the route
                 if (remainingRoute.isEmpty()) {
                     onRouteCompleted()
+                    println("Done for circ")
                 }
             }
         }

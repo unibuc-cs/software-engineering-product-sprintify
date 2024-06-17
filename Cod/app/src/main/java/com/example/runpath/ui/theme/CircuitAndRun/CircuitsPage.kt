@@ -129,8 +129,9 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
                         Button(onClick = {
                             // convert the circuit's route to a string
                             val route = circuit.route?.joinToString("|") { "${it.latitude},${it.longitude}" }
+                            val circuitId = circuit.circuitId
                             // navigate to the MapScreen and pass the route as a parameter in the route string
-                            navController.navigate("mapPage/route=$route")
+                            navController.navigate("mapPage/route=$route/circuitId=$circuitId")
                         }) {
                             Text("Select")
                         }
