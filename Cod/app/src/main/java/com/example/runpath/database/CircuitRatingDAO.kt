@@ -102,4 +102,17 @@ class CircuitRatingDAO {
                 println("Error deleting document: $e")
             }
     }
+
+    fun getCircuitRatingsByUser(userId: String, onComplete: (List<CircuitRating>) -> Unit){
+        db.collection("circuitRatings")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { documents ->
+                val circuitRatings = documents.map { it.toObject<CircuitRating>().copy(circuitRatingId = it.id) }
+                onComplete(circuitRatings)
+            }
+            .addOnFailureListener { e ->
+                println("Error getting documents: $e")
+            }
+    }
 }
