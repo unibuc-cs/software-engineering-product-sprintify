@@ -842,6 +842,8 @@ fun MapScreen(
     // Variable for the current bearing of the camera
     var currentBearing by remember {mutableStateOf(0f)}
 
+
+
     fun animateCameraPosition(
         currentLatLng: LatLng,
         currentBearing: Float,
@@ -1016,9 +1018,12 @@ fun NavigationHost(navController: NavHostController) { // functie pentru a navig
         composable(BottomNavItem.Circuit.route) {
             CircuitsPage(navController, sessionManager)
         }
-        // redirect to map screen with the route drawn from a circuit
-        composable("mapPage/route={route}") { backStackEntry ->
+
+        //redurect to map screen with the route drawn from a circuit
+        composable("mapPage/route={route}/circuitId={circuitId}") { backStackEntry ->
+
             val routeString = backStackEntry.arguments?.getString("route")
+            val circuitId = backStackEntry.arguments?.getString("circuitId")
             val route = routeString?.split("|")?.map {
                 val latLng = it.split(",")
                 LatLng(latLng[0].toDouble(), latLng[1].toDouble())
