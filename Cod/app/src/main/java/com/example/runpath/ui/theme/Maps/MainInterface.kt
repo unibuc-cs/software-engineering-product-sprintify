@@ -122,13 +122,14 @@ fun BottomNavigationBar(navController: NavController) {
         backgroundColor = Color.Gray,
         contentColor = Color.White
     ) {
+        // obtine ruta curenta
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
         BottomNavItem.values.forEach { item ->
             BottomNavigationItem(
                 selected = currentRoute == item.route,
-
+                // navigheaza la ruta corespunzatoare
                 onClick = {
 
                     navController.navigate(item.route) {
@@ -170,6 +171,7 @@ fun RequestLocationPermission(
     onPermissionGranted: () -> Unit,
     onPermissionDenied: () -> Unit
 ) {
+    // obtine contextul curent
     val context = LocalContext.current
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -211,7 +213,7 @@ fun getCurrentLocation(
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setMaxUpdateDelayMillis(5000L)
                 .build()
-
+            // callback pentru locatie
             val locationCallback = object : com.google.android.gms.location.LocationCallback() {
                 override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
                     locationResult.locations.firstOrNull()?.let {
@@ -220,6 +222,7 @@ fun getCurrentLocation(
                     }
                 }
             }
+            // request pentru locatie
             fusedLocationClient.requestLocationUpdates(
                 locationRequest,
                 locationCallback,
@@ -249,7 +252,7 @@ data class Segment(val startIndex: Int, val endIndex: Int, val color: Color)
 
 // functie pentru a plasa un marker pe harta
 @Composable
-fun placeMarker(location: LatLng, title: String) {
+fun placeMarker(location: LatLng, title: String) { // plaseaza un marker pe harta
     Marker(
         state = MarkerState(position = location),
         title = title,
@@ -268,19 +271,19 @@ fun RunControlButton(
     onButtonClick: () -> Unit,
     totalDistance: MutableState<Double>
 ) {
-    val buttonText = if (isRunActive.value) "Pause Run" else "Start Run"
-    var time by remember { mutableStateOf(0L) }
+    val buttonText = if (isRunActive.value) "Pause Run" else "Start Run" // butonul va fi de start sau pauza
+    var time by remember { mutableStateOf(0L) } // timpul de rulare
     var isRunning by remember { mutableStateOf(false) }
     var startTime by remember { mutableStateOf(0L) }
     var startTimeDb by remember { mutableStateOf(0L) }
     var totalPausedTime by remember { mutableStateOf(0L) }
     var showDialog by remember { mutableStateOf(false) }
-    var selectedRating by remember { mutableStateOf(0) }
+    var selectedRating by remember { mutableStateOf(0) } // rating-ul selectat
     val context = LocalContext.current
-    // add max distance so we can fix the bug where distance is not calculated correctly
+    // adauga maxdistance pentru a calcula distanta maxima
     var maxdistance by remember { mutableStateOf(0.0) }
     val userId = SessionManager(context).getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
-    //logic for running on a circuit
+    // logica pentru a calcula pace-ul
     val circuitId = "N/A"
     var paceTrackerDb by remember { mutableStateOf(0.0) }
     val runDAO = RunDAO()
@@ -295,11 +298,11 @@ fun RunControlButton(
                 startTimeDb = System.currentTimeMillis()
             }
             val currentColor = if (isRunActive.value) Color.Red else Color.Blue
-            //calculate the max distance
+            // calculeaza distanta maxima
             if (totalDistance.value > maxdistance) {
                 maxdistance = totalDistance.value
             }
-            if (segments.isNotEmpty()) {
+            if (segments.isNotEmpty()) { // verifica daca ultimul segment are aceeasi culoare
                 val lastSegment = segments.last()
                 if (lastSegment.color != currentColor) {
                     segments.add(
@@ -311,21 +314,21 @@ fun RunControlButton(
                     )
 
                 }
-            } else {
+            } else { // daca nu exista segmente, creeaza unul nou
                 segments.add(Segment(0, locationPoints.size - 1, currentColor))
             }
 
             onButtonClick()
             isRunActive.value = !isRunActive.value
 
-            if (isRunActive.value) {
+            if (isRunActive.value) { // daca rularea este activa, incepe cronometrul
                 startTime = System.currentTimeMillis() - totalPausedTime
             } else {
                 totalPausedTime += System.currentTimeMillis() - startTime
             }
 
         },
-        modifier = Modifier
+        modifier = Modifier // adauga margini si padding
             .fillMaxWidth()
             .padding(top = 16.dp, start = 16.dp, end = 16.dp, bottom = 8.dp)
     ) {
@@ -340,21 +343,21 @@ fun RunControlButton(
         Text(
             text = FormatTime(time),
             modifier = Modifier
-                .background(Color.LightGray) // Add background
-                .border(2.dp, Color.Black) // Add border
-                .padding(4.dp) // Add padding for better visual effect
+                .background(Color.LightGray) // adauga background
+                .border(2.dp, Color.Black) // adauga border
+                .padding(4.dp) // adauga padding pentru un efect vizual mai bun
         )
         Text(
             text = "Distance: ${"%.3f".format(totalDistance.value)} km",
             modifier = Modifier
-                .background(Color.LightGray) // Add background
-                .border(2.dp, Color.Black) // Add border
-                .padding(4.dp) // Add padding for better visual effect
+                .background(Color.LightGray) // adauga background
+                .border(2.dp, Color.Black) // adauga border
+                .padding(4.dp) // adauga padding pentru un efect vizual mai bun
         )
     }
 
 
-    if(isRunActive.value) {
+    if(isRunActive.value) { // daca rularea este activa, calculeaza timpul
         if(!isRunning) {
             isRunning = true
             startTime = System.currentTimeMillis()
@@ -372,7 +375,7 @@ fun RunControlButton(
 
                 onClick =
                 {
-                    //save the run in the database
+                    // salveaza run-ul in baza de date
                     val run = Run(
                         userId = userId,
                         circuitId = circuitId,
@@ -388,7 +391,7 @@ fun RunControlButton(
                         println("Run added to database with ID: ${newRun.runId}")
                     }
 
-
+                    // reseteaza variabilele
                     segments.clear()
                     locationPoints.clear()
                     startedRunningFlag.value = false
@@ -398,7 +401,7 @@ fun RunControlButton(
                     startTime = 0
                     totalDistance.value = 0.0
                     selectedRating = 0
-                    //we will save the run in the previous runs database
+
 
 
                 }, modifier = Modifier
@@ -417,7 +420,7 @@ fun RunControlButton(
 }
 
 
-// Function for printing the pace of the run
+// functie pentru a calcula pace-ul
 fun calculatePace(timeMillis: Long, distanceKm: Double): String {
     val timeSeconds = TimeUnit.MILLISECONDS.toSeconds(timeMillis)
     val paceInSecondsPerKm = timeSeconds / distanceKm
@@ -426,7 +429,7 @@ fun calculatePace(timeMillis: Long, distanceKm: Double): String {
     return String.format("%d'%02d''", minutes, seconds)
 }
 
-// Function for formatting the time (minutes : seconds : milliseconds)
+// functie pentru a formata timpul
 fun FormatTime(time: Long): String {
     val miliseconds = time % 1000
     val seconds = TimeUnit.MILLISECONDS.toSeconds(time) % 60
@@ -467,13 +470,13 @@ fun getCurrentLocationAndTrack(
                 val newLatLng = LatLng(newLocation.latitude, newLocation.longitude)
                 currentLocation.value = newLatLng
                 locationPoints.add(newLatLng)
-
+                // calculeaza distanta totala
                 if (locationPoints.size >= 2 && isRunActive.value) {
                     val lastPoint = locationPoints[locationPoints.size - 2]
                     val distance = calculateDistance(lastPoint, newLatLng)
                     totalDistance.value += distance
                 }
-
+                // adauga segmente pentru rulare
                 if (segments.isNotEmpty()) {
                     val lastSegment = segments.last()
                     if (isRunActive.value && lastSegment.color == Color.Blue) {
@@ -484,7 +487,7 @@ fun getCurrentLocationAndTrack(
                                 Color.Red
                             )
                         )
-                    } else if (!isRunActive.value && lastSegment.color == Color.Red) {
+                    } else if (!isRunActive.value && lastSegment.color == Color.Red) { // daca rularea este inactiva
                         segments.add(
                             Segment(
                                 lastSegment.endIndex,
@@ -496,7 +499,7 @@ fun getCurrentLocationAndTrack(
                         segments[segments.lastIndex] =
                             lastSegment.copy(endIndex = locationPoints.size - 1)
                     }
-                } else {
+                } else { // daca nu exista segmente, creeaza unul nou
                     val initialColor = if (isRunActive.value) Color.Red else Color.Blue
                     segments.add(Segment(0, locationPoints.size - 1, initialColor))
                 }
@@ -536,7 +539,7 @@ fun  GMap(
     val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
     val thresholdDistance = 0.025
 
-    LaunchedEffect(
+    LaunchedEffect( // efect pentru a obtine ruta
         key1 = currentLocation.value,
         key2 = searchedLocation.value,
         key3 = startedRunningFlag.value
@@ -579,7 +582,7 @@ fun  GMap(
 //            cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
 //        }
 //    }
-
+    // verific daca modul de afisare este zi sau noapte
     val context = LocalContext.current
     val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     val isNightMode = when (uiModeManager.nightMode) {
@@ -588,7 +591,7 @@ fun  GMap(
     }
     val mapProperties: MapProperties
     val mapStyle = if (isNightMode) {
-        mapProperties = remember {
+        mapProperties = remember { // seteaza stilul hartii in functie de modul de afisare
             MapProperties(
                 mapStyleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.dark_mode_map)
             )
@@ -631,13 +634,13 @@ fun  GMap(
 
         if (startedRunningFlag.value) {
             segments.forEach { segment ->
-                // Ensure indices are within bounds
+                // afiseaza segmentele pe harta sub forma unui polyline
                 val startIndex =
                     segment.startIndex.coerceAtLeast(0).coerceAtMost(locationPoints.size)
                 val endIndex = (segment.endIndex + 1).coerceAtLeast(startIndex)
                     .coerceAtMost(locationPoints.size)
 
-                if (startIndex < endIndex) { // Check to avoid empty sublist
+                if (startIndex < endIndex) { // verifica daca exista puncte in segment
                     Polyline(
                         points = locationPoints.subList(startIndex, endIndex),
                         color = segment.color,
@@ -982,8 +985,9 @@ fun MapScreen(
     }
 }
 
+
 @Composable
-fun NavigationHost(navController: NavHostController) {
+fun NavigationHost(navController: NavHostController) { // functie pentru a naviga intre ecrane
     val context = LocalContext.current
     val sessionManager = SessionManager(context)
     val currentLocation = remember { mutableStateOf<LatLng?>(null) }
@@ -1012,7 +1016,7 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Circuit.route) {
             CircuitsPage(navController, sessionManager)
         }
-        //redurect to map screen with the route drawn from a circuit
+        // redirect to map screen with the route drawn from a circuit
         composable("mapPage/route={route}") { backStackEntry ->
             val routeString = backStackEntry.arguments?.getString("route")
             val route = routeString?.split("|")?.map {
@@ -1023,8 +1027,7 @@ fun NavigationHost(navController: NavHostController) {
                 RunsMap(
                     initialRoute = route,
                     onRouteCompleted = {
-                        // Define what should happen when the route is completed
-                        // For example, navigate back or show a message
+                        // daca ruta e completa
                     }
                 )
             }
@@ -1034,7 +1037,7 @@ fun NavigationHost(navController: NavHostController) {
 
             }
         }
-        //redirect to map screen with the poluline drawn from the previous run
+        // redirect to map screen with the poluline drawn from the previous run
         composable("previous_run/route={route}") { backStackEntry ->
             val routeString = backStackEntry.arguments?.getString("route")
             val route = routeString?.split("|")?.map {
@@ -1059,11 +1062,11 @@ fun NavigationHost(navController: NavHostController) {
         composable(BottomNavItem.Profile.route) {
             ProfilePage(navController, sessionManager)
         }
-        //this one will show the previsous runs with the select button
+        // this one will show the previsous runs with the select button
         composable("previous_runs") {
             Previous_runs(navController, sessionManager,true)
         }
-        //history will send a false value to the previous_runs composable to not show the select button
+        // history will send a false value to the previous_runs composable to not show the select button
         composable("previous_runsHistory") {
             Previous_runs(navController, sessionManager,false)
         }
@@ -1077,7 +1080,10 @@ fun NavigationHost(navController: NavHostController) {
     }
 }
 
+
+
 fun interpolatePoints(start: LatLng, end: LatLng, steps: Int): List<LatLng> {
+    // Interpolates points between two LatLng points
     val latStep = (end.latitude - start.latitude) / steps
     val lngStep = (end.longitude - start.longitude) / steps
 
