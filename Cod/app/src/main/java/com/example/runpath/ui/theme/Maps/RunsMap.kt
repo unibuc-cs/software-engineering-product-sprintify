@@ -25,6 +25,7 @@ fun RunsMap(
     initialRoute: List<LatLng>,
     onRouteCompleted: () -> Unit
 ) {
+
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val currentLocation = remember { mutableStateOf<LatLng?>(null) }
@@ -104,10 +105,14 @@ fun RunsMap(
         fastestInterval = 1000
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
+
+    //kotlin standard location callback
     val locationCallback = object : LocationCallback() {
+        //we override  public void onLocationResult(@NonNull LocationResult var1) so that we can get the location result
         override fun onLocationResult(locationResult: LocationResult) {
             val locationList = locationResult.locations
             if (locationList.isNotEmpty()) {
+                //get the last location as the current location
                 val newLocation = locationList.last()
                 currentLocation.value = LatLng(newLocation.latitude, newLocation.longitude)
 
@@ -144,10 +149,11 @@ fun RunsMap(
             .padding(bottom = 56.dp),
         cameraPositionState = cameraPositionState
     ) {
+        //marker for the current location
         currentLocation.value?.let {
             placeMarker(it, "Current Location")
         }
-
+        //draw the route for the remaining route
         if (remainingRoute.isNotEmpty()) {
             Polyline(points = remainingRoute.toList(), color = Color.Red, width = 10f)
         }
