@@ -39,7 +39,7 @@ import com.squareup.picasso.Picasso
 @Composable
 fun CircuitMap(circuit: Circuit): String {
     // creez un URL pentru harta statica a circuitului
-    val apiKey = "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU"
+    val apiKey = "AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8"
     val baseUrl = "https://maps.googleapis.com/maps/api/staticmap"
     val size = "900x1500"
     val zoom = "16"
@@ -212,6 +212,12 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager,ru
                             append("Light Level: ")
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("${currentCircuit?.lightLevel ?: 0}")
+                            }
+                        })
+                        Text(text = buildAnnotatedString {
+                            append("Populated: ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("${currentCircuit?.populated ?: 0}")
                             }
                         })
                         Text(text = buildAnnotatedString {

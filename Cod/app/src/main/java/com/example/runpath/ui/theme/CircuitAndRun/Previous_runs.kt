@@ -83,7 +83,7 @@ fun Previous_runs(navController: NavController, sessionManager: SessionManager,r
 @Composable
 fun RunMap(run: Run): String {
     // creez un URL pentru harta statica a circuitului
-    val apiKey = "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU"
+    val apiKey = "AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8"
     val baseUrl = "https://maps.googleapis.com/maps/api/staticmap"
     val size = "900x1500"
     val distance = run.distanceTracker

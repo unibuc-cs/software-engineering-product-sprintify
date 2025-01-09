@@ -80,6 +80,7 @@ class CircuitDAO {
         terrain: String,
         petFriendly: Boolean,
         lightLevel: Int,
+        populated: Int,
         rating: Double,
         difficulty: Int,
         route : List<LatLng>
@@ -94,6 +95,7 @@ class CircuitDAO {
             terrain = terrain,
             petFriendly = petFriendly,
             lightLevel = lightLevel,
+            populated = populated,
             rating = rating,
             difficulty = difficulty,
             route = route.map { toMyLatLng(it) }

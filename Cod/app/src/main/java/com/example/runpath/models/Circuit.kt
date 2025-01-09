@@ -14,6 +14,7 @@ data class Circuit (
     val terrain: String = "",
     val petFriendly: Boolean = false,
     val lightLevel: Int = 0,
+    val populated : Int = 0,
     val rating: Double = 0.0,
     val difficulty: Int = 0,
     val route: List<MyLatLng> = listOf()

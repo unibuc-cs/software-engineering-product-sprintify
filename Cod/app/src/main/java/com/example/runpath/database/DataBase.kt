@@ -57,6 +57,7 @@ object DataBase {
         const val COLUMN_TERRAIN = "Terrain"
         const val COLUMN_PET_FRIENDLY = "PetFriendly"
         const val COLUMN_LIGHT_LEVEL = "LightLevel"
+        const val COLUMN_POPULATED = "Populated"
         const val COLUMN_RATING = "Rating"
         const val COLUMN_DIFFICULTY = "Difficulty"
     }

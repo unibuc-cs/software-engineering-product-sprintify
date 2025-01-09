@@ -809,7 +809,7 @@ fun MapScreen(
 
     val context = LocalContext.current
     val contextMap = GeoApiContext.Builder()
-        .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
+        .apiKey("AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8")
         .build()
 
     // Location tracker
@@ -995,7 +995,7 @@ fun NavigationHost(navController: NavHostController) { // functie pentru a navig
     val currentLocation = remember { mutableStateOf<LatLng?>(null) }
     val searchedLocation = remember { mutableStateOf<LatLng?>(null) }
     if (!Places.isInitialized()) {
-        Places.initialize(context, "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
+        Places.initialize(context, "AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8")
     }
     val placesClient = Places.createClient(context)
 
@@ -1103,9 +1103,10 @@ fun MainInterface() {
     val navController = rememberNavController()
     val context = LocalContext.current
     if (!Places.isInitialized()) {
-        Places.initialize(context, "AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU") // Replace "YOUR_API_KEY" with your actual Places API key
+        Places.initialize(context, "AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8") // Replace "YOUR_API_KEY" with your actual Places API key
     }
     val placesClient = Places.createClient(context)
+
     val totalDistance = remember { mutableStateOf(0.0) }
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }

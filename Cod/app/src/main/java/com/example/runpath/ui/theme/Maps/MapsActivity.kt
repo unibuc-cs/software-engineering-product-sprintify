@@ -48,7 +48,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback {
     // functie pentru a crea un path intre 2 puncte
     fun getRoutePoints(point1: LatLng, point2: LatLng): List<LatLng> {
         val context = GeoApiContext.Builder()
-            .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
+            .apiKey("AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8")
             .build()
 
         val result: DirectionsResult = DirectionsApi.newRequest(context)
@@ -71,7 +71,7 @@ class MapsActivity : FragmentActivity(), OnMapReadyCallback {
     // functie pentru a desena un polyline intre 2 puncte
     fun drawPolyline(map: GoogleMap, point1: LatLng, point2: LatLng) {
         val context = GeoApiContext.Builder()
-            .apiKey("AIzaSyBcDs0jQqyNyk9d1gSpk0ruLgvbd9pwZrU")
+            .apiKey("AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8")
             .build()
 
         val result: DirectionsResult = DirectionsApi.newRequest(context)
