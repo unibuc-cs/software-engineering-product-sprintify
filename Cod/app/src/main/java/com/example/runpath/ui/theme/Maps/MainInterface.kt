@@ -68,6 +68,9 @@ import com.example.runpath.models.Circuit
 import com.example.runpath.models.Run
 import com.example.runpath.others.MyLatLng
 import CommunityPage
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.runpath.ui.screens.RunSummaryScreen
 import com.example.runpath.ui.theme.CircuitAndRun.Previous_runs
 import com.example.runpath.ui.theme.ProfileAndCommunity.ProfilePage
 import com.example.runpath.ui.theme.ProfileAndCommunity.UserProfilePage
@@ -1001,8 +1004,11 @@ fun NavigationHost(navController: NavHostController) { // functie pentru a navig
 
     NavHost(navController, startDestination = BottomNavItem.Map.route) {
         composable(BottomNavItem.Map.route) {
-            MapScreen(currentLocation, searchedLocation, placesClient)
-        }
+            MapScreen(
+                currentLocation = currentLocation,
+                searchedLocation = searchedLocation,
+                placesClient = placesClient
+            )        }
         composable(BottomNavItem.Community.route) {
             CommunityPage(navController, sessionManager)
         }
@@ -1018,7 +1024,6 @@ fun NavigationHost(navController: NavHostController) { // functie pentru a navig
         composable(BottomNavItem.Circuit.route) {
             CircuitsPage(navController, sessionManager)
         }
-
         //redurect to map screen with the route drawn from a circuit
         composable("mapPage/route={route}/circuitId={circuitId}") { backStackEntry ->
 
@@ -1031,8 +1036,15 @@ fun NavigationHost(navController: NavHostController) { // functie pentru a navig
             if (route != null) {
                 RunsMap(
                     initialRoute = route,
-                    onRouteCompleted = {
-                        // daca ruta e completa
+                    onRouteCompleted = { time, distance ->
+                        navController.navigate(
+                            "runSummary?elapsedTime=$time&distance=$distance&circuitId=$circuitId"
+                        ) {
+                            // ADD THESE FLAGS
+                            launchSingleTop = true
+                            popUpTo(navController.graph.startDestinationId)
+                            restoreState = true
+                        }
                     }
                 )
             }
@@ -1052,9 +1064,15 @@ fun NavigationHost(navController: NavHostController) { // functie pentru a navig
             if (route != null) {
                 RunsMap(
                     initialRoute = route,
-                    onRouteCompleted = {
-                        // Define what should happen when the route is completed
-                        // For example, navigate back or show a message
+                    onRouteCompleted = { time, distance ->
+                        navController.navigate(
+                            "runSummary?elapsedTime=$time&distance=$distance"
+                        ) {
+                            // ADD THESE FLAGS
+                            launchSingleTop = true
+                            popUpTo(navController.graph.startDestinationId)
+                            restoreState = true
+                        }
                     }
                 )
             }
@@ -1063,6 +1081,30 @@ fun NavigationHost(navController: NavHostController) { // functie pentru a navig
                 println("ERROR: Route is null")
 
             }
+        }
+        composable(
+            "runSummary?elapsedTime={elapsedTime}&distance={distance}&circuitId={circuitId}",
+            arguments = listOf(
+                navArgument("elapsedTime") {
+                    type = NavType.LongType
+                    defaultValue = 0L
+                },
+                navArgument("distance") {
+                    type = NavType.FloatType  // Change to FloatType
+                    defaultValue = 0f
+                },
+                navArgument("circuitId") {
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )
+        )  { backStackEntry ->
+            RunSummaryScreen(
+                elapsedTime = backStackEntry.arguments?.getLong("elapsedTime") ?: 0L,
+                distance = backStackEntry.arguments?.getFloat("distance")?.toDouble() ?: 0.0,
+                circuitId = backStackEntry.arguments?.getString("circuitId"),
+                navController = navController
+            )
         }
         composable(BottomNavItem.Profile.route) {
             ProfilePage(navController, sessionManager)
@@ -1115,3 +1157,5 @@ fun MainInterface() {
 
     }
 }
+
+

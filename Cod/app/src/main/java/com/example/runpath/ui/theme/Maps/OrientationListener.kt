@@ -12,6 +12,7 @@ object OrientationListener : SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
     private var magnetometer: Sensor? = null
+    private var isListening = false
 
     private var gravity = FloatArray(3)
     private var geomagnetic = FloatArray(3)
@@ -21,16 +22,28 @@ object OrientationListener : SensorEventListener {
     private var azimuth: Float = 0f
 
     fun initialize(context: Context) {
-        sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+        if (!::sensorManager.isInitialized) {
+            sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+            magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+        }
     }
 
     fun startListening() {
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
-        sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI)
+        if (!isListening) {
+            accelerometer?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+            magnetometer?.let { sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
+            isListening = true
+        }
     }
-
+    fun stop() {
+        if (isListening) {
+            sensorManager.unregisterListener(this)
+            isListening = false
+            gravity = FloatArray(3)
+            geomagnetic = FloatArray(3)
+        }
+    }
     fun stopListening() {
         sensorManager.unregisterListener(this, accelerometer)
         sensorManager.unregisterListener(this, magnetometer)

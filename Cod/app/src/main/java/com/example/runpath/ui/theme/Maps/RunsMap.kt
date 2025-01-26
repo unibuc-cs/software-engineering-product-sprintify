@@ -12,6 +12,7 @@ import com.example.runpath.R
 import com.example.runpath.ui.theme.Maps.OrientationListener
 import com.example.runpath.ui.theme.Maps.calculateDistance
 import com.google.android.gms.location.*
+import com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -23,7 +24,7 @@ import com.google.maps.android.compose.*
 @Composable
 fun RunsMap(
     initialRoute: List<LatLng>,
-    onRouteCompleted: () -> Unit
+    onRouteCompleted: (Long, Double) -> Unit // Modified callback
 ) {
 
     val context = LocalContext.current
@@ -106,42 +107,56 @@ fun RunsMap(
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
-    //kotlin standard location callback
-    val locationCallback = object : LocationCallback() {
-        //we override  public void onLocationResult(@NonNull LocationResult var1) so that we can get the location result
+    val recordedLocations = remember { mutableStateListOf<LatLng>() }
+    val startTime = remember { mutableStateOf(System.currentTimeMillis()) }
+    DisposableEffect(Unit) {
+        OrientationListener.startListening()
+        val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             val locationList = locationResult.locations
             if (locationList.isNotEmpty()) {
-                //get the last location as the current location
                 val newLocation = locationList.last()
                 currentLocation.value = LatLng(newLocation.latitude, newLocation.longitude)
+                recordedLocations.add(currentLocation.value!!) // Track all locations
 
-                //if the remaining route is not empty
+                // Existing route checking logic...
                 if (remainingRoute.isNotEmpty()) {
                     val nearestIndex = remainingRoute.indexOfFirst { point ->
                         val distance = calculateDistance(currentLocation.value!!, point) * 1000
-                        distance < 5  // delete points that are within 5 meters
-                    }
+                        distance < 10  // delete points that are within 5 meters
+
+
+                        }
                     if (nearestIndex != -1) {
-                        // remove all points up to and including the nearest index
                         remainingRoute.removeAll(remainingRoute.take(nearestIndex + 1))
                     }
                 }
-                //successfully completed the route
                 if (remainingRoute.isEmpty()) {
-                    onRouteCompleted()
-                    println("Done for circ")
+                    val elapsedTime = System.currentTimeMillis() - startTime.value
+                    val totalDistance = calculateTotalDistance(recordedLocations)
+                    onRouteCompleted(elapsedTime, totalDistance)
                 }
             }
         }
     }
 
     //request location updates
-    fusedLocationClient.requestLocationUpdates(
-        locationRequest,
-        locationCallback,
-        Looper.getMainLooper()
-    )
+        fusedLocationClient.requestLocationUpdates(
+            LocationRequest.create().apply {
+                interval = 3000
+                fastestInterval = 1000
+                priority = PRIORITY_HIGH_ACCURACY
+            },
+            locationCallback,
+            Looper.getMainLooper()
+        )
+
+        // Clean up when the composable is disposed
+        onDispose {
+            OrientationListener.stop()
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
+    }
 
     //generate the google map
     GoogleMap(
@@ -170,4 +185,12 @@ fun placeMarker(location: LatLng, title: String) {
         snippet = "Marker at $title",
         icon = BitmapDescriptorFactory.fromResource(R.drawable.current_location_icon)
     )
+}
+
+private fun calculateTotalDistance(locations: List<LatLng>): Double {
+    var total = 0.0
+    for (i in 1 until locations.size) {
+        total += calculateDistance(locations[i-1], locations[i])
+    }
+    return total
 }
