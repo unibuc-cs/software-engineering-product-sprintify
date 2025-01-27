@@ -1,6 +1,8 @@
 // RunSummaryScreen.kt
 package com.example.runpath.ui.screens  // Update with your actual package
 
+import RunViewModel
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -11,11 +13,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.runpath.database.SessionManager
 import com.example.runpath.ui.theme.Maps.BottomNavItem
+import kotlinx.coroutines.delay
 
+
+@SuppressLint("RememberReturnType")
 @Composable
 fun RunSummaryScreen(
     elapsedTime: Long,
@@ -23,10 +31,27 @@ fun RunSummaryScreen(
     circuitId: String?,
     navController: NavController
 ) {
-    var rating by rememberSaveable { mutableStateOf(0f) }
+    val viewModel: RunViewModel = viewModel()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val isSuccess by viewModel.isSuccess.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    val context = LocalContext.current
+    val sessionManager = SessionManager(context)
+    val userId = sessionManager.getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
+
+    var generalRating by rememberSaveable { mutableStateOf(0f) }
     var intensity by rememberSaveable { mutableStateOf(3) }
     var lightLevel by rememberSaveable { mutableStateOf(3) }
     var difficulty by rememberSaveable { mutableStateOf(3) }
+
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            viewModel.clearStates()
+            navController.popBackStack()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -34,7 +59,6 @@ fun RunSummaryScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-
         Text("Run Completed!", style = MaterialTheme.typography.h4)
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -50,43 +74,61 @@ fun RunSummaryScreen(
             text = "Distance: ${"%.2f".format(distance/1000)} km",
             style = MaterialTheme.typography.h6
         )
+
+        // Circuit-specific ratings
         if (circuitId != null) {
-            // Circuit-specific ratings
             Spacer(modifier = Modifier.height(16.dp))
             Text("Circuit Evaluation", style = MaterialTheme.typography.h6)
-
             RatingItem("Intensity", intensity) { intensity = it }
             RatingItem("Light Level", lightLevel) { lightLevel = it }
             RatingItem("Difficulty", difficulty) { difficulty = it }
         }
-        Spacer(modifier = Modifier.height(32.dp))
 
-        // Rating Section
-        Text("Rate your run:", style = MaterialTheme.typography.h6)
-        StarRating(rating = rating) { newRating ->
-            rating = newRating
+        // General rating
+        Spacer(modifier = Modifier.height(32.dp))
+        Text("Overall Experience:", style = MaterialTheme.typography.h6)
+        StarRating(rating = generalRating) { newRating ->
+            generalRating = newRating
+        }
+
+        // Loading and error states
+        if (isLoading) {
+            Spacer(modifier = Modifier.height(16.dp))
+            CircularProgressIndicator()
+        }
+
+        errorMessage?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(it, color = MaterialTheme.colors.error)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-
+        val errorMessage by viewModel.errorMessage.collectAsState()
         // Save Button
         Button(
             onClick = {
-                //saveRunData(elapsedTime, distance, rating, circuitId)
-                //we go to map screen
-                navController.navigate(BottomNavItem.Map.route) {
-                    popUpTo(BottomNavItem.Map.route) {
-                        inclusive = true // Clears entire back stack
-                    }
-                    launchSingleTop = true
+                if (circuitId != null) {
+                    viewModel.saveCircuitRating(
+                        circuitId = circuitId,
+                        userId = userId,
+                        intensity = intensity,
+                        lightLevel = lightLevel,
+                        difficulty = difficulty
+                    )
                 }
             },
-            modifier = Modifier.fillMaxWidth(0.8f)
+            enabled = !isLoading
         ) {
-            Text("Save Run", fontSize = 18.sp)
+            Text(if (isLoading) "Saving..." else "Save Rating")
+        }
+
+        if (errorMessage != null) {
+            Text(errorMessage!!, color = Color.Red)
         }
     }
 }
+
+// Keep your existing StarRating and RatingItem composables
 
 @Composable
 fun StarRating(rating: Float, onRatingChanged: (Float) -> Unit) {

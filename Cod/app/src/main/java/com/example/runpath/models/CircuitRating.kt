@@ -1,10 +1,14 @@
 package com.example.runpath.models
 
-data class CircuitRating (
-    val circuitRatingId : String? = null,
-    val circuitId: String? = null,
-    val userId: String? = null,
-    val rating: Double = 0.0,
-    val petFriendly : Boolean = false,
-    val lightLevel : Int = 0,
-)
+data class CircuitRating(
+    var circuitRatingId: String = "", // Firestore document ID
+    var circuitId: String = "",
+    var userId: String = "",
+    var intensity: Int = 3,      // Default value
+    var lightLevel: Int = 3,     // Default value
+    var difficulty: Int = 3,     // Default value
+    var timestamp: Long = System.currentTimeMillis()
+) {
+    // Required no-argument constructor
+    constructor() : this("", "", "", 3, 3, 3, 0)
+}

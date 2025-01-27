@@ -1,245 +1,286 @@
-
-
-import android.widget.ImageView
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.example.runpath.database.CircuitDAO
 import com.example.runpath.database.SessionManager
 import com.example.runpath.models.Circuit
+import com.google.firebase.firestore.ListenerRegistration
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.viewinterop.AndroidView
+import android.widget.ImageView
 import com.squareup.picasso.Picasso
-
-
-//function to craete a snapshot of the circuit map
-@Composable
-fun CircuitMap(circuit: Circuit): String {
-    // creez un URL pentru harta statica a circuitului
-    val apiKey = "AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8"
-    val baseUrl = "https://maps.googleapis.com/maps/api/staticmap"
-    val size = "900x1500"
-    val zoom = "16"
-    val path = circuit.route?.joinToString("|") { "${it.latitude},${it.longitude}" }
-    val style = "feature:all|element:labels|visibility:off"
-    val color = "0xFF0000" // portocaliu
-
-    return "$baseUrl?size=$size&zoom=$zoom&path=color:$color|$path&style=$style&key=$apiKey"
-}
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 
 @Composable
-fun CircuitsPage(navController: NavController, sessionManager: SessionManager,runSelected : Boolean = false) {
-    // variables for the circuits page
+fun CircuitsPage(navController: NavController, sessionManager: SessionManager, runSelected: Boolean = false) {
     val circuitDao = CircuitDAO()
     var circuits by remember { mutableStateOf(listOf<Circuit>()) }
     var showDialog by remember { mutableStateOf(false) }
     var currentCircuit by remember { mutableStateOf<Circuit?>(null) }
     var selectedFilter by remember { mutableStateOf("") }
     var isDropdownExpanded by remember { mutableStateOf(false) }
-
     val filters = listOf("Distance", "Intensity", "Rating", "Difficulty")
 
-    DisposableEffect(Unit) {// active listener for circuits
-        val listenerRegistration = circuitDao.listenForCircuits { updatedCircuits ->
-            circuits = updatedCircuits
+    // Real-time listener for circuit updates
+    DisposableEffect(Unit) {
+        val listener: ListenerRegistration = circuitDao.listenForCircuits { updatedCircuits ->
+            circuits = when (selectedFilter) {
+                "Distance" -> updatedCircuits.sortedBy { it.distance }
+                "Intensity" -> updatedCircuits.sortedByDescending { it.intensity }
+                "Rating" -> updatedCircuits.sortedByDescending { it.rating }
+                "Difficulty" -> updatedCircuits.sortedByDescending { it.difficulty }
+                else -> updatedCircuits
+            }
         }
 
         onDispose {
-            listenerRegistration.remove()
+            listener.remove()
         }
     }
-    // display the circuits page
-    Box(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Button(onClick = {isDropdownExpanded = true}) {
-            Text("Filters")
-        }
 
-        DropdownMenu(
-            expanded = isDropdownExpanded,
-            onDismissRequest = { isDropdownExpanded = false }
-        ) {
-            filters.forEach { filter ->
-                DropdownMenuItem(onClick = {
-                    selectedFilter = filter
-                    isDropdownExpanded = false
-                }) {
-                    Text(filter)
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Filter UI
+        Column(modifier = Modifier.align(Alignment.TopEnd)) {
+            Button(
+                onClick = { isDropdownExpanded = true },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text("Filters")
+            }
+
+            DropdownMenu(
+                expanded = isDropdownExpanded,
+                onDismissRequest = { isDropdownExpanded = false }
+            ) {
+                filters.forEach { filter ->
+                    DropdownMenuItem(
+                        text = { Text(filter) },
+                        onClick = {
+                            selectedFilter = filter
+                            isDropdownExpanded = false
+                        }
+                    )
                 }
             }
+
+            Text(
+                text = "Current filter: $selectedFilter",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
         }
 
-        // sort the circuits based on the selected filter
-        when (selectedFilter) {
-            "Distance" -> circuits = circuits.sortedBy { it.distance }
-            "Intensity" -> circuits = circuits.sortedBy { it.intensity }
-            "Rating" -> circuits = circuits.sortedBy { it.rating }
-            "Difficulty" -> circuits = circuits.sortedBy { it.difficulty }
-        }
-        //text for the selected filter
-        Text(
-            text = "Current filter: $selectedFilter",
-            modifier = Modifier.padding(top = 50.dp).align(Alignment.TopEnd),
-            fontWeight = FontWeight.Bold,
-        )
-
-
-        // display the circuits
-        Text(
-            text = "Circuits",
-            modifier = Modifier.padding(16.dp).align(Alignment.TopCenter),
-            fontWeight = FontWeight.Bold,
-        )
-
+        // Circuits List
         LazyColumn(
             modifier = Modifier
-                .padding(top = 40.dp)
+                .fillMaxSize()
+                .padding(top = 100.dp)
         ) {
-            //iterate through the circuits
-            itemsIndexed(circuits) { index, circuit ->
-                Column {
-                    Text(
-                        text = circuit.name
-                    )
-                    if(runSelected){
-                        Button(onClick = {
-                            // convert the circuit's route to a string
-                            val route = circuit.route?.joinToString("|") { "${it.latitude},${it.longitude}" }
-                            val circuitId = circuit.circuitId
-                            // navigate to the MapScreen and pass the route as a parameter in the route string
-                            navController.navigate("mapPage/route=$route/circuitId=$circuitId")
-                        }) {
-                            Text("Select")
-                        }
-                    }
-                    Button(onClick = {
+            items(circuits) { circuit ->
+                CircuitCard(
+                    circuit = circuit,
+                    onSelect = {
+                        val route = circuit.route?.joinToString("|") { "${it.latitude},${it.longitude}" }
+                        navController.navigate("mapPage/route=$route/circuitId=${circuit.circuitId}")
+                    },
+                    onDetails = {
                         currentCircuit = circuit
                         showDialog = true
-                    }) {
-                        Text("See Details")
-                    }
-
-                    val route = circuit.route
-                    // display the circuit map
-                    if (route != null) {
-                        val imageUrl = CircuitMap(circuit = circuit)
-                        AndroidView(
-                            factory = { context ->
-                                ImageView(context).apply {
-                                    Picasso.get().load(imageUrl).into(this)
-                                }
-                            },
-                            //we use picasso to load the image
-                            update = { view ->
-                                Picasso.get().load(imageUrl).into(view)
-                            },
-                            modifier = Modifier.width(1500.dp).height(500.dp)
-                        )
-                    }
-                }
+                    },
+                    runSelected = runSelected
+                )
             }
         }
 
-        // when the user clicks on the "See Details" button, a dialog will pop up with the circuit's details
-        if (showDialog) {
-            AlertDialog(
-                //pop up for the circuit details
-                onDismissRequest = { showDialog = false },
-                title = { Text(text = currentCircuit?.name ?: "") },
-                text = {
-                    Column {
-                        Text(text = buildAnnotatedString {
-                            append("Description: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(currentCircuit?.description ?: "")
-                            }
-                        })
-                        Text(text = buildAnnotatedString {
-                            append("\nDistance: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("${currentCircuit?.distance ?: 0.0} km")
-                            }
-                        })
-                        Text(text = buildAnnotatedString {
-                            append("Estimated Time: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(currentCircuit?.estimatedTime ?: "")
-                            }
-                        })
-                        Text(text = buildAnnotatedString {
-                            append("Intensity: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("${currentCircuit?.intensity ?: 0}")
-                            }
-                        })
-                        Text(text = buildAnnotatedString {
-                            append("Terrain: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(currentCircuit?.terrain ?: "")
-                            }
-                        })
-                        Text(text = buildAnnotatedString {
-                            append("Pet Friendly: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(if (currentCircuit?.petFriendly == true) "Yes" else "No")
-                            }
-                        })
-                        Text(text = buildAnnotatedString {
-                            append("Light Level: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("${currentCircuit?.lightLevel ?: 0}")
-                            }
-                        })
-                        Text(text = buildAnnotatedString {
-                            append("Populated: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("${currentCircuit?.populated ?: 0}")
-                            }
-                        })
-                        Text(text = buildAnnotatedString {
-                            append("Rating: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("${currentCircuit?.rating ?: 0.0}")
-                            }
-                        })
-                        Text(text = buildAnnotatedString {
-                            append("Difficulty: ")
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("${currentCircuit?.difficulty ?: 0}")
-                            }
-                        })
+        // Circuit Details Dialog
+        currentCircuit?.let { circuit ->
+            if (showDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDialog = false },
+                    title = { Text(circuit.name) },
+                    text = {
+                        Column {
+                            RatingDisplay(value = circuit.intensity, label = "Intensity")
+                            RatingDisplay(value = circuit.lightLevel, label = "Light Level")
+                            RatingDisplay(value = circuit.difficulty, label = "Difficulty")
+
+                            Text(buildAnnotatedString {
+                                append("Distance: ")
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("${"%.2f".format(circuit.distance)} km")
+                                }
+                            })
+
+                            Text(buildAnnotatedString {
+                                append("Estimated Time: ")
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append(circuit.estimatedTime)
+                                }
+                            })
+
+                            MapPreview(circuit)
+                        }
+                    },
+                    confirmButton = {
+                        Button(onClick = { showDialog = false }) {
+                            Text("Close")
+                        }
                     }
-                },
-                confirmButton = {
-                    Button(onClick = { showDialog = false }) {
-                        Text("Close")
-                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CircuitCard(
+    circuit: Circuit,
+    onSelect: () -> Unit,
+    onDetails: () -> Unit,
+    runSelected: Boolean
+) {
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(circuit.name, style = MaterialTheme.typography.headlineSmall)
+
+            Row(
+                modifier = Modifier.padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                StarRatingWithLabel(rating = circuit.intensity.toFloat(), label = "Intensity")
+                StarRatingWithLabel(rating = circuit.lightLevel.toFloat(), label = "Light")
+                StarRatingWithLabel(rating = circuit.difficulty.toFloat(), label = "Difficulty")
+            }
+
+            if (runSelected) {
+                Button(
+                    onClick = onSelect,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Select Circuit")
                 }
+            }
+
+            Button(
+                onClick = onDetails,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("View Details")
+            }
+        }
+    }
+}
+@Composable
+private fun StarRatingWithLabel(rating: Float, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        StarRating(rating = rating)
+    }
+}
+
+@Composable
+fun RatingDisplay(value: Int, label: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(vertical = 4.dp)
+    ) {
+        Text("$label: ", modifier = Modifier.width(100.dp))
+        StarRating(rating = value.toFloat())
+        Text(" ($value/5)", style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+// Add this composable at the bottom of your CircuitsPage file
+@Composable
+private fun RatingBar(
+    rating: Float,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row {
+            repeat(5) { index ->
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = if (index < rating) Color(0xFFFFA500) else Color.LightGray,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+// Update the existing StarRating composable to match
+@Composable
+private fun StarRating(rating: Float) {
+    Row {
+        repeat(5) { index ->
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = if (index < rating) Color(0xFFFFA500) else Color.LightGray,
+                modifier = Modifier.size(24.dp)
             )
         }
     }
+}
+
+@Composable
+fun MapPreview(circuit: Circuit) {
+    val imageUrl = CircuitMap(circuit)
+    AndroidView(
+        factory = { context ->
+            ImageView(context).apply {
+                Picasso.get().load(imageUrl).into(this)
+            }
+        },
+        update = { view ->
+            Picasso.get().load(imageUrl).into(view)
+        },
+        modifier = Modifier
+            .height(200.dp)
+            .fillMaxWidth()
+    )
+}
+
+fun CircuitMap(circuit: Circuit): String {
+    val apiKey = "AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8"
+    val baseUrl = "https://maps.googleapis.com/maps/api/staticmap"
+    val size = "600x200"
+    val zoom = "14"
+    val path = circuit.route?.joinToString("|") { "${it.latitude},${it.longitude}" }
+    val markers = circuit.route?.map { "color:red|label:•|${it.latitude},${it.longitude}" }?.joinToString("&markers=")
+
+    return "$baseUrl?size=$size&zoom=$zoom&path=color:0xFF0000|weight:5|$path&markers=$markers&key=$apiKey"
 }

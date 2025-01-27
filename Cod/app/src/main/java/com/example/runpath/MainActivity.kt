@@ -42,7 +42,6 @@ class MainActivity : AppCompatActivity() {
                     composable("profilePage") {
                         ProfilePage(navController, sessionManager)
                     }
-
                     composable("community") {
                         CommunityPage(navController, sessionManager)
                     }
