@@ -5,6 +5,7 @@ import com.example.runpath.models.Community_Users
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDateTime
 
 class CommunityDAO{
@@ -14,7 +15,7 @@ class CommunityDAO{
     fun insertCommunity(community: Community, onComplete: (Community) -> Unit) {
         val documentReference = db.collection("communities").document()
         val communityId = documentReference.id
-        val newCommunity = community.copy(communityId = communityId)
+        val newCommunity = community.copy(communityId = communityId, createdBy = community.createdBy)
 
         documentReference.set(newCommunity)
             .addOnSuccessListener {
@@ -75,7 +76,7 @@ class CommunityDAO{
                     println("Listen failed: $e")
                     return@addSnapshotListener
                 }
-                if(snapshots != null){
+                if (snapshots != null) {
                     val joinedCommunities = snapshots.map { it.toObject<Community_Users>().communityId }
                     val communities = mutableListOf<Community>()
                     joinedCommunities.forEach { communityId ->
@@ -86,8 +87,12 @@ class CommunityDAO{
                                 .addOnSuccessListener { document ->
                                     if (document != null) {
                                         val community = document.toObject<Community>()
-                                        communities.add(community!!)
-                                        onJoinedCommunitiesUpdated(communities)
+                                        if (community != null) {
+                                            communities.add(community.copy(communityId = document.id))
+                                            onJoinedCommunitiesUpdated(communities)
+                                        } else {
+                                            println("Community is null")
+                                        }
                                     } else {
                                         println("No such document")
                                     }
@@ -165,28 +170,30 @@ class CommunityDAO{
             }
     }
 // sterg un user dintr-o comunitate
-    fun leaveCommunity(communityId: String, userId: String) {
-        db.collection("community_users")
-            .whereEqualTo("communityId", communityId)
-            .whereEqualTo("userId", userId)
-            .get()
-            .addOnSuccessListener { documents ->
-                documents.forEach {
-                    db.collection("community_users")
-                        .document(it.id)
-                        .delete()
-                        .addOnSuccessListener {
-                            println("DocumentSnapshot successfully deleted!")
-                        }
-                        .addOnFailureListener { e ->
-                            println("Error deleting document: $e")
-                        }
-                }
+ fun leaveCommunity(communityId: String, userId: String){
+    db.collection("community_users")
+        .whereEqualTo("communityId", communityId)
+        .whereEqualTo("userId", userId)
+        .get()
+        .addOnSuccessListener { querySnapshot ->
+            if (querySnapshot.isEmpty) {
+                println("No members found to delete")
+                return@addOnSuccessListener
             }
-            .addOnFailureListener { e ->
-                println("Error checking membership: $e")
+            for (document in querySnapshot) {
+                document.reference.delete()
+                    .addOnSuccessListener {
+                        println("DocumentSnapshot successfully deleted!")
+                    }
+                    .addOnFailureListener { e ->
+                        println("Error deleting document: $e")
+                    }
             }
-    }
+        }
+        .addOnFailureListener{ e ->
+            println("Error searching for member: $e")
+        }
+}
 // iau numele unei comunitati bazat pe id
     fun getCommunityName(communityId: String, onComplete: (String) -> Unit) {
         if (communityId.isNotBlank()) {
@@ -207,5 +214,55 @@ class CommunityDAO{
         } else {
             println("Invalid communityId")
         }
+    }
+
+    suspend fun getJoinedCommunities(userId: String): List<Community> {
+        return try {
+            val communityUsers = db.collection("community_users")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+                .map { it.getString("communityId") ?: "" }
+
+            if (communityUsers.isEmpty()) {
+                return emptyList()
+
+            }
+
+            val communities = db.collection("communities")
+                .whereIn(com.google.firebase.firestore.FieldPath.documentId(), communityUsers)
+                .get()
+                .await()
+                .map { it.toObject<Community>().copy(communityId = it.id) }
+
+            communities
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    fun isCommunityNameUnique(name: String, onComplete: (Boolean) -> Unit) {
+        db.collection("communities")
+            .whereEqualTo("name", name)
+            .get()
+            .addOnSuccessListener { documents ->
+                onComplete(documents.isEmpty)
+            }
+            .addOnFailureListener { e ->
+                println("Error checking community name: $e")
+                onComplete(false)
+            }
+    }
+    fun isUserCreatorOfCommunity(communityId: String, userId: String, onComplete: (Boolean) -> Unit) {
+        db.collection("communities")
+            .document(communityId)
+            .get()
+            .addOnSuccessListener { document ->
+                val community = document.toObject<Community>()
+                onComplete(community?.createdBy == userId)
+            }
+            .addOnFailureListener { e ->
+                println("Error checking creator: $e")
+                onComplete(false)
+            }
     }
 }
