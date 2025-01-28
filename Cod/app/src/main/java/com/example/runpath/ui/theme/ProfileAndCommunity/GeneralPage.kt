@@ -161,6 +161,16 @@ fun GeneralPage(userId: String, username: String, navController: NavController) 
                                 )
                             }
 
+                            // Try run button if coords list is not empty
+                            if(post.routeCoordinates.isNotEmpty()) {
+                                Button(onClick = {
+                                    val route = post.routeCoordinates.joinToString("|") { "${it.latitude},${it.longitude}" }
+                                    navController.navigate("previous_run/route=$route")
+                                }) {
+                                    Text("Try Run")
+                                }
+                            }
+
                             // Display community name
                             var communityName by remember { mutableStateOf("") }
                             DisposableEffect(post.communityId) {

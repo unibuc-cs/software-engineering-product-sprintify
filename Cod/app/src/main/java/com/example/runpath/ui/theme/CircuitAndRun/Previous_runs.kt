@@ -171,7 +171,8 @@ fun Previous_runs(navController: NavController, sessionManager: SessionManager, 
                         content = "Run on ${selectedRun!!.startTime}: $postContent",
                         timestamp = LocalDateTime.now().toString(),
                         communityId = selectedCommunityId,
-                        mapImageUrl = mapImageUrl
+                        mapImageUrl = mapImageUrl,
+                        routeCoordinates = selectedRun!!.coordinate
                     )
                     PostDAO().insertPost(post) {
                         showDialog = false
