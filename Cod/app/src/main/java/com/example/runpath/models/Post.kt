@@ -6,5 +6,6 @@ data class Post(
     val author: String = "",
     val timestamp: String = "",
     val content: String = "",
-    val communityId: String = ""
+    val communityId: String = "",
+    val mapImageUrl: String? = null
 )

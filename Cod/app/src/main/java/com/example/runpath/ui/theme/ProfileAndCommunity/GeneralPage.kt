@@ -1,6 +1,7 @@
 package com.example.runpath.ui.theme.ProfileAndCommunity
 
 import android.util.Log
+import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,12 +41,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.runpath.database.CommunityDAO
 import com.example.runpath.database.PostDAO
 import com.example.runpath.models.Community
 import com.example.runpath.models.Post
+import com.squareup.picasso.Picasso
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.util.Locale
@@ -142,6 +145,23 @@ fun GeneralPage(userId: String, username: String, navController: NavController) 
                             )
                             Text(text = "\n${post.content}")
 
+                            // Display the map image if the post includes a run
+                            if (!post.mapImageUrl.isNullOrEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                AndroidView(
+                                    factory = { context ->
+                                        ImageView(context).apply {
+                                            Picasso.get().load(post.mapImageUrl).into(this)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                )
+                            }
+
+                            // Display community name
                             var communityName by remember { mutableStateOf("") }
                             DisposableEffect(post.communityId) {
                                 communityDAO.getCommunityName(post.communityId) { name ->

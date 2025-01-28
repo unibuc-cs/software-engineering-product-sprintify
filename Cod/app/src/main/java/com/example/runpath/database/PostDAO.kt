@@ -3,7 +3,7 @@ package com.example.runpath.database
 import com.example.runpath.models.Post
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.toObject
+import com.google.firebase.firestore.ktx.toObject
 
 class PostDAO {
     // creez o noua instanta a bazei de date
@@ -22,6 +22,7 @@ class PostDAO {
                 println("Error adding document: $e")
             }
     }
+
     // obtin un post dupa id
     fun getPostById(postId: String) {
         db.collection("posts")
