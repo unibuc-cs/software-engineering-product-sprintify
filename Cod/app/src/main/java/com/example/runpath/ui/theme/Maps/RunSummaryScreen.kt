@@ -1,5 +1,5 @@
 // RunSummaryScreen.kt
-package com.example.runpath.ui.screens  // Update with your actual package
+package com.example.runpath.ui.theme.Maps  // Update with your actual package
 
 import RunViewModel
 import android.annotation.SuppressLint
@@ -174,7 +174,7 @@ fun RatingItem(label: String, value: Int, onValueChange: (Int) -> Unit) {
         )
     }
 }
-private fun formatElapsedTime(millis: Long): String {
+internal fun formatElapsedTime(millis: Long): String {
     val seconds = (millis / 1000) % 60
     val minutes = (millis / (1000 * 60)) % 60
     val hours = (millis / (1000 * 60 * 60))

@@ -72,7 +72,7 @@ import android.widget.Toast
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.runpath.database.UserDAO
-import com.example.runpath.ui.screens.RunSummaryScreen
+import com.example.runpath.ui.theme.Maps.RunSummaryScreen
 import com.example.runpath.ui.theme.CircuitAndRun.LeaderboardScreen
 import com.example.runpath.ui.theme.CircuitAndRun.Previous_runs
 import com.example.runpath.ui.theme.ProfileAndCommunity.ProfilePage
@@ -429,6 +429,14 @@ fun RunControlButton(
 
 // functie pentru a calcula pace-ul
 fun calculatePace(timeMillis: Long, distanceKm: Double): String {
+    if (distanceKm == 0.0) {
+        return if (timeMillis == 0L) {
+            "0'00''" // User hasn't started moving
+        } else {
+            "MAX'--''" // Infinite pace since no distance was covered
+        }
+    }
+
     val timeSeconds = TimeUnit.MILLISECONDS.toSeconds(timeMillis)
     val paceInSecondsPerKm = timeSeconds / distanceKm
     val minutes = (paceInSecondsPerKm / 60).toInt()
