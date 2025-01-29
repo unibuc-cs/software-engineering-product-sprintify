@@ -56,6 +56,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.util.Locale
 
+
 @Composable
 fun GeneralPage(userId: String, username: String, navController: NavController) {
     var text by remember { mutableStateOf("Community") }
