@@ -57,44 +57,62 @@ import java.time.LocalDateTime
 import java.util.Locale
 
 @Composable
-fun GeneralPage(userId: String, username: String, navController: NavController) {
+fun GeneralPage(
+    userId: String,
+    username: String,
+    navController: NavController,
+    mockJoinedCommunities: List<Community>? = null,
+    mockPosts: List<Post>? = null
+) {
     var text by remember { mutableStateOf("Community") }
-    var posts by remember { mutableStateOf(listOf<Post>()) }
+    // use mock posts if provided
+    var posts by remember { mutableStateOf(mockPosts ?: listOf<Post>()) }
     var showDialog by remember { mutableStateOf(false) }
     var newPostContent by remember { mutableStateOf("") }
     var communityId by remember { mutableStateOf("") }
     val communityDAO = CommunityDAO()
-    var joinedCommunities by remember { mutableStateOf(listOf<Community>())}
-    var isMember by remember { mutableStateOf(false) }
+
+    // use the mock communities if provided
+    var joinedCommunities by remember { mutableStateOf(mockJoinedCommunities ?: listOf<Community>())}
+
+    Log.d("TestDebug", "Joined Communities: ${joinedCommunities.map { it.communityId }}") // ✅ Print communities
+    Log.d("TestDebug", "Post Communities: ${posts.map { it.communityId }}") // ✅ Print post community IDs
+
+    var isMember by remember { mutableStateOf(joinedCommunities.isNotEmpty()) }
     var selectedCommunity by remember { mutableStateOf<Community?>(null)}
     var showDropdown by remember { mutableStateOf(false) }
 
     val postDAO = PostDAO()
 
-    // Listener pentru postari
-    DisposableEffect(Unit) {
-        val listenerRegistration = postDAO.listenForPosts { updatedPosts ->
-            posts = updatedPosts
-        }
+    // fetch posts from database if mock data is not provided
+    if(mockPosts == null) {
+        // Listener pentru postari
+        DisposableEffect(Unit) {
+            val listenerRegistration = postDAO.listenForPosts { updatedPosts ->
+                posts = updatedPosts
+            }
 
-        onDispose {
-            listenerRegistration.remove()
+            onDispose {
+                listenerRegistration.remove()
+            }
         }
     }
 
-    DisposableEffect(userId) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val allCommunities = communityDAO.getCommunities()
-            allCommunities.forEach { community ->
-                communityDAO.isUserMemberOfCommunity(community.communityId ?: "", userId) { isUserMember ->
-                    if (isUserMember) {
-                        joinedCommunities = joinedCommunities + community
-                        isMember = true
+    if(mockJoinedCommunities == null) {
+        DisposableEffect(userId) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val allCommunities = communityDAO.getCommunities()
+                allCommunities.forEach { community ->
+                    communityDAO.isUserMemberOfCommunity(community.communityId ?: "", userId) { isUserMember ->
+                        if (isUserMember) {
+                            joinedCommunities = joinedCommunities + community
+                            isMember = true
+                        }
                     }
                 }
             }
+            onDispose { }
         }
-        onDispose { }
     }
 
     Box(
@@ -118,6 +136,8 @@ fun GeneralPage(userId: String, username: String, navController: NavController) 
         ) {
             itemsIndexed(posts) { index, post ->
                 if (joinedCommunities.map { it.communityId }.contains(post.communityId)) {
+                    Log.d("TestDebug", "Rendering post: ${post.content} in community ${post.communityId}") // ✅ Confirm linking
+                    Log.d("TestDebug", "Current Posts in UI: ${posts.map { it.content }}")
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -282,7 +302,7 @@ fun GeneralPage(userId: String, username: String, navController: NavController) 
                             }
                         }
                     ) {
-                        Text("Create Post")
+                        Text("Add Post")
                     }
                 }
             }

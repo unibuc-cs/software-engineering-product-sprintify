@@ -99,8 +99,16 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("com.squareup.moshi:moshi:1.12.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.12.0")
+    implementation(libs.androidx.navigation.testing)
     testImplementation(libs.junit)
     testImplementation("org.robolectric:robolectric:4.9")
+    // Mocking Dependencies
+    testImplementation ("org.mockito:mockito-core:4.5.1")
+    testImplementation ("org.mockito.kotlin:mockito-kotlin:4.0.0")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
+
+// For LiveData Testing
+    testImplementation ("androidx.arch.core:core-testing:2.1.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
