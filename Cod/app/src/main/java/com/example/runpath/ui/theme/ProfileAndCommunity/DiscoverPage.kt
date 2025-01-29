@@ -35,7 +35,7 @@ fun DiscoverPage(userId: String, navController: NavController) {
     // Refresh data from database
     suspend fun refreshCommunityData(onComplete: () -> Unit = {}) {
         val updatedJoinedCommunities = communityDAO.getJoinedCommunities(userId)
-        communityDAO.getCommunities { updatedCommunities ->
+        communityDAO.listenForCommunities { updatedCommunities: List<Community> ->
             CoroutineScope(Dispatchers.Main).launch {
                 joinedCommunities = updatedJoinedCommunities
                 communities = updatedCommunities
@@ -48,7 +48,14 @@ fun DiscoverPage(userId: String, navController: NavController) {
         val listener = communityDAO.listenForCommunities { updated ->
             communities = updated
         }
-        onDispose { listener.remove() }
+        // Add this listener for joined communities
+        val joinedListener = communityDAO.listenForJoinedCommunities(userId) { updated ->
+            joinedCommunities = updated
+        }
+        onDispose {
+            listener.remove()
+            joinedListener.remove()
+        }
     }
 
     LaunchedEffect(userId) {
@@ -84,13 +91,20 @@ fun DiscoverPage(userId: String, navController: NavController) {
                                     }
                                 }
                             },
+                            // Update the leave handler
                             onLeave = {
                                 if (!isProcessing) {
                                     isProcessing = true
-                                    community.communityId?.let {
+                                    community.communityId?.let { commId ->
                                         CoroutineScope(Dispatchers.IO).launch {
-                                            communityDAO.leaveCommunity(it, userId)
-                                            refreshCommunityData { isProcessing = false }
+                                            try {
+                                                communityDAO.leaveCommunity(commId, userId)
+                                                // No need to manually refresh - listeners will update automatically
+                                            } finally {
+                                                withContext(Dispatchers.Main) {
+                                                    isProcessing = false
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -120,13 +134,20 @@ fun DiscoverPage(userId: String, navController: NavController) {
                             community = community,
                             isMember = true,
                             onJoin = {},
+                            // Update the leave handler
                             onLeave = {
                                 if (!isProcessing) {
                                     isProcessing = true
-                                    community.communityId?.let {
+                                    community.communityId?.let { commId ->
                                         CoroutineScope(Dispatchers.IO).launch {
-                                            communityDAO.leaveCommunity(it, userId)
-                                            refreshCommunityData { isProcessing = false }
+                                            try {
+                                                communityDAO.leaveCommunity(commId, userId)
+                                                // No need to manually refresh - listeners will update automatically
+                                            } finally {
+                                                withContext(Dispatchers.Main) {
+                                                    isProcessing = false
+                                                }
+                                            }
                                         }
                                     }
                                 }

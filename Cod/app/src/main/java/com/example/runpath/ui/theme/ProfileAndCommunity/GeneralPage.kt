@@ -46,6 +46,9 @@ import com.example.runpath.database.CommunityDAO
 import com.example.runpath.database.PostDAO
 import com.example.runpath.models.Community
 import com.example.runpath.models.Post
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.util.Locale
@@ -78,9 +81,9 @@ fun GeneralPage(userId: String, username: String, navController: NavController) 
 
     // Listener pentru comunitati
     DisposableEffect(userId) {
-        communityDAO.getCommunities { allCommunities ->
+        CoroutineScope(Dispatchers.IO).launch {
+            val allCommunities = communityDAO.getCommunities()
             allCommunities.forEach { community ->
-                // Verifica daca user-ul este membru al comunitatii
                 communityDAO.isUserMemberOfCommunity(community.communityId ?: "", userId) { isUserMember ->
                     if (isUserMember) {
                         joinedCommunities = joinedCommunities + community
