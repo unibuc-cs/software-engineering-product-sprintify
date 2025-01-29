@@ -37,6 +37,10 @@ import com.example.runpath.models.Community
 import com.example.runpath.models.Post
 import com.example.runpath.models.Run
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 @Composable
@@ -68,16 +72,18 @@ fun Previous_runs(navController: NavController, sessionManager: SessionManager, 
     }
 
     DisposableEffect(userId) {
-        communityDAO.getCommunities { allCommunities ->
+        val scope = CoroutineScope(Dispatchers.IO)
+        scope.launch {
+            val allCommunities = communityDAO.getCommunities()
             allCommunities.forEach { community ->
                 communityDAO.isUserMemberOfCommunity(community.communityId ?: "", userId) { isUserMember ->
-                    if(isUserMember) {
+                    if (isUserMember) {
                         joinedCommunities = joinedCommunities + community
                     }
                 }
             }
         }
-        onDispose {  }
+        onDispose { scope.cancel() }
     }
 
     // Display the runs
