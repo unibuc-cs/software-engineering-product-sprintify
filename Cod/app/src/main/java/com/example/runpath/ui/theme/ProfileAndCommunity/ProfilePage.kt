@@ -32,27 +32,34 @@ import com.example.runpath.MainActivity
 import com.example.runpath.R
 import com.example.runpath.database.SessionManager
 import com.example.runpath.database.UserDAO
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 
 @Composable
 fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
-    // variabile pentru datele utilizatorului
     val sharedPreferences = sessionManager.getsharedPreferences()
     val username = sharedPreferences.getString("username", "N/A")
     val email = sharedPreferences.getString("email", "N/A")
     val context = LocalContext.current
-    val dateCreated = sharedPreferences.getString("dateCreated", "N/A")
+
     val userDAO = UserDAO(context)
     val userId = sessionManager.getsharedPreferences().getString(SessionManager.KEY_USER_ID, "N/A")!!
+
+    var dateCreated by remember { mutableStateOf("N/A") }
+    LaunchedEffect(userId) {
+        userDAO.getDateCreated(userId) { formattedDate ->
+            dateCreated = formattedDate
+        }
+    }
 
     val showDialog = remember { mutableStateOf(false) }
     val newPassword = remember { mutableStateOf("") }
     val confirmPassword = remember { mutableStateOf("") }
 
     val showDialog2 = remember { mutableStateOf(false) }
-    // afisarea paginii de profil
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -84,14 +91,12 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
                 modifier = Modifier.fillMaxSize()
             )
         }
-        // afisarea datelor utilizatorului
         Spacer(modifier = Modifier.height(20.dp))
         ProfileDetailItem(label = "Username", value = username)
         ProfileDetailItem(label = "Email", value = email)
-        ProfileDetailItem(label = "Date Created", value = formatDate(dateCreated ?: "N/A"))
+        ProfileDetailItem(label = "Date Created", value = dateCreated)
 
         Spacer(modifier = Modifier.height(20.dp))
-        //buton pentru previous runs
         Button(
             onClick = {
                 navController.navigate("previous_runsHistory")
@@ -106,7 +111,6 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
             Text(text = "Previous Runs", color = Color.White)
         }
         Spacer(modifier = Modifier.height(20.dp))
-        // buton pentru logout
         Button(
             onClick = {
                 sessionManager.clearSession()
@@ -124,7 +128,6 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-        // buton pentru schimbarea parolei
         Button(
             onClick = { showDialog.value = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6A1B9A)),
@@ -178,7 +181,6 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-        // buton pentru stergerea contului
         Button(
             onClick = { showDialog2.value = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF6A1B9A)),
@@ -190,7 +192,7 @@ fun ProfilePage(navController: NavController, sessionManager: SessionManager) {
         ) {
             Text(text = "Delete Account", color = Color.White)
         }
-        // dialog pentru stergerea contului
+
         if (showDialog2.value) {
             AlertDialog(
                 onDismissRequest = { showDialog2.value = false },
@@ -242,14 +244,4 @@ fun ProfileDetailItem(label: String, value: String?) {
         }
     }
 }
-// formatarea datei
-fun formatDate(timestamp: String): String {
-    return try {
-        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-        val date = Date(timestamp.toLong())
-        sdf.format(date)
-    } catch (e: Exception) {
-        "Invalid Date"
-    }
 
-}

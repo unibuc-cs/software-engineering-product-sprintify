@@ -136,8 +136,19 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager, r
                         }
                     },
                     confirmButton = {
-                        Button(onClick = { showDialog = false }) {
-                            Text("Close")
+                        Column {
+                            Button(onClick = { showDialog = false }) {
+                                Text("Close")
+                            }
+                            // Add leaderboard button
+                            Button(
+                                onClick = {
+                                    showDialog = false
+                                    navController.navigate("leaderboard/${circuit.circuitId}")
+                                }
+                            ) {
+                                Text("View Leaderboard")
+                            }
                         }
                     }
                 )
