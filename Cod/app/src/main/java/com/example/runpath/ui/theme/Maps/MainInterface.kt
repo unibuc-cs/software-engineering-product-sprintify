@@ -1130,6 +1130,35 @@ fun NavigationHost(navController: NavHostController) { // functie pentru a navig
 
             }
         }
+
+        composable("posts_run_trial/route={route") { backStackEntry ->
+            val routeString = backStackEntry.arguments?.getString("route")
+            val route = routeString?.split("|")?.map {
+                val latLng = it.split(",")
+                LatLng(latLng[0].toDouble(), latLng[1].toDouble())
+            }
+            if (route != null) {
+                RunsMap(
+                    initialRoute = route,
+                    onRouteCompleted = { time, distance ->
+                        navController.navigate(
+                            "runSummary?elapsedTime=$time&distance=$distance"
+                        ) {
+                            // ADD THESE FLAGS
+                            launchSingleTop = true
+                            popUpTo(navController.graph.startDestinationId)
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+            else{
+                MapScreen(currentLocation, searchedLocation, placesClient)
+                println("ERROR: Route is null")
+
+            }
+        }
+
         composable(
             "runSummary?elapsedTime={elapsedTime}&distance={distance}&circuitId={circuitId}",
             arguments = listOf(
