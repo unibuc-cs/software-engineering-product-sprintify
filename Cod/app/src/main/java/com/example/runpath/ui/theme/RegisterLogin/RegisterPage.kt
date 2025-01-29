@@ -240,9 +240,35 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
 }
 // functie pentru validarea email-ului
 fun isEmailValid(email: String): Boolean {
-    val emailPattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$"
+    val emailPattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,24}$"
+    val domainPattern = "^[A-Za-z0-9.-]+\\.[A-Za-z]{2,24}$"
+    val ipPattern = "^\\[?((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\]?$"
+
+    if (email.contains("..") || email.contains(".@") || email.contains("@.") || email.contains("-.") || email.contains(".-")) {
+        return false
+    }
+
+    val parts = email.split("@")
+    if (parts.size != 2) return false
+
+    val domain = parts[1]
+    if (domain.startsWith("-") || domain.endsWith("-")) {
+        return false
+    }
+
+    val domainParts = domain.split(".")
+    val tld = domainParts.lastOrNull()
+    if (tld == null || tld.length < 2 || tld.length > 7) {
+        return false
+    }
+
+    if (!domain.matches(domainPattern.toRegex()) && !domain.matches(ipPattern.toRegex())) {
+        return false
+    }
+
     return emailPattern.toRegex().matches(email)
 }
+
 fun hasSpace(input: String): Boolean {
     return !input.contains(" ")
 }
