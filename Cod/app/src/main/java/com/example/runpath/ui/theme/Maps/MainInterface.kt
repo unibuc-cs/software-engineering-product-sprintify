@@ -68,9 +68,12 @@ import com.example.runpath.models.Circuit
 import com.example.runpath.models.Run
 import com.example.runpath.others.MyLatLng
 import CommunityPage
+import android.widget.Toast
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.runpath.database.UserDAO
 import com.example.runpath.ui.screens.RunSummaryScreen
+import com.example.runpath.ui.theme.CircuitAndRun.LeaderboardScreen
 import com.example.runpath.ui.theme.CircuitAndRun.Previous_runs
 import com.example.runpath.ui.theme.ProfileAndCommunity.ProfilePage
 import com.example.runpath.ui.theme.ProfileAndCommunity.UserProfilePage
@@ -104,6 +107,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+
 
 // bara de navigare de jos
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
@@ -541,15 +545,52 @@ fun  GMap(
     val mapsActivity = MapsActivity()
     val routePoints = remember { mutableStateOf(listOf<LatLng>()) }
     val thresholdDistance = 0.025
+    val context = LocalContext.current
 
-    LaunchedEffect( // efect pentru a obtine ruta
+
+    LaunchedEffect(
         key1 = currentLocation.value,
         key2 = searchedLocation.value,
         key3 = startedRunningFlag.value
     ) {
         if (currentLocation.value != null && searchedLocation.value != null && !startedRunningFlag.value) {
-            routePoints.value =
-                mapsActivity.getRoutePoints(currentLocation.value!!, searchedLocation.value!!)
+            val current = currentLocation.value!!
+            val target = searchedLocation.value!!
+
+            // Calculate distance between points
+            val distance = calculateDistance(current, target)
+            val MAX_DISTANCE_KM = 500.0 // 500 km in meters
+
+            if (distance > MAX_DISTANCE_KM) {
+                Toast.makeText(
+                    context,
+                    "Location is too far away for running",
+                    Toast.LENGTH_SHORT
+                ).show()
+                searchedLocation.value = null
+                return@LaunchedEffect
+            }
+
+            try {
+                val points = mapsActivity.getRoutePoints(current, target)
+                if (points.isEmpty()) {
+                    Toast.makeText(
+                        context,
+                        "No available route found",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    searchedLocation.value = null
+                } else {
+                    routePoints.value = points
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Error finding route: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                searchedLocation.value = null
+            }
         }
     }
 
@@ -586,7 +627,6 @@ fun  GMap(
 //        }
 //    }
     // verific daca modul de afisare este zi sau noapte
-    val context = LocalContext.current
     val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
     val isNightMode = when (uiModeManager.nightMode) {
         UiModeManager.MODE_NIGHT_YES -> true
@@ -1053,6 +1093,14 @@ fun NavigationHost(navController: NavHostController) { // functie pentru a navig
                 println("ERROR: Route is null")
 
             }
+        }
+        composable("leaderboard/{circuitId}") { backStackEntry ->
+            val circuitId = backStackEntry.arguments?.getString("circuitId")
+            LeaderboardScreen(
+                circuitId = circuitId ?: "",
+                navController = navController,
+                userDAO = UserDAO(context)
+            )
         }
         // redirect to map screen with the poluline drawn from the previous run
         composable("previous_run/route={route}") { backStackEntry ->

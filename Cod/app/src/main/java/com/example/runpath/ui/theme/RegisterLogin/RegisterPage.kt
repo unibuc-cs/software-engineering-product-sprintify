@@ -45,6 +45,9 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
 
     val context = LocalContext.current
     val userDAO by remember { mutableStateOf(UserDAO(context)) }
+    var isUsernameValid by remember { mutableStateOf(true) }
+    var isPasswordValid by remember { mutableStateOf(true) }
+
     // afisarea paginii de inregistrare
     Column(
         modifier = Modifier
@@ -74,8 +77,12 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
         // campul pentru username
         TextField(
             value = username,
-            onValueChange = { username = it },
+            onValueChange = {
+                username = it
+                isUsernameValid = hasSpace(username) // Validate input
+            },
             label = { Text("Username") },
+            isError = !isUsernameValid, // Highlights the field in red if invalid
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
                 keyboardType = KeyboardType.Text
@@ -85,6 +92,14 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
             ),
             modifier = Modifier.fillMaxWidth()
         )
+        if (!isUsernameValid) {
+            Text(
+                text = "Username cannot contain spaces",
+                color = Color.Red,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
 
         Spacer(modifier = Modifier.height(12.dp))
         // campul pentru email
@@ -131,8 +146,12 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
 
         TextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                isPasswordValid = hasSpace(password) // Validate input
+            },
             label = { Text("Password") },
+            isError = !isPasswordValid, // Highlights the field in red if invalid
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
@@ -143,6 +162,14 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
+        if (!isPasswordValid) {
+            Text(
+                text = "Password cannot contain spaces",
+                color = Color.Red,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
 
         Spacer(modifier = Modifier.height(12.dp))
         // campul pentru confirmarea parolei
@@ -215,4 +242,7 @@ fun RegisterPage(navController: NavController, sessionManager: SessionManager) {
 fun isEmailValid(email: String): Boolean {
     val emailPattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$"
     return emailPattern.toRegex().matches(email)
+}
+fun hasSpace(input: String): Boolean {
+    return !input.contains(" ")
 }

@@ -184,8 +184,17 @@ fun GeneralPage(userId: String, username: String, navController: NavController) 
 
                             Text(text = "Posted in: $communityName")
                         }
-                        // Afiseaza butonul de delete doar daca user-ul este autorul postarii
-                        if (post.author == username) {
+
+                        var isOwner by remember { mutableStateOf(false) }
+                        DisposableEffect(post.postId) {
+                            post.postId?.let { postId ->
+                                postDAO.isUserOwnerOfCommunity(postId, userId) { isOwner = it }
+                            }
+                            onDispose { }
+                        }
+
+                        // Afiseaza butonul de delete doar daca user-ul este autorul postarii sau daca este owner la comunitate
+                        if (post.author == username || isOwner) {
                             IconButton(
                                 onClick = {
                                     post.postId?.let { postDAO.deletePost(it) }
