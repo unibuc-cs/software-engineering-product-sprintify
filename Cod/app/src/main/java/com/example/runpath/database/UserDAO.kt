@@ -1,22 +1,26 @@
 package com.example.runpath.database
 
-import android.database.sqlite.SQLiteDatabase
 import android.content.Context
 import com.example.runpath.models.User
 import com.example.runpath.others.*
+import com.example.runpath.utils.PasswordUtilsNoDeps
 import com.google.firebase.firestore.FirebaseFirestore
 
-
 class UserDAO(context: Context) {
-    // creez o noua instanta a bazei de date
     private val db = FirebaseFirestore.getInstance()
-    // creez un nou user
-    fun insertUser(user: User, onComplete: (User) -> Unit) {
 
+    fun insertUser(user: User, onComplete: (User) -> Unit) {
         val documentReference = db.collection("users").document()
-        //firebase genereaza un id unic pentru fiecare document
         val userId = documentReference.id
-        val newUser = user.copy(userId = userId)
+
+        // 1) Generate "salt:hash" from the plaintext password
+        val saltedHash = PasswordUtilsNoDeps.generateSaltedHash(user.password)
+
+        // Store only that salted hash in place of the password
+        val newUser = user.copy(
+            userId = userId,
+            password = saltedHash
+        )
 
         documentReference.set(newUser)
             .addOnSuccessListener {
@@ -25,10 +29,9 @@ class UserDAO(context: Context) {
             .addOnFailureListener { e ->
                 println("Error adding document: $e")
             }
-
     }
-    // obtin un user dupa id
-    fun getUserById(userId: String, onComplete: (User?)-> Unit) {
+
+    fun getUserById(userId: String, onComplete: (User?) -> Unit) {
         db.collection("users")
             .document(userId)
             .get()
@@ -38,9 +41,9 @@ class UserDAO(context: Context) {
                         userId = document.id,
                         username = document.getString(DataBase.UserEntry.COLUMN_USERNAME) ?: "",
                         email = document.getString(DataBase.UserEntry.COLUMN_EMAIL) ?: "",
+                        // This is now "salt:hash"
                         password = document.getString(DataBase.UserEntry.COLUMN_PASSWORD) ?: "",
-                        dateCreated = document.getString(DataBase.UserEntry.COLUMN_DATE_CREATED)
-                            ?: ""
+                        dateCreated = document.getString(DataBase.UserEntry.COLUMN_DATE_CREATED) ?: ""
                     )
                     onComplete(user)
                 } else {
@@ -53,19 +56,27 @@ class UserDAO(context: Context) {
                 onComplete(null)
             }
     }
-    // login pentru user
+
+    /**
+     *  Login flow:
+     *    1) fetch user by username
+     *    2) verify candidate password with the stored salted-hash
+     */
     fun login(username: String, password: String, onComplete: (String) -> Unit) {
         getUserByUsername(username) { users ->
-            println("Entered login with username $username and password $password")
+            println("Entered login with username $username")
+
             if (users.isEmpty()) {
-                println("No users were found with this username")
+                println("No users found with this username")
                 onComplete(USER_NOT_FOUND)
             } else {
                 for (user in users) {
-                    println("User found with username ${user.username} and password ${user.password}")
-                    println("User username is being compared with $username and password is being compared with $password")
-                    if (user.password == password && user.userId != null) {
-                        println("User found with username $username and password $password")
+                    // user.password is now the "salt:hash" string
+                    val storedSaltedHash = user.password
+
+                    // Compare the user-supplied password with the stored salted-hash
+                    if (user.userId != null && PasswordUtilsNoDeps.verifyPassword(password, storedSaltedHash)) {
+                        println("User found with matching username & password")
                         onComplete(user.userId)
                         return@getUserByUsername
                     } else if (user.userId == null) {
@@ -77,9 +88,8 @@ class UserDAO(context: Context) {
             }
         }
     }
-    // obtin userii dupa username
+
     fun getUserByUsername(username: String, onComplete: (List<User>) -> Unit) {
-        println("Entered getUserByUsername with username $username!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         val users = mutableListOf<User>()
 
         db.collection("users")
@@ -87,26 +97,24 @@ class UserDAO(context: Context) {
             .get()
             .addOnSuccessListener { documents ->
                 for (document in documents) {
-                    println("document accessed")
                     val user = User(
                         userId = document.id,
-                        username = document.getString(DataBase.UserEntry.COLUMN_USERNAME).toString(),
-                        email = document.getString(DataBase.UserEntry.COLUMN_EMAIL).toString(),
-                        password = document.getString(DataBase.UserEntry.COLUMN_PASSWORD).toString(),
-                        dateCreated = document.getString(DataBase.UserEntry.COLUMN_DATE_CREATED).toString()
+                        username = document.getString(DataBase.UserEntry.COLUMN_USERNAME) ?: "",
+                        email = document.getString(DataBase.UserEntry.COLUMN_EMAIL) ?: "",
+                        // This is "salt:hash"
+                        password = document.getString(DataBase.UserEntry.COLUMN_PASSWORD) ?: "",
+                        dateCreated = document.getString(DataBase.UserEntry.COLUMN_DATE_CREATED) ?: ""
                     )
                     users.add(user)
-                    println("su")
-                    println("${document.id} => ${document.data}")
                 }
-                onComplete(users) // apeleaza onComplete cu lista de useri
+                onComplete(users)
             }
             .addOnFailureListener { exception ->
                 println("Error getting documents: $exception")
-                onComplete(emptyList()) // apeleaza onComplete cu o lista goala
+                onComplete(emptyList())
             }
     }
-    // actualizez un user
+
     fun updateUser(
         userId: String,
         username: String,
@@ -114,16 +122,20 @@ class UserDAO(context: Context) {
         email: String,
         dateCreated: String
     ) {
-        val user = User(
+        // If updating the password, hash it first
+        val saltedHash = PasswordUtilsNoDeps.generateSaltedHash(password)
+
+        val updatedUser = User(
             userId = userId,
             username = username,
-            password = password,
+            password = saltedHash,
             email = email,
             dateCreated = dateCreated
         )
+
         db.collection("users")
             .document(userId)
-            .set(user)
+            .set(updatedUser)
             .addOnSuccessListener {
                 println("DocumentSnapshot successfully written!")
             }
@@ -143,18 +155,19 @@ class UserDAO(context: Context) {
                 println("Error deleting document: $e")
             }
     }
-    // setez parola
-    fun setPassword(userId: String, password: String){
+
+    fun setPassword(userId: String, newPassword: String){
+        // Hash the new password before saving
+        val saltedHash = PasswordUtilsNoDeps.generateSaltedHash(newPassword)
 
         db.collection("users")
             .document(userId)
-            .update(DataBase.UserEntry.COLUMN_PASSWORD, password)
+            .update(DataBase.UserEntry.COLUMN_PASSWORD, saltedHash)
             .addOnSuccessListener {
                 println("DocumentSnapshot successfully updated!")
             }
             .addOnFailureListener { e ->
                 println("Error updating document: $e")
             }
-
     }
 }
