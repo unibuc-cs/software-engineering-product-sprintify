@@ -14,6 +14,7 @@ import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 
+// Test class for the RunDAO
 @RunWith(AndroidJUnit4::class)
 class RunDAOTest {
 
