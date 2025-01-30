@@ -5,6 +5,10 @@ import com.example.runpath.models.User
 import com.example.runpath.others.*
 import com.example.runpath.utils.PasswordUtilsNoDeps
 import com.google.firebase.firestore.FirebaseFirestore
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 
 class UserDAO(context: Context) {
     private val db = FirebaseFirestore.getInstance()
@@ -31,7 +35,41 @@ class UserDAO(context: Context) {
             }
     }
 
+    fun formatDate(timestamp: Long): String {
+        return try {
+            val instant = Instant.ofEpochMilli(timestamp)
+            val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                .withZone(ZoneId.systemDefault())
+            formatter.format(instant)
+        } catch (e: Exception) {
+            println("Error: $e")
+            "Invalid Date"
+        }
+    }
+    fun getDateCreated(userId: String, onComplete: (String) -> Unit) {
+        db.collection("users")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val timestamp = document.getString(DataBase.UserEntry.COLUMN_DATE_CREATED)?.toLongOrNull()
+                    val dateCreated = timestamp?.let { formatDate(it) } ?: "Invalid Date"
+                    println("DocumentSnapshot data: ${document.data}")
+                    onComplete(dateCreated)
+                } else {
+                    onComplete("Invalid Date")
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting document: $exception")
+                onComplete("Invalid Date")
+            }
+    }
+    // obtin un user dupa id
+
+
     fun getUserById(userId: String, onComplete: (User?) -> Unit) {
+
         db.collection("users")
             .document(userId)
             .get()

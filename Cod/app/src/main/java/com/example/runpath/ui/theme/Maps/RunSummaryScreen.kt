@@ -45,6 +45,9 @@ fun RunSummaryScreen(
     var lightLevel by rememberSaveable { mutableStateOf(3) }
     var difficulty by rememberSaveable { mutableStateOf(3) }
 
+    val isSavingLeaderboard by viewModel.isSavingLeaderboard
+
+
     LaunchedEffect(isSuccess) {
         if (isSuccess) {
             viewModel.clearStates()
@@ -70,10 +73,10 @@ fun RunSummaryScreen(
         )
 
         // Distance Display
-        Text(
-            text = "Distance: ${"%.2f".format(distance/1000)} km",
-            style = MaterialTheme.typography.h6
-        )
+//        Text(
+//            text = "Distance: ${"%.2f".format(distance/1000)} km",
+//            style = MaterialTheme.typography.h6
+//        )
 
         // Circuit-specific ratings
         if (circuitId != null) {
@@ -115,11 +118,25 @@ fun RunSummaryScreen(
                         lightLevel = lightLevel,
                         difficulty = difficulty
                     )
+                    viewModel.saveLeaderboardEntry(
+                        circuitId = circuitId,
+                        userId = userId,
+                        time = elapsedTime,
+                        distance = distance / 1000 // Convert meters to km
+                    )
                 }
             },
-            enabled = !isLoading
+            enabled = !isLoading && !isSavingLeaderboard
         ) {
-            Text(if (isLoading) "Saving..." else "Save Rating")
+            val buttonText = when {
+                isLoading -> "Saving Rating..."
+                isSavingLeaderboard -> "Saving Run..."
+                else -> "Save & Submit to Leaderboard"
+            }
+            Text(buttonText)
+        }
+        if (isLoading || isSavingLeaderboard) {
+            CircularProgressIndicator()
         }
 
         if (errorMessage != null) {

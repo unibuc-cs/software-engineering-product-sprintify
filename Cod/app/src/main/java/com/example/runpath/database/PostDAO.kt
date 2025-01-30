@@ -1,9 +1,10 @@
 package com.example.runpath.database
 
+import com.example.runpath.models.Community
 import com.example.runpath.models.Post
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.toObject
+import com.google.firebase.firestore.ktx.toObject
 
 class PostDAO {
     // creez o noua instanta a bazei de date
@@ -22,6 +23,7 @@ class PostDAO {
                 println("Error adding document: $e")
             }
     }
+
     // obtin un post dupa id
     fun getPostById(postId: String) {
         db.collection("posts")
@@ -97,6 +99,32 @@ class PostDAO {
             .addOnSuccessListener { println("DocumentSnapshot successfully deleted!") }
             .addOnFailureListener { e ->
                 println("Error deleting document: $e")
+            }
+    }
+
+    fun isUserOwnerOfCommunity(postId: String, userId: String, onComplete: (Boolean) -> Unit) {
+        db.collection("posts")
+            .document(postId)
+            .get()
+            .addOnSuccessListener { document ->
+                val post = document.toObject<Post>()
+                post?.communityId?.let { communityId ->
+                    db.collection("communities")
+                        .document(communityId)
+                        .get()
+                        .addOnSuccessListener { communityDoc ->
+                            val community = communityDoc.toObject<Community>()
+                            onComplete(community?.createdBy == userId)
+                        }
+                        .addOnFailureListener { e ->
+                            println("Error getting community: $e")
+                            onComplete(false)
+                        }
+                } ?: onComplete(false)
+            }
+            .addOnFailureListener { e ->
+                println("Error getting post: $e")
+                onComplete(false)
             }
     }
 }

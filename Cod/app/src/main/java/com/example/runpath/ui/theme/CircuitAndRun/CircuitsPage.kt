@@ -33,24 +33,34 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager, r
     var currentCircuit by remember { mutableStateOf<Circuit?>(null) }
     var selectedFilter by remember { mutableStateOf("") }
     var isDropdownExpanded by remember { mutableStateOf(false) }
-    val filters = listOf("Distance", "Intensity", "Rating", "Difficulty")
+    val filters = listOf("Distance", "Intensity", "Terrain", "Rating", "Difficulty", "Light")
+
+    fun List<Circuit>.applySort(filter: String): List<Circuit> {
+        return when (filter) {
+            "Distance" -> sortedBy { it.distance }
+            "Intensity" -> sortedByDescending { it.intensity }
+            "Rating" -> sortedByDescending { it.rating }
+            "Terrain" -> sortedBy { it.terrain }
+            "Difficulty" -> sortedByDescending { it.difficulty }
+            "Light" -> sortedByDescending { it.lightLevel }
+            else -> this
+        }
+    }
 
     // Real-time listener for circuit updates
-    DisposableEffect(Unit) {
+    // Listener pentru circuitDAO
+    DisposableEffect(selectedFilter) { // Ascultăm și schimbarea selectedFilter
         val listener: ListenerRegistration = circuitDao.listenForCircuits { updatedCircuits ->
-            circuits = when (selectedFilter) {
-                "Distance" -> updatedCircuits.sortedBy { it.distance }
-                "Intensity" -> updatedCircuits.sortedByDescending { it.intensity }
-                "Rating" -> updatedCircuits.sortedByDescending { it.rating }
-                "Difficulty" -> updatedCircuits.sortedByDescending { it.difficulty }
-                else -> updatedCircuits
-            }
+            circuits = updatedCircuits.applySort(selectedFilter)
         }
 
         onDispose {
             listener.remove()
         }
     }
+
+
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Filter UI
@@ -71,6 +81,7 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager, r
                         text = { Text(filter) },
                         onClick = {
                             selectedFilter = filter
+                            circuits = circuits.applySort(filter)
                             isDropdownExpanded = false
                         }
                     )
@@ -118,13 +129,19 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager, r
                             RatingDisplay(value = circuit.lightLevel, label = "Light Level")
                             RatingDisplay(value = circuit.difficulty, label = "Difficulty")
 
+
                             Text(buildAnnotatedString {
                                 append("Distance: ")
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                                     append("${"%.2f".format(circuit.distance)} km")
                                 }
                             })
-
+                            Text(buildAnnotatedString {
+                                append("Terrain: ")
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)){
+                                    append(circuit.terrain)
+                                }
+                            })
                             Text(buildAnnotatedString {
                                 append("Estimated Time: ")
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -136,8 +153,19 @@ fun CircuitsPage(navController: NavController, sessionManager: SessionManager, r
                         }
                     },
                     confirmButton = {
-                        Button(onClick = { showDialog = false }) {
-                            Text("Close")
+                        Column {
+                            Button(onClick = { showDialog = false }) {
+                                Text("Close")
+                            }
+                            // Add leaderboard button
+                            Button(
+                                onClick = {
+                                    showDialog = false
+                                    navController.navigate("leaderboard/${circuit.circuitId}")
+                                }
+                            ) {
+                                Text("View Leaderboard")
+                            }
                         }
                     }
                 )
