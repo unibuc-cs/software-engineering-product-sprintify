@@ -40,7 +40,7 @@ jobs:
           sleep 20  # Ensure emulators are fully started
 
       - name: Run Unit Tests (Located in `test/`)
-        run: ./gradlew testDebugUnitTest
+        run: ./Cod/gradlew testDebugUnitTest
 
       - name: Start Android Emulator for UI & Integration Tests
         uses: reactivecircus/android-emulator-runner@v2
