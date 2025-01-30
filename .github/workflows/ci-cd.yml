@@ -3,7 +3,7 @@ name: Android CI with Firebase Emulator
 on:
   push:
     branches:
-      - staging
+      - testing
 
 jobs:
   build-and-test:
