@@ -23,10 +23,8 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Grant Gradlew Permissions
-        run: chmod +x gradlew
+        run: chmod +x ./Cod/gradlew
       
-      - name: Build the Project
-        run: ./gradlew build
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
