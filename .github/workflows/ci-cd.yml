@@ -23,8 +23,9 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Grant Gradlew Permissions
-        working-directory: Cod  
+        working-directory: Cod 
         run: chmod +x ./gradlew
+      
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -34,9 +35,26 @@ jobs:
       - name: Install Firebase Tools
         run: npm install -g firebase-tools
 
-      - name: Run Tests with Firebase Emulators
-        working-directory: Cod  
+      - name: Start Firebase Emulator (Background)
         run: |
-          firebase emulators:exec --only auth,database --project demo-project --host 0.0.0.0 \
-            "./gradlew testDebugUnitTest connectedDebugAndroidTest"
+          firebase emulators:start --only auth,database --project demo-project &
+          sleep 20  # Ensure emulators are fully started
 
+      - name: Run Unit Tests (Located in `test/`)
+        working-directory: Cod  
+        run: ./gradlew testDebugUnitTest
+
+      - name: Start Android Emulator for UI & Integration Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: Nexus 6
+          working-directory: Cod  
+          script: |
+            # Ensure Emulator is Ready
+            adb wait-for-device
+            sleep 10
+
+            # Run UI & Integration Tests (Located in `androidTest/`)
+            ./gradlew connectedDebugAndroidTest
