@@ -23,8 +23,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Grant Gradlew Permissions
-        working-directory: Cod 
-        run: chmod +x ./gradlew
+        run: chmod +x Cod/gradlew
       
 
       - name: Set up Node.js
@@ -41,8 +40,7 @@ jobs:
           sleep 20  # Ensure emulators are fully started
 
       - name: Run Unit Tests (Located in `test/`)
-        working-directory: Cod  
-        run: ./gradlew testDebugUnitTest
+        run: Cod/gradlew testDebugUnitTest 
 
       - name: Start Android Emulator for UI & Integration Tests
         uses: reactivecircus/android-emulator-runner@v2
