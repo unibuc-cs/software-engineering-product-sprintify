@@ -1,6 +1,7 @@
 # Sprintify
 
 ## Descriere generală 
+- [Documentatie](https://docs.google.com/document/d/1q6KTpr0s6aStWbkO2FxidhJT9VBT0mx_ogxfuw1GFE8/edit?usp=sharing)
 - [demo video](https://www.youtube.com/watch?v=h1O4onwRKA4)
 - Sprintify este o aplicație mobilă inovatoare destinată comunității de alergători, oferind servicii avansate de geolocalizare direct de pe telefonul utilizatorului.
 - Prin utilizarea tehnologiei GPS, Sprintify permite alergătorilor de toate nivelurile să urmărească în timp real distanța parcursă, ritmul și timpul de alergare. Mai mult decât atât, aplicația se distinge prin posibilitatea de personalizare a circuitelor, permițând utilizatorilor să creeze sau să selecteze trasee adaptate preferințelor. 
