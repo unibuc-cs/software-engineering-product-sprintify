@@ -1,6 +1,7 @@
 # Sprintify
 
 ## Descriere generală 
+- [Documentatie MDS](https://unibucro0-my.sharepoint.com/:w:/g/personal/andrei_serban2_s_unibuc_ro/EarfcWY9supBlMPhswjEhzEB3C0jFTkZZg-_rroAxqg6Aw)
 - [Documentatie](https://docs.google.com/document/d/1q6KTpr0s6aStWbkO2FxidhJT9VBT0mx_ogxfuw1GFE8/edit?usp=sharing)
 - [demo video](https://www.youtube.com/watch?v=h1O4onwRKA4)
 - Sprintify este o aplicație mobilă inovatoare destinată comunității de alergători, oferind servicii avansate de geolocalizare direct de pe telefonul utilizatorului.
