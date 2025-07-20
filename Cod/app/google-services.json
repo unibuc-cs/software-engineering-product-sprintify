@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "799735376074",
-    "project_id": "sprintify-aa959",
-    "storage_bucket": "sprintify-aa959.appspot.com"
+    "project_number": "562096930554",
+    "project_id": "sprintify-c6b0f",
+    "storage_bucket": "sprintify-c6b0f.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:799735376074:android:1aea3344351723e08d2c33",
+        "mobilesdk_app_id": "1:562096930554:android:b7d71cb2af36f8a5afd343",
         "android_client_info": {
           "package_name": "com.example.runpath"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA-ex_X39_7yXyoxV-GlG0M0pVok_Rv5x8"
+          "current_key": "AIzaSyDyZDIe4P-ymVmk0VEMLgtzaJ-5cc5_bUc"
         }
       ],
       "services": {
